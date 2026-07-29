@@ -1,0 +1,166 @@
+# Test practical memory usage patterns
+
+# Test implementing a simple stack
+ld $1, 0xF00       # Stack pointer (grows down from near top of memory)
+ld $2, 100         # Value to push
+sub $1, $1, 4      # Decrement stack pointer
+stw $2, $1[0]      # Push value
+
+ld $3, 200         # Another value
+sub $1, $1, 4
+stw $3, $1[0]      # Push
+
+ld $4, 300
+sub $1, $1, 4
+stw $4, $1[0]      # Push
+
+# Pop values
+ldw $5, $1[0]      # $5 = 300
+add $1, $1, 4
+ldw $6, $1[0]      # $6 = 200
+add $1, $1, 4
+ldw $7, $1[0]      # $7 = 100
+add $1, $1, 4
+
+# Test implementing an array
+ld $8, 0x200       # Array base address
+ld $9, 10          # array[0] = 10
+stw $9, $8[0]
+ld $10, 20         # array[1] = 20
+stw $10, $8[4]
+ld $11, 30         # array[2] = 30
+stw $11, $8[8]
+ld $12, 40         # array[3] = 40
+stw $12, $8[12]
+ld $13, 50         # array[4] = 50
+stw $13, $8[16]
+
+# Sum array elements
+ld $14, 0          # sum = 0
+ld $15, 0          # index = 0
+ld $16, 5          # count = 5
+array_sum_loop:
+    lsl $17, $15, 2    # Calculate offset (index * 4)
+    add $18, $8, $17   # Calculate address
+    ldw $19, $18[0]    # Load element
+    add $14, $14, $19  # Add to sum
+    add $15, $15, 1    # index++
+    sub $16, $16, 1    # count--
+    bne $16, $0, array_sum_loop
+# $14 = 150 (sum of array)
+
+# Test implementing a structure (x, y, z coordinates)
+ld $20, 0x300      # Structure base address
+ld $21, 100        # x coordinate
+ld $22, 200        # y coordinate
+ld $23, 300        # z coordinate
+stw $21, $20[0]    # Store x at offset 0
+stw $22, $20[4]    # Store y at offset 4
+stw $23, $20[8]    # Store z at offset 8
+
+# Calculate distance squared: x² + y² + z²
+ldw $24, $20[0]    # Load x
+ld $25, $24        # Copy for multiplication
+# Multiply x*x (using shift-and-add)
+lsl $26, $24, 1    # x*2
+add $27, $24, $26  # x*3
+lsl $28, $27, 1    # (x*3)*2 = x*6
+# (simplified: just use x*x ≈ loading x again for demo)
+
+# Test string storage (ASCII characters)
+ld $29, 0x400      # String base
+ld $30, 72         # 'H'
+stb $30, $29[0]
+ld $31, 101        # 'e'
+stb $31, $29[1]
+ld $1, 108         # 'l'
+stb $1, $29[2]
+stb $1, $29[3]     # 'l'
+ld $2, 111         # 'o'
+stb $2, $29[4]
+ld $3, 0           # null terminator
+stb $3, $29[5]
+
+# Read back string characters
+ldb $4, $29[0]     # $4 = 72 ('H')
+ldb $5, $29[1]     # $5 = 101 ('e')
+ldb $6, $29[2]     # $6 = 108 ('l')
+ldb $7, $29[3]     # $7 = 108 ('l')
+ldb $8, $29[4]     # $8 = 111 ('o')
+
+# Test implementing a lookup table
+ld $9, 0x500       # Table base
+ld $10, 1
+stw $10, $9[0]     # table[0] = 1
+ld $10, 4
+stw $10, $9[4]     # table[1] = 4
+ld $10, 9
+stw $10, $9[8]     # table[2] = 9
+ld $10, 16
+stw $10, $9[12]    # table[3] = 16
+ld $10, 25
+stw $10, $9[16]    # table[4] = 25
+
+# Lookup value at index 2
+ld $11, 2          # index
+lsl $12, $11, 2    # index * 4
+add $13, $9, $12   # Calculate address
+ldw $14, $13[0]    # $14 = 9
+
+# Test bitfield packing/unpacking
+ld $15, 0x600
+ld $16, 0x0000     # Start with zero
+# Pack: 4 bytes into one word
+ld $17, 0x12
+or $16, $16, $17   # Set bits 0-7
+ld $17, 0x34
+lsl $17, $17, 8
+or $16, $16, $17   # Set bits 8-15
+ld $17, 0x56
+lsl $17, $17, 16
+or $16, $16, $17   # Set bits 16-23
+ld $17, 0x78
+lsl $17, $17, 24
+or $16, $16, $17   # Set bits 24-31
+stw $16, $15[0]    # Store packed word: 0x78563412
+
+# Unpack bytes
+ldw $18, $15[0]
+and $19, $18, 0xFF # Extract byte 0: $19 = 0x12
+lsr $20, $18, 8
+and $20, $20, 0xFF # Extract byte 1: $20 = 0x34
+
+# Test swap operation using memory
+ld $21, 0x700
+ld $22, 111
+ld $23, 222
+stw $22, $21[0]    # Save $22 to memory
+ld $22, $23        # $22 = 222
+ldw $23, $21[0]    # $23 = 111
+# Now $22 and $23 are swapped
+
+# Test accumulator pattern
+ld $24, 0x800
+ld $25, 0          # Initialize accumulator in memory
+stw $25, $24[0]
+
+ld $26, 10         # Value to add
+ldw $27, $24[0]
+add $27, $27, $26
+stw $27, $24[0]    # accumulator += 10
+
+ld $26, 20
+ldw $27, $24[0]
+add $27, $27, $26
+stw $27, $24[0]    # accumulator += 20
+
+ld $26, 30
+ldw $27, $24[0]
+add $27, $27, $26
+stw $27, $24[0]    # accumulator += 30
+
+ldw $28, $24[0]    # $28 = 60 (final accumulator)
+
+
+ld $30,0
+ret

@@ -1,0 +1,74 @@
+# Test shift operations: LSL, LSR, ASR
+
+# Test Logical Shift Left (LSL)
+ld $1, 1
+ld $2, 4
+lsl $3, $1, $2      # $3 = 16 (1 << 4)
+
+ld $4, 0xFF
+ld $5, 8
+lsl $6, $4, $5      # $6 = 0xFF00
+
+ld $7, 0x12345678
+ld $8, 4
+lsl $9, $7, $8      # $9 = 0x23456780
+
+# Test LSL with immediate
+ld $10, 1
+lsl $11, $10, 10    # $11 = 1024
+
+ld $12, 0xABCD
+lsl $13, $12, 16    # $13 = 0xABCD0000
+
+# Test LSL by zero
+ld $14, 0x12345678
+lsl $15, $14, 0     # $15 = 0x12345678
+
+# Test Logical Shift Right (LSR)
+ld $16, 0x80000000
+ld $17, 4
+lsr $18, $16, $17   # $18 = 0x08000000 (unsigned)
+
+ld $19, 0xFF00
+ld $20, 8
+lsr $21, $19, $20   # $21 = 0x00FF
+
+ld $22, 0xFFFFFFFF
+ld $23, 1
+lsr $24, $22, $23   # $24 = 0x7FFFFFFF
+
+# Test LSR with immediate
+ld $25, 1024
+lsr $26, $25, 10    # $26 = 1
+
+ld $27, 0xABCD0000
+lsr $28, $27, 16    # $28 = 0x0000ABCD
+
+# Test Arithmetic Shift Right (ASR)
+ld $29, 0x80000000
+ld $30, 4
+asr $31, $29, $30   # $31 = 0xF8000000 (sign-extended)
+
+ld $1, 0x7FFFFFFF
+ld $2, 4
+asr $3, $1, $2      # $3 = 0x07FFFFFF (positive, same as LSR)
+
+# Test ASR with immediate
+ld $4, -16
+asr $5, $4, 2       # $5 = -4 (preserves sign)
+
+ld $6, 0xFFFFFF00
+asr $7, $6, 4       # $7 = 0xFFFFFFF0
+
+# Test edge case: shift by 31
+ld $8, 0x80000000
+lsr $9, $8, 31      # $9 = 1
+
+ld $10, 0x80000000
+asr $11, $10, 31    # $11 = 0xFFFFFFFF (all 1s)
+
+ld $12, 1
+lsl $13, $12, 31    # $13 = 0x80000000
+
+ld $30,0
+ret

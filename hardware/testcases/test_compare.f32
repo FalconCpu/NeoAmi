@@ -1,0 +1,86 @@
+# Test comparison operations: CLT (signed), CLTU (unsigned)
+
+# Test CLT (compare less than, signed)
+ld $1, 10
+ld $2, 20
+clt $3, $1, $2      # $3 = 1 (10 < 20)
+
+ld $4, 20
+ld $5, 10
+clt $6, $4, $5      # $6 = 0 (20 not < 10)
+
+ld $7, 15
+ld $8, 15
+clt $9, $7, $8      # $9 = 0 (15 not < 15)
+
+# Test CLT with negative numbers (signed comparison)
+ld $10, -10
+ld $11, 5
+clt $12, $10, $11   # $12 = 1 (-10 < 5)
+
+ld $13, 5
+ld $14, -10
+clt $15, $13, $14   # $15 = 0 (5 not < -10)
+
+ld $16, -20
+ld $17, -10
+clt $18, $16, $17   # $18 = 1 (-20 < -10)
+
+ld $19, -10
+ld $20, -20
+clt $21, $19, $20   # $21 = 0 (-10 not < -20)
+
+# Test CLT with immediate
+ld $22, 10
+clt $23, $22, 20    # $23 = 1 (10 < 20)
+
+ld $24, 100
+clt $25, $24, 50    # $25 = 0 (100 not < 50)
+
+ld $26, -5
+clt $27, $26, 10    # $27 = 1 (-5 < 10)
+
+# Test CLTU (compare less than, unsigned)
+ld $28, 10
+ld $29, 20
+cltu $30, $28, $29  # $30 = 1 (10 < 20 unsigned)
+
+ld $31, 20
+ld $1, 10
+cltu $2, $31, $1    # $2 = 0 (20 not < 10 unsigned)
+
+# Test CLTU with large numbers (unsigned interpretation)
+ld $3, 0x80000000   # -2147483648 signed, but 2147483648 unsigned
+ld $4, 0x7FFFFFFF   # 2147483647 both signed and unsigned
+cltu $5, $3, $4     # $5 = 0 (0x80000000 > 0x7FFFFFFF unsigned)
+
+ld $6, 0x7FFFFFFF
+ld $7, 0x80000000
+cltu $8, $6, $7     # $8 = 1 (0x7FFFFFFF < 0x80000000 unsigned)
+
+# Test signed vs unsigned with negative numbers
+ld $9, -1           # 0xFFFFFFFF
+ld $10, 1
+clt $11, $9, $10    # $11 = 1 (-1 < 1 signed)
+cltu $12, $9, $10   # $12 = 0 (0xFFFFFFFF > 1 unsigned)
+
+# Test CLTU with immediate
+ld $13, 100
+cltu $14, $13, 200  # $14 = 1
+
+ld $15, 0xFFFFFFFF
+cltu $16, $15, 100  # $16 = 0 (0xFFFFFFFF > 100 unsigned)
+
+# Test with zero
+ld $17, 0
+ld $18, 1
+clt $19, $17, $18   # $19 = 1 (0 < 1)
+cltu $20, $17, $18  # $20 = 1 (0 < 1)
+
+ld $21, 1
+ld $22, 0
+clt $23, $21, $22   # $23 = 0 (1 not < 0)
+cltu $24, $21, $22  # $24 = 0 (1 not < 0)
+
+ld $30,0
+ret

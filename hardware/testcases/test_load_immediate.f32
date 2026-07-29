@@ -1,0 +1,63 @@
+# Test LD pseudo-instruction with various immediate values
+
+# Test loading small positive immediates (single instruction)
+ld $1, 0
+ld $2, 1
+ld $3, 10
+ld $4, 100
+ld $5, 255
+ld $6, 0x7FF       # 11-bit max positive in immediate field
+
+# Test loading negative immediates (sign-extended)
+ld $7, -1
+ld $8, -10
+ld $9, -100
+ld $10, -256
+ld $11, -1024
+
+# Test loading medium-sized values
+ld $12, 0x1000
+ld $13, 0x1234
+ld $14, 0xABCD
+ld $15, 0xFFFF
+
+# Test loading large 32-bit values (requires LDU instruction)
+ld $16, 0x12345678
+ld $17, 0xDEADBEEF
+ld $18, 0xCAFEBABE
+ld $19, 0x80000000
+ld $20, 0x7FFFFFFF
+ld $21, 0xFFFFFFFF
+
+# Test loading powers of 2
+ld $22, 0x00000001
+ld $23, 0x00000100
+ld $24, 0x00010000
+ld $25, 0x01000000
+ld $26, 0x80000000
+
+# Test loading bit patterns
+ld $27, 0xAAAAAAAA
+ld $28, 0x55555555
+ld $29, 0xF0F0F0F0
+ld $30, 0x0F0F0F0F
+
+# Test register-to-register copy using LD
+ld $31, 0x12345678
+ld $1, $31         # Copy $31 to $1
+
+# Test loading and using zero
+ld $2, 0
+ld $3, 42
+add $4, $3, $2     # $4 = 42
+or $5, $3, $2      # $5 = 42
+and $6, $3, $2     # $6 = 0
+
+# Verify register 0 is always zero
+add $7, $0, $0     # $7 = 0
+ld $8, 999
+add $9, $0, $8     # $9 = 999 (only $8 contributes)
+or $10, $0, 123    # $10 = 123
+
+ld $30,0
+ret

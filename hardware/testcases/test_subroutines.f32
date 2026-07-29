@@ -1,0 +1,80 @@
+# Test subroutine calls using JSR (jump to subroutine) and RET
+
+# Initialize test values
+ld $1, 10
+ld $2, 20
+
+# Call first subroutine
+jsr subroutine1
+ld $3, 100         # Should execute after return, $3 = 100
+
+# Call second subroutine  
+jsr subroutine2
+ld $4, 200         # Should execute after return, $4 = 200
+
+# Call subroutine with parameters
+ld $5, 5
+ld $6, 7
+jsr add_subroutine
+# Result in $7 should be 12
+ld $8, 300         # $8 = 300
+
+# Test nested subroutine calls
+jsr outer_routine
+ld $9, 400         # $9 = 400
+
+# Jump to end
+jmp end_program
+
+# Subroutine 1: Simple operation
+subroutine1:
+    ld $10, 1
+    add $11, $1, $2    # $11 = 30
+    ret
+
+# Subroutine 2: Another simple operation
+subroutine2:
+    ld $12, 2
+    sub $13, $2, $1    # $13 = 10
+    ret
+
+# Subroutine that adds $5 and $6, returns result in $7
+add_subroutine:
+    add $7, $5, $6     # $7 = $5 + $6
+    ret
+
+# Outer routine that calls inner routine (nested calls)
+outer_routine:
+    ld $29, $30         # Save return address
+    ld $14, 50
+    jsr inner_routine  # Call nested subroutine
+    ld $15, 60         # Should execute after inner returns
+    ld $30, $29         # Restore return address
+    ret
+
+# Inner routine called by outer routine
+inner_routine:
+    ld $16, 70
+    add $17, $14, $16  # $17 = 120
+    ret
+
+end_program:
+    ld $30,0
+    ret
+
+# Test multiple returns to same caller
+ld $18, 0
+jsr multi_call_sub
+add $18, $18, 1    # $18 = 1
+jsr multi_call_sub
+add $18, $18, 1    # $18 = 2
+jsr multi_call_sub
+add $18, $18, 1    # $18 = 3
+jmp final_end
+
+multi_call_sub:
+    ld $19, 111
+    ret
+
+final_end:
+    ld $20, 777        # Final marker

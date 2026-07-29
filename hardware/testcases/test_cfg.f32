@@ -1,0 +1,149 @@
+# Test CFG instruction and configuration registers
+# Tests read, write, and atomic read-write operations
+
+# Test 1: Read version register (should be 0x00020000)
+cfg $1, !version
+ld $2, 0x00020000
+sub $3, $1, $2      # Should be 0
+bne $3, 0, fail
+
+# Test 2: Write and read back !epc (exception PC)
+ld $4, 0xDEADBEEF
+cfg !epc, $4
+cfg $5, !epc
+sub $6, $5, $4      # Should match
+bne $6, 0, fail
+
+# Test 3: Write and read back !ecause (8-bit exception cause)
+ld $7, 0x42
+cfg !ecause, $7
+cfg $8, !ecause
+and $8, 0xFF        # Mask to 8 bits
+sub $9, $8, $7
+bne $9, 0, fail
+
+# Test 4: Write and read back !edata (exception data)
+ld $10, 0xCAFEBABE
+cfg !edata, $10
+cfg $11, !edata
+sub $12, $11, $10
+bne $12, 0, fail
+
+# Test 5: Write and read back !estatus (8-bit exception status)
+ld $13, 0x03
+cfg !estatus, $13
+cfg $14, !estatus
+and $14, 0xFF       # Mask to 8 bits
+sub $15, $14, $13
+bne $15, 0, fail
+
+# Test 6: Write and read back !escratch (scratch register)
+ld $16, 0x12345678
+cfg !escratch, $16
+cfg $17, !escratch
+sub $18, $17, $16
+bne $18, 0, fail
+
+# Test 7: Write and read back !evec (exception vector)
+ld $19, 0x10000000
+cfg !evec, $19
+cfg $20, !evec
+sub $21, $20, $19
+bne $21, 0, fail
+
+# Test 8: Write and read back !status (status register)
+ld $22, 0x02
+cfg !status, $22
+cfg $23, !status
+and $23, 0xFF       # Mask to 8 bits
+sub $24, $23, $22
+bne $24, 0, fail
+
+# Test 9: Write and read back !ipc (interrupt PC)
+ld $25, 0xFEEDFACE
+cfg !ipc, $25
+cfg $26, !ipc
+sub $27, $26, $25
+bne $27, 0, fail
+
+# Test 10: Write and read back !icause (8-bit interrupt cause)
+ld $1, 0x01
+cfg !icause, $1
+cfg $2, !icause
+and $2, 0xFF        # Mask to 8 bits
+sub $3, $2, $1
+bne $3, 0, fail
+
+# Test 11: Write and read back !istatus (8-bit interrupt status)
+ld $4, 0x03
+cfg !istatus, $4
+cfg $5, !istatus
+and $5, 0xFF        # Mask to 8 bits
+sub $6, $5, $4
+bne $6, 0, fail
+
+# Test 12: Write and read back !intvec (interrupt vector)
+ld $7, 0x20000000
+cfg !intvec, $7
+cfg $8, !intvec
+sub $9, $8, $7
+bne $9, 0, fail
+
+# Test 13: Write !timer (read-back test skipped - too timing-sensitive)
+ld $10, 0x00001000
+cfg !timer, $10
+# Timer will be tested via interrupts later
+
+# Test 14: Atomic read-write operation on !escratch
+ld $13, 0xAAAAAAAA
+cfg !escratch, $13  # Write initial value
+ld $14, 0xBBBBBBBB
+cfg $15, !escratch, $14  # Atomic: read old value into $15, write new value
+# $15 should contain old value (0xAAAAAAAA)
+sub $16, $15, $13
+bne $16, 0, fail
+# Verify new value was written
+cfg $17, !escratch
+sub $18, $17, $14
+bne $18, 0, fail
+
+# Test 15: Atomic read-write on !status
+ld $19, 0x01
+cfg !status, $19
+ld $20, 0x03
+cfg $21, !status, $20  # Read old (0x01), write new (0x03)
+and $21, 0xFF
+sub $22, $21, $19
+bne $22, 0, fail
+cfg $23, !status
+and $23, 0xFF
+sub $24, $23, $20
+bne $24, 0, fail
+
+# Test 16: Multiple writes to same register
+ld $25, 0x11111111
+cfg !edata, $25
+ld $26, 0x22222222
+cfg !edata, $26
+ld $27, 0x33333333
+cfg !edata, $27
+cfg $28, !edata
+sub $29, $28, $27   # Should have last written value
+bne $29, 0, fail
+
+# Test 17: Write to version register (should have no effect - read-only)
+cfg $1, !version    # Read current version
+ld $2, 0xFFFFFFFF
+cfg !version, $2    # Try to write
+cfg $3, !version    # Read again
+sub $4, $3, $1      # Should still be original value
+bne $4, 0, fail
+
+# All tests passed
+ld $30, 0
+ret
+
+fail:
+# Test failed - halt with error code in $30
+ld $30, 0xBAD00000
+ret

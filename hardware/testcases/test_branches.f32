@@ -1,0 +1,147 @@
+# Test branch instructions: beq, bne, blt, bltu, bgt, bgtu
+
+# Test BEQ (branch if equal) - taken
+ld $1, 10
+ld $2, 10
+ld $3, 0
+beq $1, $2, beq_taken1
+ld $3, 99          # Should NOT execute
+beq_taken1:
+ld $4, 1           # $4 = 1, $3 = 0
+
+# Test BEQ - not taken
+ld $5, 10
+ld $6, 20
+ld $7, 0
+beq $5, $6, beq_skip1
+ld $7, 1           # Should execute
+beq_skip1:
+ld $8, 2           # $8 = 2, $7 = 1
+
+# Test BNE (branch if not equal) - taken
+ld $9, 10
+ld $10, 20
+ld $11, 0
+bne $9, $10, bne_taken1
+ld $11, 99         # Should NOT execute
+bne_taken1:
+ld $12, 3          # $12 = 3, $11 = 0
+
+# Test BNE - not taken
+ld $13, 15
+ld $14, 15
+ld $15, 0
+bne $13, $14, bne_skip1
+ld $15, 4          # Should execute
+bne_skip1:
+ld $16, 5          # $16 = 5, $15 = 4
+
+# Test BLT (branch if less than, signed) - taken
+ld $17, 5
+ld $18, 10
+ld $19, 0
+blt $17, $18, blt_taken1
+ld $19, 99         # Should NOT execute
+blt_taken1:
+ld $20, 6          # $20 = 6, $19 = 0
+
+# Test BLT - not taken (equal)
+ld $21, 10
+ld $22, 10
+ld $23, 0
+blt $21, $22, blt_skip1
+ld $23, 7          # Should execute
+blt_skip1:
+ld $24, 8          # $24 = 8, $23 = 7
+
+# Test BLT - not taken (greater)
+ld $25, 20
+ld $26, 10
+ld $27, 0
+blt $25, $26, blt_skip2
+ld $27, 9          # Should execute
+blt_skip2:
+ld $28, 10         # $28 = 10, $27 = 9
+
+# Test BLT with negative numbers (signed) - taken
+ld $29, -10
+ld $30, 5
+ld $31, 0
+blt $29, $30, blt_neg_taken
+ld $31, 99         # Should NOT execute
+blt_neg_taken:
+ld $1, 11          # $1 = 11, $31 = 0
+
+# Test BLTU (branch if less than, unsigned) - taken
+ld $2, 5
+ld $3, 10
+ld $4, 0
+bltu $2, $3, bltu_taken1
+ld $4, 99          # Should NOT execute
+bltu_taken1:
+ld $5, 12          # $5 = 12, $4 = 0
+
+# Test BLTU with "negative" as unsigned (0xFFFFFFFF > small positive)
+ld $6, -1          # 0xFFFFFFFF
+ld $7, 100
+ld $8, 0
+bltu $6, $7, bltu_skip1
+ld $8, 13          # Should execute (0xFFFFFFFF > 100 unsigned)
+bltu_skip1:
+ld $9, 14          # $9 = 14, $8 = 13
+
+# Test BGT (branch if greater than, signed) - taken
+ld $10, 20
+ld $11, 10
+ld $12, 0
+bgt $10, $11, bgt_taken1
+ld $12, 99         # Should NOT execute
+bgt_taken1:
+ld $13, 15         # $13 = 15, $12 = 0
+
+# Test BGT - not taken (equal)
+ld $14, 10
+ld $15, 10
+ld $16, 0
+bgt $14, $15, bgt_skip1
+ld $16, 16         # Should execute
+bgt_skip1:
+ld $17, 17         # $17 = 17, $16 = 16
+
+# Test BGT with negative numbers (signed) - taken
+ld $18, 5
+ld $19, -10
+ld $20, 0
+bgt $18, $19, bgt_neg_taken
+ld $20, 99         # Should NOT execute
+bgt_neg_taken:
+ld $21, 18         # $21 = 18, $20 = 0
+
+# Test BGTU (branch if greater than, unsigned) - taken
+ld $22, 100
+ld $23, 50
+ld $24, 0
+bgtu $22, $23, bgtu_taken1
+ld $24, 99         # Should NOT execute
+bgtu_taken1:
+ld $25, 19         # $25 = 19, $24 = 0
+
+# Test BGTU with "negative" as unsigned
+ld $26, -1         # 0xFFFFFFFF
+ld $27, 100
+ld $28, 0
+bgtu $26, $27, bgtu_unsigned_taken
+ld $28, 99         # Should NOT execute
+bgtu_unsigned_taken:
+ld $29, 20         # $29 = 20, $28 = 0
+
+# Test branch with $0 (always zero)
+ld $30, 5
+ld $31, 0
+beq $0, $31, branch_zero_taken
+ld $31, 99         # Should NOT execute
+branch_zero_taken:
+ld $1, 21          # $1 = 21, $31 = 0
+
+ld $30,0
+ret

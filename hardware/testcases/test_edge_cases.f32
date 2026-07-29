@@ -1,0 +1,78 @@
+# Test edge cases and boundary conditions
+
+# Test operations with register $0 (hardwired to zero)
+add $1, $0, $0      # $1 = 0
+ld $2, 42
+add $3, $0, $2      # $3 = 42
+add $4, $2, $0      # $4 = 42
+and $5, $0, $2      # $5 = 0
+or $6, $0, $2       # $6 = 42
+xor $7, $0, $2      # $7 = 42
+sub $8, $0, $2      # $8 = -42
+sub $9, $2, $0      # $9 = 42
+
+# Test maximum positive 32-bit value
+ld $10, 0x7FFFFFFF
+ld $11, 1
+add $12, $10, $11   # $12 = 0x80000000 (overflow to min negative)
+sub $13, $10, $11   # $13 = 0x7FFFFFFE
+
+# Test minimum negative 32-bit value (two's complement)
+ld $14, 0x80000000
+ld $15, 1
+add $16, $14, $15   # $16 = 0x80000001
+sub $17, $14, $15   # $17 = 0x7FFFFFFF (underflow)
+
+# Test all ones and all zeros
+ld $18, 0xFFFFFFFF
+ld $19, 0x00000000
+and $20, $18, $19   # $20 = 0
+or $21, $18, $19    # $21 = 0xFFFFFFFF
+xor $22, $18, $19   # $22 = 0xFFFFFFFF
+add $23, $18, $19   # $23 = 0xFFFFFFFF
+sub $24, $18, $19   # $24 = 0xFFFFFFFF
+
+# Test XOR with itself (always produces zero)
+ld $25, 0x12345678
+xor $26, $25, $25   # $26 = 0
+
+# Test AND with itself (identity)
+ld $27, 0xABCDEF00
+and $28, $27, $27   # $28 = 0xABCDEF00
+
+# Test OR with itself (identity)
+ld $29, 0x98765432
+or $30, $29, $29    # $30 = 0x98765432
+
+# Test shifts at boundaries
+ld $31, 1
+lsl $1, $31, 31     # $1 = 0x80000000 (shift left by 31)
+lsr $2, $1, 31      # $2 = 1 (shift right by 31)
+
+ld $3, 0x80000000
+asr $4, $3, 31      # $4 = 0xFFFFFFFF (arithmetic shift fills with sign bit)
+
+# Test comparison edge cases
+ld $5, 0x7FFFFFFF
+ld $6, 0x80000000
+clt $7, $5, $6      # $7 = 0 (0x7FFFFFFF > 0x80000000 signed)
+cltu $8, $5, $6     # $8 = 1 (0x7FFFFFFF < 0x80000000 unsigned)
+
+# Test ADD/SUB with same register
+ld $9, 100
+add $10, $9, $9     # $10 = 200
+sub $11, $9, $9     # $11 = 0
+
+# Test immediates at 13-bit boundary (s13: -4096 to 4095)
+ld $12, 100
+add $13, $12, 4095  # $13 = 4195 (max positive immediate)
+add $14, $12, -4096 # $14 = -3996 (max negative immediate)
+
+# Test shift by zero (should be identity)
+ld $15, 0xABCDEF01
+lsl $16, $15, 0     # $16 = 0xABCDEF01
+lsr $17, $15, 0     # $17 = 0xABCDEF01
+asr $18, $15, 0     # $18 = 0xABCDEF01
+
+ld $30,0
+ret

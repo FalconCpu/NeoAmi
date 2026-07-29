@@ -1,0 +1,197 @@
+# Test complex control flow patterns
+
+# Fibonacci sequence using loop
+ld $1, 0           # fib(n-2)
+ld $2, 1           # fib(n-1)
+ld $3, 10          # counter
+ld $4, 0           # result
+
+fib_loop:
+    ld $4, $2          # Save fib(n-1)
+    add $2, $1, $2     # fib(n) = fib(n-1) + fib(n-2)
+    ld $1, $4          # fib(n-2) = old fib(n-1)
+    sub $3, $3, 1
+    bne $3, $0, fib_loop
+
+ld $5, 1           # $5 = 1, $2 contains fib(10) = 89
+
+# Factorial using subroutine (recursive simulation)
+ld $6, 5           # Calculate 5!
+jsr factorial
+ld $8, 2           # $8 = 2, $7 should contain 120
+jmp after_factorial
+
+factorial:
+    ld $7, 1           # result = 1
+    ld $9, $6          # counter = n
+fact_loop:
+    beq $9, $0, fact_done
+    # result *= counter
+    ld $10, $7         # Save current result
+    ld $11, $9         # Save counter
+    ld $12, 0          # accumulator
+fact_mult:
+    beq $11, $0, fact_mult_done
+    add $12, $12, $10
+    sub $11, $11, 1
+    jmp fact_mult
+fact_mult_done:
+    ld $7, $12         # Update result
+    sub $9, $9, 1      # Decrement counter
+    jmp fact_loop
+fact_done:
+    ret
+
+after_factorial:
+
+# Find maximum in array (simulated)
+ld $13, 5          # Element 1
+ld $14, 12         # Element 2
+ld $15, 3          # Element 3
+ld $16, 9          # Element 4
+ld $17, 7          # Element 5
+ld $18, 0          # max value
+ld $19, 5          # count
+
+# Compare and find max
+ld $18, $13
+bgt $14, $18, max_is_14
+jmp check_15
+max_is_14:
+ld $18, $14
+check_15:
+bgt $15, $18, max_is_15
+jmp check_16
+max_is_15:
+ld $18, $15
+check_16:
+bgt $16, $18, max_is_16
+jmp check_17
+max_is_16:
+ld $18, $16
+check_17:
+bgt $17, $18, max_is_17
+jmp found_max
+max_is_17:
+ld $18, $17
+found_max:
+ld $20, 3          # $20 = 3, $18 = 12 (maximum)
+
+# Binary search simulation (search for value in sorted "array")
+# Array: 2, 5, 8, 12, 15, 19, 23, 28
+# Search for: 15
+ld $21, 15         # Search value
+ld $22, 0          # low index
+ld $23, 7          # high index
+ld $24, 0          # mid index
+ld $25, 0          # result (found = 1, not found = 0)
+
+binary_search:
+    bgt $22, $23, not_found
+    # Calculate mid = (low + high) / 2
+    add $24, $22, $23
+    lsr $24, $24, 1
+    
+    # Get value at mid (simulated with branches)
+    ld $26, 0
+    beq $24, $26, get_val_0
+    ld $26, 1
+    beq $24, $26, get_val_1
+    ld $26, 2
+    beq $24, $26, get_val_2
+    ld $26, 3
+    beq $24, $26, get_val_3
+    ld $26, 4
+    beq $24, $26, get_val_4
+    ld $26, 5
+    beq $24, $26, get_val_5
+    ld $26, 6
+    beq $24, $26, get_val_6
+    ld $26, 7
+    beq $24, $26, get_val_7
+    jmp compare_value
+    
+get_val_0:
+    ld $27, 2
+    jmp compare_value
+get_val_1:
+    ld $27, 5
+    jmp compare_value
+get_val_2:
+    ld $27, 8
+    jmp compare_value
+get_val_3:
+    ld $27, 12
+    jmp compare_value
+get_val_4:
+    ld $27, 15
+    jmp compare_value
+get_val_5:
+    ld $27, 19
+    jmp compare_value
+get_val_6:
+    ld $27, 23
+    jmp compare_value
+get_val_7:
+    ld $27, 28
+    jmp compare_value
+    
+compare_value:
+    beq $27, $21, found_it
+    blt $27, $21, search_right
+    # Search left
+    sub $23, $24, 1
+    jmp binary_search
+search_right:
+    add $22, $24, 1
+    jmp binary_search
+    
+found_it:
+    ld $25, 1
+    jmp search_done
+    
+not_found:
+    ld $25, 0
+    
+search_done:
+ld $28, 4          # $28 = 4, $25 = 1 (found)
+
+# State machine simulation (traffic light)
+ld $29, 0          # state (0=red, 1=yellow, 2=green)
+ld $30, 3          # iterations
+ld $31, 0          # output counter
+
+traffic_loop:
+    beq $30, $0, traffic_done
+    beq $29, $0, state_red
+    ld $1, 1
+    beq $29, $1, state_yellow
+    ld $1, 2
+    beq $29, $1, state_green
+    jmp next_state
+    
+state_red:
+    add $31, $31, 1    # Red: increment by 1
+    ld $29, 2          # Next: green
+    jmp next_state
+    
+state_yellow:
+    add $31, $31, 10   # Yellow: increment by 10
+    ld $29, 0          # Next: red
+    jmp next_state
+    
+state_green:
+    add $31, $31, 100  # Green: increment by 100
+    ld $29, 1          # Next: yellow
+    jmp next_state
+    
+next_state:
+    sub $30, $30, 1
+    jmp traffic_loop
+    
+traffic_done:
+ld $2, 5           # $2 = 5, $31 should be 111 (100+10+1)
+
+
+ld $30,0
+ret

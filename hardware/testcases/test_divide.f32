@@ -1,0 +1,130 @@
+
+# Comprehensive divide and modulo instruction test
+# Tests DIVU, DIVS, MODU, MODS with various edge cases
+
+# Test 1: Basic unsigned division
+ld $1, 100
+ld $2, 10
+divu $3, $1, $2      # $3 = 10
+
+# Test 2: Unsigned division with immediate
+ld $4, 1000
+divu $5, $4, 25      # $5 = 40
+
+# Test 3: Unsigned modulo
+ld $6, 100
+ld $7, 30
+modu $8, $6, $7      # $8 = 10 (100 % 30)
+
+# Test 4: Unsigned modulo with immediate
+ld $9, 255
+modu $10, $9, 16     # $10 = 15 (255 % 16)
+
+# Test 5: Division by 1
+ld $11, 12345
+divu $12, $11, 1     # $12 = 12345
+
+# Test 6: Modulo by 1
+ld $13, 99999
+modu $14, $13, 1     # $14 = 0
+
+# Test 7: Division of 0
+ld $15, 0
+ld $16, 42
+divu $17, $15, $16   # $17 = 0
+
+# Test 8: Modulo of 0
+modu $18, $15, $16   # $18 = 0
+
+# Test 9: Number divided by itself
+ld $19, 77777
+divu $20, $19, $19   # $20 = 1
+modu $21, $19, $19   # $21 = 0
+
+# Test 10: Signed division - both positive
+ld $22, 1000
+ld $23, 7
+divs $24, $22, $23   # $24 = 142 (1000 / 7)
+mods $25, $22, $23   # $25 = 6 (1000 % 7)
+
+# Test 11: Signed division - negative dividend
+ld $26, -1000
+ld $27, 7
+divs $28, $26, $27   # $28 = -142 (rounds toward zero)
+mods $29, $26, $27   # $29 = -6 (sign matches dividend)
+
+# Test 12: Signed division - negative divisor
+ld $1, 1000
+ld $2, -7
+divs $3, $1, $2      # $3 = -142
+mods $4, $1, $2      # $4 = 6 (sign matches dividend)
+
+# Test 13: Signed division - both negative
+ld $5, -1000
+ld $6, -7
+divs $7, $5, $6      # $7 = 142 (negative / negative = positive)
+mods $8, $5, $6      # $8 = -6 (sign matches dividend)
+
+# Test 14: Large unsigned division
+ld $9, 0xFFFFFFFF    # Maximum 32-bit value
+ld $10, 2
+divu $11, $9, $10    # $11 = 0x7FFFFFFF (4294967295 / 2)
+modu $12, $9, $10    # $12 = 1
+
+# Test 15: Unsigned vs signed with high bit set
+ld $13, 0x80000000   # -2147483648 signed, 2147483648 unsigned
+ld $14, 2
+divu $15, $13, $14   # $15 = 0x40000000 (unsigned: 1073741824)
+divs $16, $13, $14   # $16 = 0xC0000000 (signed: -1073741824)
+
+# Test 16: Division by powers of 2
+ld $17, 12800
+divu $18, $17, 256   # $18 = 50
+modu $19, $17, 256   # $19 = 0
+
+# Test 17: Signed division with immediate - negative immediate
+ld $20, 10000
+divs $21, $20, -100  # $21 = -100
+mods $22, $20, -100  # $22 = 0
+
+# Test 18: Exact division (no remainder)
+ld $23, 144
+ld $24, 12
+divs $25, $23, $24   # $25 = 12
+mods $26, $23, $24   # $26 = 0
+
+# Test 19: Non-exact division
+ld $27, 100
+ld $28, 7
+divs $29, $27, $28   # $29 = 14
+mods $1, $27, $28    # $1 = 2
+
+# Test 20: Division resulting in 0
+ld $2, 5
+ld $3, 100
+divu $4, $2, $3      # $4 = 0 (5 / 100)
+modu $5, $2, $3      # $5 = 5 (5 % 100)
+
+# Test 21: Large prime modulo
+ld $6, 1000000
+ld $7, 97
+modu $8, $6, $7      # $8 = 1000000 % 97
+
+# Test 22: Edge case - most negative / -1
+ld $9, 0x80000000    # Most negative signed (-2^31)
+ld $10, -1
+divs $11, $9, $10    # $11 = overflow case (result would be 2^31, which overflows)
+mods $12, $9, $10    # $12 = 0
+
+# Test 23: Mixed operations verification
+ld $13, 12345
+ld $14, 67
+divs $15, $13, $14   # $15 = quotient
+mods $16, $13, $14   # $16 = remainder
+# Verify: $13 should equal ($15 * $14) + $16
+mul $17, $15, $14
+add $18, $17, $16    # $18 should equal $13 (12345)
+
+# Return
+ld $30, 0
+ret

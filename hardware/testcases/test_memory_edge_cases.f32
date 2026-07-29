@@ -1,0 +1,136 @@
+# Test memory access edge cases and boundaries
+
+# Test at start of memory (address 0x0000)
+ld $1, 0x0
+ld $2, 0xDEADBEEF
+stw $2, $1[0]      # Store at 0x0000
+ldw $3, $1[0]      # $3 = 0xDEADBEEF
+
+# Test byte access at start
+ld $4, 0x42
+stb $4, $1[0]      # Store byte at 0x0000
+ldb $5, $1[0]      # $5 = 0x00000042
+
+# Test halfword access at start
+ld $6, 0x1234
+sth $6, $1[0]      # Store halfword at 0x0000
+ldh $7, $1[0]      # $7 = 0x00001234
+
+# Test near end of 4KB memory (0x1000 = 4096)
+# Last valid word address is 0xFFC (4092)
+ld $8, 0xFFC
+ld $9, 0xCAFEBABE
+stw $9, $8[0]      # Store at 0xFFC (last word)
+ldw $10, $8[0]     # $10 = 0xCAFEBABE
+
+# Test last valid halfword (0xFFE)
+ld $11, 0xFFE
+ld $12, 0x9876
+sth $12, $11[0]    # Store at 0xFFE
+ldh $13, $11[0]    # $13 = 0xFFFF9876
+
+# Test last valid byte (0xFFF)
+ld $14, 0xFFF
+ld $15, 0xAB
+stb $15, $14[0]    # Store at 0xFFF (last byte)
+ldb $16, $14[0]    # $16 = 0xFFFFFFAB
+
+# Test with offsets that span memory range
+ld $17, 0x800      # Middle of memory
+ld $18, 0x11111111
+ld $19, 0x22222222
+stw $18, $17[-256]  # Store at 0x700
+stw $19, $17[256]   # Store at 0x900
+ldw $20, $17[-256]  # $20 = 0x11111111
+ldw $21, $17[256]   # $21 = 0x22222222
+
+# Test zero offset
+ld $22, 0x500
+ld $23, 0x12345678
+stw $23, $22[0]    # Store with zero offset
+ldw $24, $22[0]    # $24 = 0x12345678
+
+# Test using $0 register as base (address 0)
+ld $25, 0xABCDEF01
+stw $25, $0[256]   # Store at offset 256 from address 0
+ldw $26, $0[256]   # $26 = 0xABCDEF01
+
+# Test sequential addresses
+ld $27, 0x400
+ld $28, 0x01010101
+ld $29, 0x02020202
+ld $30, 0x03030303
+ld $31, 0x04040404
+stw $28, $27[0]
+stw $29, $27[4]
+stw $30, $27[8]
+stw $31, $27[12]
+ldw $1, $27[0]     # $1 = 0x01010101
+ldw $2, $27[4]     # $2 = 0x02020202
+ldw $3, $27[8]     # $3 = 0x03030303
+ldw $4, $27[12]    # $4 = 0x04040404
+
+# # Test reading uninitialized memory (implementation-dependent)
+# # Just ensure it doesn't crash
+# ld $5, 0xE00
+# ldw $6, $5[0]      # Read whatever is there
+# ldh $7, $5[2]      # Read halfword
+# ldb $8, $5[1]      # Read byte
+
+# Test memory as temporary storage in computation
+ld $9, 0x600
+ld $10, 100
+ld $11, 200
+add $12, $10, $11  # $12 = 300
+stw $12, $9[0]     # Save to memory
+ld $13, 50
+add $14, $12, $13  # $14 = 350
+ldw $15, $9[0]     # Load saved value: $15 = 300
+add $16, $14, $15  # $16 = 650
+
+# Test store and load in loop (memory-based counter)
+ld $17, 0x700
+ld $18, 0          # Initialize counter in memory
+stw $18, $17[0]
+
+ld $19, 5          # Loop iterations
+counter_loop:
+    ldw $20, $17[0]    # Load counter
+    add $20, $20, 1    # Increment
+    stw $20, $17[0]    # Store back
+    sub $19, $19, 1
+    bne $19, $0, counter_loop
+
+ldw $21, $17[0]    # $21 = 5 (final counter value)
+
+# Test alternating byte writes
+ld $22, 0x800
+ld $23, 0xAA
+ld $24, 0x55
+stb $23, $22[0]
+stb $24, $22[1]
+stb $23, $22[2]
+stb $24, $22[3]
+ldw $25, $22[0]    # $25 = 0x55AA55AA
+
+# Test sign extension with boundary values
+ld $26, 0x900
+ld $27, 0x7F       # Max positive byte
+stb $27, $26[0]
+ldb $28, $26[0]    # $28 = 0x0000007F (no sign extension)
+
+ld $29, 0x80       # Min negative byte
+stb $29, $26[1]
+ldb $30, $26[1]    # $30 = 0xFFFFFF80 (sign extended)
+
+# Test with computed addresses
+ld $31, 0x100
+ld $1, 0x50
+add $2, $31, $1    # $2 = 0x150
+ld $3, 0x99887766
+stw $3, $2[0]      # Store at 0x150
+ldw $4, $2[0]      # $4 = 0x99887766
+
+
+ld $30,0
+ret

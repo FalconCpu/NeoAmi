@@ -1,4 +1,9 @@
 *.exe
 *.pdb
+*.log
+*.hex
+*.labels
+*.vcd
 binutils/build/
 hardware/a.out
+hardware/vga_output.txt

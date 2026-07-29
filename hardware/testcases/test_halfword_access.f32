@@ -1,0 +1,115 @@
+# Test halfword (16-bit) load and store operations
+
+# Test basic halfword store and load
+ld $1, 0x100
+ld $2, 0x1234
+sth $2, $1[0]      # Store halfword at 0x100
+ldh $3, $1[0]      # Load back, $3 = 0x00001234 (zero-extended)
+
+# Test halfword with sign extension
+ld $4, 0x110
+ld $5, 0xFFFF8765  # Has 0x8765 in lower 16 bits
+sth $5, $4[0]      # Store halfword 0x8765 at 0x110
+ldh $6, $4[0]      # Load back, $6 = 0xFFFF8765 (sign-extended from 0x8765)
+
+# Test positive halfword (no sign extension)
+ld $7, 0x120
+ld $8, 0x7FFF      # Max positive 16-bit value
+sth $8, $7[0]      # Store at 0x120
+ldh $9, $7[0]      # $9 = 0x00007FFF (positive, so zero-extended)
+
+# Test zero halfword
+ld $10, 0x130
+ld $11, 0x0000
+sth $11, $10[0]    # Store 0 at 0x130
+ldh $12, $10[0]    # $12 = 0x00000000
+
+# Test multiple halfwords in adjacent locations
+ld $13, 0x200
+ld $14, 0x1111
+ld $15, 0x2222
+ld $16, 0x3333
+ld $17, 0x4444
+sth $14, $13[0]    # Store at 0x200
+sth $15, $13[2]    # Store at 0x202
+sth $16, $13[4]    # Store at 0x204
+sth $17, $13[6]    # Store at 0x206
+
+# Load them back
+ldh $18, $13[0]    # $18 = 0x00001111
+ldh $19, $13[2]    # $19 = 0x00002222
+ldh $20, $13[4]    # $20 = 0x00003333
+ldh $21, $13[6]    # $21 = 0x00004444
+
+# Test negative halfwords (sign extension)
+ld $22, 0x300
+ld $23, 0xFFFF     # -1 as 16-bit
+sth $23, $22[0]    # Store at 0x300
+ldh $24, $22[0]    # $24 = 0xFFFFFFFF (sign-extended)
+
+ld $25, 0x8000     # -32768 as 16-bit (most negative)
+sth $25, $22[2]    # Store at 0x302
+ldh $26, $22[2]    # $26 = 0xFFFF8000 (sign-extended)
+
+# Test overwriting halfword
+ld $27, 0x400
+ld $28, 0xAAAA
+sth $28, $27[0]    # Store at 0x400
+ldh $29, $27[0]    # $29 = 0xFFFFAAAA (negative, sign-extended)
+ld $30, 0x5555
+sth $30, $27[0]    # Overwrite with 0x5555
+ldh $31, $27[0]    # $31 = 0x00005555 (positive)
+
+# Test storing only lower 16 bits of larger value
+ld $1, 0x500
+ld $2, 0xDEADBEEF
+sth $2, $1[0]      # Stores 0xBEEF (lower 16 bits)
+ldh $3, $1[0]      # $3 = 0xFFFFBEEF (sign-extended from 0xBEEF)
+
+# Test halfword at different word offsets
+ld $4, 0x600
+ld $5, 0xABCD
+sth $5, $4[0]      # Store at 0x600
+sth $5, $4[4]      # Store at 0x604
+sth $5, $4[8]      # Store at 0x608
+ldh $6, $4[0]      # $6 = 0xFFFFABCD
+ldh $7, $4[4]      # $7 = 0xFFFFABCD
+ldh $8, $4[8]      # $8 = 0xFFFFABCD
+
+# Test boundary values
+ld $9, 0x700
+ld $10, 0x0001     # Smallest positive
+sth $10, $9[0]
+ldh $11, $9[0]     # $11 = 0x00000001
+
+ld $12, 0x7FFF     # Largest positive 16-bit
+sth $12, $9[2]
+ldh $13, $9[2]     # $13 = 0x00007FFF
+
+ld $14, 0x8001     # Negative value
+sth $14, $9[4]
+ldh $15, $9[4]     # $15 = 0xFFFF8001 (sign-extended)
+
+# Test reading halfwords from same word
+ld $16, 0x800
+ld $17, 0x12345678
+stw $17, $16[0]    # Store word
+ldh $18, $16[0]    # Load lower halfword: $18 = 0x00005678
+ldh $19, $16[2]    # Load upper halfword: $19 = 0x00001234
+
+# Test writing two halfwords to make a word
+ld $20, 0x900
+ld $21, 0xBEEF
+ld $22, 0xCAFE
+sth $21, $20[0]    # Store lower halfword
+sth $22, $20[2]    # Store upper halfword
+ldw $23, $20[0]    # Read as word: $23 = 0xCAFEBEEF
+
+# Test at memory boundaries
+ld $24, 0x0        # Start of memory
+ld $25, 0x9876
+sth $25, $24[0]
+ldh $26, $24[0]    # $26 = 0xFFFF9876
+
+ld $30,0
+ret

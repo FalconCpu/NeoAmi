@@ -1,0 +1,110 @@
+# Test JMPR (jump to register) instruction
+
+# Test basic JMPR - jump to address in register
+ld $1, target1     # Load PC-relative address of target1
+jmp $1[0]          # Jump to address in $1
+ld $2, 99          # Should NOT execute
+ld $2, 99          # Should NOT execute
+target1:
+ld $3, 1           # $3 = 1
+
+# Test JMPR with offset
+ld $4, target2
+jmp $4[0]          # Jump to target2
+ld $5, 99          # Should NOT execute
+target2:
+ld $6, 2           # $6 = 2
+
+# Test computed jump (jump table simulation)
+ld $7, 0           # Case selector
+beq $7, $0, case0
+ld $8, 1
+beq $8, $7, case1
+ld $9, 2
+beq $9, $7, case2
+jmp end_switch
+
+case0:
+ld $10, 100        # $10 = 100 (case 0 executed)
+jmp end_switch
+
+case1:
+ld $10, 200        # Should not execute
+jmp end_switch
+
+case2:
+ld $10, 300        # Should not execute
+jmp end_switch
+
+end_switch:
+ld $11, 3          # $11 = 3
+
+# Test RET instruction (which is JMPR $30[0])
+ld $12, 10
+jsr test_ret_sub
+ld $13, 20         # Should execute after return, $13 = 20
+jmp after_ret_test
+
+test_ret_sub:
+    add $14, $12, $12  # $14 = 20
+    ret                # Jump back using $30
+
+after_ret_test:
+ld $15, 4          # $15 = 4
+
+# Test JMPR with non-zero offset
+ld $16, base_addr
+add $17, $16, 8    # Calculate address with offset
+jmp $17[-2]        # Jump to base_addr + 8 - 8 = base_addr
+ld $18, 99         # Should NOT execute
+base_addr:
+ld $19, 5          # $19 = 5
+
+# Test manual return address manipulation
+ld $20, 100
+jsr manual_ret_sub
+ld $21, 200        # $21 = 200
+jmp after_manual
+
+manual_ret_sub:
+    # $30 contains return address
+    ld $22, 42         # $22 = 42
+    # Return by jumping to register $30
+    jmp $30[0]
+
+after_manual:
+ld $23, 6          # $23 = 6
+
+# Test JMPR indirect through calculated address
+ld $24, indirect_target
+add $25, $24, 0    # Copy address
+jmp $25[0]         # Jump indirectly
+ld $26, 99         # Should NOT execute
+indirect_target:
+ld $27, 7          # $27 = 7
+
+# Test saving and restoring return addresses (simulating nested calls)
+ld $28, 1000       # Some initial value
+jsr outer_jmpr_sub
+ld $29, 8          # $29 = 8
+jmp end_jmpr
+
+outer_jmpr_sub:
+    # Save return address
+    ld $31, $30        # Save $30 to $31
+    ld $1, 111
+    jsr inner_jmpr_sub
+    ld $2, 222
+    # Restore and return
+    jmp $31[0]         # Return using saved address
+
+inner_jmpr_sub:
+    ld $3, 333
+    ret
+
+end_jmpr:
+ld $4, 9           # $4 = 9, final marker
+
+
+ld $30,0
+ret

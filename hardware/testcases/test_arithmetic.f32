@@ -1,0 +1,64 @@
+# Test arithmetic operations: ADD, SUB
+
+# Test basic ADD operations
+ld $1, 10
+ld $2, 20
+add $3, $1, $2      # $3 = 30
+
+ld $4, 100
+ld $5, 200
+add $6, $4, $5      # $6 = 300
+
+# Test ADD with negative numbers (two's complement)
+ld $7, -10
+ld $8, 5
+add $9, $7, $8      # $9 = -5
+
+ld $10, -15
+ld $11, -25
+add $12, $10, $11   # $12 = -40
+
+# Test ADD with immediate
+ld $13, 100
+add $14, $13, 50    # $14 = 150
+
+ld $15, 0x1000
+add $16, $15, 0x234 # $16 = 0x1234
+
+# Test ADD with zero
+ld $17, 42
+ld $18, 0
+add $19, $17, $18   # $19 = 42
+
+# Test basic SUB operations
+ld $20, 100
+ld $21, 30
+sub $22, $20, $21   # $22 = 70
+
+ld $23, 50
+ld $24, 25
+sub $25, $23, $24   # $25 = 25
+
+# Test SUB with negative results
+ld $26, 10
+ld $27, 20
+sub $28, $26, $27   # $28 = -10
+
+# Test SUB with immediate
+ld $29, 1000
+sub $30, $29, 234   # $30 = 766
+
+ld $1, 500
+sub $2, $1, 500     # $2 = 0
+
+# Test overflow cases
+ld $3, 0x7FFFFFFF
+ld $4, 1
+add $5, $3, $4      # $5 = 0x80000000 (overflow)
+
+ld $6, 0x80000000
+ld $7, 1
+sub $8, $6, $7      # $8 = 0x7FFFFFFF (underflow)
+
+ld $30,0
+ret

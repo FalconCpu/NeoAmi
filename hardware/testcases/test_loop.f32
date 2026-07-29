@@ -1,0 +1,9 @@
+ld $1, 10
+ld $2, 0
+loop:
+    add $2, $2, $1
+    sub $1, $1, 1
+    bne $1, 0, loop   # Loop until $1 is zero
+
+ld $30,0
+ret

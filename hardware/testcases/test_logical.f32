@@ -1,0 +1,53 @@
+# Test logical operations: AND, OR, XOR
+
+# Test AND operations
+ld $1, 0xFF00FF00
+ld $2, 0xF0F0F0F0
+and $3, $1, $2      # $3 = 0xF000F000
+
+ld $4, 0xAAAAAAAA
+ld $5, 0x55555555
+and $6, $4, $5      # $6 = 0x00000000
+
+# Test AND with immediate
+ld $7, 0xFFFFFFFF
+and $8, $7, 0xFF    # $8 = 0x000000FF
+
+ld $9, 0x12345678
+and $10, $9, 0xFFF  # $10 = 0x00000678
+
+# Test OR operations
+ld $11, 0xFF00FF00
+ld $12, 0x00FF00FF
+or $13, $11, $12    # $13 = 0xFFFFFFFF
+
+ld $14, 0xAAAAAAAA
+ld $15, 0x55555555
+or $16, $14, $15    # $16 = 0xFFFFFFFF
+
+# Test OR with immediate
+ld $17, 0x12345600
+or $18, $17, 0x78   # $18 = 0x12345678
+
+ld $19, 0x00000000
+or $20, $19, 0xABC  # $20 = 0x00000ABC
+
+# Test XOR operations
+ld $21, 0xFFFFFFFF
+ld $22, 0xFFFFFFFF
+xor $23, $21, $22   # $23 = 0x00000000
+
+ld $24, 0xAAAAAAAA
+ld $25, 0x55555555
+xor $26, $24, $25   # $26 = 0xFFFFFFFF
+
+ld $27, 0x12345678
+ld $28, 0x12345678
+xor $29, $27, $28   # $29 = 0x00000000
+
+# Test XOR with immediate
+ld $30, 0xFFFFFFFF
+xor $31, $30, 0xFFF # $31 = 0xFFFFF000
+
+ld $30,0
+ret

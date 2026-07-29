@@ -1,0 +1,116 @@
+
+# Comprehensive multiply instruction test
+# Tests MUL, MULHS, MULHU, MULHSU with various edge cases
+
+# Test 1: Basic MUL - small positive numbers
+ld $1, 100
+ld $2, 200
+mul $3, $1, $2      # $3 = 20000 (0x4E20)
+
+# Test 2: MUL with immediate
+ld $4, 50
+mul $5, $4, 30      # $5 = 1500 (0x5DC)
+
+# Test 3: Multiply by zero
+ld $6, 12345
+mul $7, $6, 0       # $7 = 0
+
+# Test 4: Multiply by one
+ld $8, 99999
+mul $9, $8, 1       # $9 = 99999
+
+# Test 5: Large positive multiplication requiring MULHU
+ld $10, 0x80000000  # 2^31
+ld $11, 2
+mul $12, $10, $11    # $12 = 0x00000000 (lower 32 bits overflow)
+mulhu $13, $10, $11  # $13 = 0x00000001 (high 32 bits, unsigned)
+
+# Test 6: Very large unsigned multiplication
+ld $14, 0xFFFFFFFF  # Maximum 32-bit value
+ld $15, 0xFFFFFFFF
+mul $16, $14, $15    # $16 = 0x00000001 (lower bits)
+mulhu $17, $14, $15  # $17 = 0xFFFFFFFE (high bits, unsigned)
+
+# Test 7: Signed multiplication with MULHS - both positive
+ld $18, 0x40000000  # 2^30
+ld $19, 4
+mul $20, $18, $19    # $20 = 0x00000000 (overflow)
+mulhs $21, $18, $19  # $21 = 0x00000001 (high bits, signed)
+
+# Test 8: Signed multiplication with MULHS - both negative
+ld $22, -1000       # Negative number
+ld $23, -2000       # Negative number
+mul $24, $22, $23    # $24 = 2000000 (positive result)
+mulhs $25, $22, $23  # $25 = 0x00000000 (high bits should be 0 for positive result)
+
+# Test 9: Signed multiplication with MULHS - one negative
+ld $26, 1000000000  # Large positive (0x3B9ACA00)
+ld $27, -2          # Negative
+mul $28, $26, $27    # $28 = lower 32 bits of result
+mulhs $29, $26, $27  # $29 = high bits (should be 0xFFFFFFFF due to sign extension)
+
+# Test 10: MULHSU - signed * unsigned
+ld $1, -1           # 0xFFFFFFFF as signed (-1)
+ld $2, 2
+mulhsu $3, $1, $2    # High bits of (-1) * 2 treated as signed*unsigned
+mul $4, $1, $2       # Low bits = 0xFFFFFFFE
+
+# Test 11: MULHSU with large positive signed and unsigned
+ld $5, 0x7FFFFFFF   # Largest positive signed (2^31 - 1)
+ld $6, 0x80000000   # Large unsigned (interpreted as negative if signed)
+mulhsu $7, $5, $6    # High bits of signed * unsigned
+mul $8, $5, $6       # Low bits
+
+# Test 12: Edge case - multiply by negative one
+ld $9, 42
+ld $10, -1
+mul $11, $9, $10     # $11 = -42 (0xFFFFFFD6)
+mulhs $12, $9, $10   # $12 = 0xFFFFFFFF (sign extension)
+
+# Test 13: Immediate form tests
+ld $13, 0x10000     # 65536
+mul $14, $13, 256    # $14 = 0x01000000 (16777216)
+
+# Test 14: MULHS with immediate - negative immediate
+ld $15, 1000000
+mulhs $16, $15, -100 # High bits of 1000000 * -100
+
+# Test 15: MULHU with immediate
+ld $17, 0xFFFF0000
+mulhu $18, $17, 256  # High bits treating both as unsigned
+
+# Test 16: Zero times large number
+ld $19, 0
+ld $20, 0xFFFFFFFF
+mul $21, $19, $20    # $21 = 0
+mulhu $22, $19, $20  # $22 = 0
+mulhs $23, $19, $20  # $23 = 0
+
+# Test 17: Powers of 2 multiplication
+ld $24, 0x00010000  # 2^16
+ld $25, 0x00010000  # 2^16
+mul $26, $24, $25    # $26 = 0x00000000 (overflow to high word)
+mulhu $27, $24, $25  # $27 = 0x00000001 (2^32 / 2^32 = 1)
+
+# Test 18: Adjacent numbers
+ld $28, 0xFFFF
+ld $29, 0x10000
+mul $1, $28, $29     # Test boundary between 16-bit values
+
+# Test 19: Negative edge cases
+ld $2, 0x80000000   # Most negative 32-bit signed number (-2^31)
+ld $3, -1
+mul $4, $2, $3       # Should give 0x80000000 (overflow in signed)
+mulhs $5, $2, $3     # High bits
+
+# Test 20: Final verification - mix of all types
+ld $6, 12345
+ld $7, 67890
+mul $8, $6, $7       # Regular multiply
+mulhs $9, $6, $7     # Signed high
+mulhu $10, $6, $7    # Unsigned high
+mulhsu $11, $6, $7   # Signed-unsigned high
+
+# Return
+ld $30, 0
+ret

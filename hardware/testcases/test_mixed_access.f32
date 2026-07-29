@@ -1,0 +1,132 @@
+# Test mixed-size memory accesses and interactions
+
+# Test writing word, reading as bytes
+ld $1, 0x100
+ld $2, 0xAABBCCDD
+stw $2, $1[0]      # Store word at 0x100
+ldb $3, $1[0]      # $3 = 0xFFFFFFDD (byte 0, sign-extended)
+ldb $4, $1[1]      # $4 = 0xFFFFFFCC (byte 1, sign-extended)
+ldb $5, $1[2]      # $5 = 0xFFFFFFBB (byte 2, sign-extended)
+ldb $6, $1[3]      # $6 = 0xFFFFFFAA (byte 3, sign-extended)
+
+# Test writing word, reading as halfwords
+ld $7, 0x200
+ld $8, 0x12345678
+stw $8, $7[0]      # Store word at 0x200
+ldh $9, $7[0]      # $9 = 0x00005678 (lower halfword)
+ldh $10, $7[2]     # $10 = 0x00001234 (upper halfword)
+
+# Test writing bytes, reading as word
+ld $11, 0x300
+ld $12, 0x11
+ld $13, 0x22
+ld $14, 0x33
+ld $15, 0x44
+stb $12, $11[0]    # Byte 0
+stb $13, $11[1]    # Byte 1
+stb $14, $11[2]    # Byte 2
+stb $15, $11[3]    # Byte 3
+ldw $16, $11[0]    # $16 = 0x44332211 (little-endian)
+
+# Test writing bytes, reading as halfwords
+ld $17, 0x400
+ld $18, 0xAB
+ld $19, 0xCD
+ld $20, 0xEF
+ld $21, 0x12
+stb $18, $17[0]
+stb $19, $17[1]
+stb $20, $17[2]
+stb $21, $17[3]
+ldh $22, $17[0]    # $22 = 0xFFFFCDAB (sign-extended)
+ldh $23, $17[2]    # $23 = 0x000012EF
+
+# Test writing halfwords, reading as word
+ld $24, 0x500
+ld $25, 0x8765
+ld $26, 0x4321
+sth $25, $24[0]    # Lower halfword
+sth $26, $24[2]    # Upper halfword
+ldw $27, $24[0]    # $27 = 0x43218765
+
+# Test writing halfwords, reading as bytes
+ld $28, 0x600
+ld $29, 0xBEEF
+sth $29, $28[0]    # Store halfword
+ldb $30, $28[0]    # $30 = 0xFFFFFFEF (lower byte)
+ldb $31, $28[1]    # $31 = 0xFFFFFFBE (upper byte)
+
+# Test overwriting with different sizes
+ld $1, 0x700
+ld $2, 0xFFFFFFFF
+stw $2, $1[0]      # Write word of all 1s
+ldw $3, $1[0]      # $3 = 0xFFFFFFFF
+
+ld $4, 0x0000
+sth $4, $1[0]      # Overwrite lower halfword with zeros
+ldw $5, $1[0]      # $5 = 0xFFFF0000
+
+ld $6, 0x99
+stb $6, $1[1]      # Overwrite byte 1
+ldw $7, $1[0]      # $7 = 0xFFFF9900
+
+# Test partial word updates
+ld $8, 0x800
+ld $9, 0x11223344
+stw $9, $8[0]      # Initial word
+
+# Change just byte 2
+ld $10, 0xAA
+stb $10, $8[2]
+ldw $11, $8[0]     # $11 = 0x11AA3344
+
+# Test non-interfering adjacent accesses
+ld $12, 0x900
+ld $13, 0xAAAAAAAA
+ld $14, 0xBBBBBBBB
+stw $13, $12[0]    # Store at 0x900
+stw $14, $12[4]    # Store at 0x904
+ldw $15, $12[0]    # $15 = 0xAAAAAAAA (unchanged)
+ldw $16, $12[4]    # $16 = 0xBBBBBBBB (unchanged)
+
+# Test byte modifications don't affect adjacent word
+ld $17, 0xA00
+ld $18, 0x12345678
+ld $19, 0x9ABCDEF0
+stw $18, $17[0]    # Store at 0xA00
+stw $19, $17[4]    # Store at 0xA04
+ld $20, 0xFF
+stb $20, $17[3]    # Modify byte 3 of first word
+ldw $21, $17[0]    # $21 = 0xFF345678 (first word modified)
+ldw $22, $17[4]    # $22 = 0x9ABCDEF0 (second word unchanged)
+
+# Test building a word byte-by-byte
+ld $23, 0xB00
+ld $24, 0x78       # Byte 0
+ld $25, 0x56       # Byte 1
+ld $26, 0x34       # Byte 2
+ld $27, 0x12       # Byte 3
+stb $24, $23[0]
+stb $25, $23[1]
+stb $26, $23[2]
+stb $27, $23[3]
+ldw $28, $23[0]    # $28 = 0x12345678
+ldh $29, $23[0]    # $29 = 0x00005678
+ldh $30, $23[2]    # $30 = 0x00001234
+ldb $31, $23[0]    # $31 = 0x00000078
+
+# Test reading same location with different sizes
+ld $1, 0xC00
+ld $2, 0xFEDCBA98
+stw $2, $1[0]
+ldw $3, $1[0]      # $3 = 0xFEDCBA98
+ldh $4, $1[0]      # $4 = 0xFFFFBA98
+ldh $5, $1[2]      # $5 = 0xFFFFFEDC
+ldb $6, $1[0]      # $6 = 0xFFFFFF98
+ldb $7, $1[1]      # $7 = 0xFFFFFFBA
+ldb $8, $1[2]      # $8 = 0xFFFFFFDC
+ldb $9, $1[3]      # $9 = 0xFFFFFFFE
+
+
+ld $30,0
+ret

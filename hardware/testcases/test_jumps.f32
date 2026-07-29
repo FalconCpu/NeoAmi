@@ -1,0 +1,89 @@
+# Test unconditional jump instructions
+
+# Test simple JMP (unconditional jump)
+ld $1, 0
+jmp target1
+ld $1, 99          # Should NOT execute
+ld $1, 99          # Should NOT execute
+target1:
+ld $2, 1           # $2 = 1, $1 = 0
+
+# Test JMP forward over multiple instructions
+ld $3, 0
+jmp target2
+ld $3, 1           # Should NOT execute
+ld $3, 2           # Should NOT execute
+ld $3, 3           # Should NOT execute
+ld $3, 4           # Should NOT execute
+target2:
+ld $4, 2           # $4 = 2, $3 = 0
+
+# Test JMP and link (saves return address)
+ld $5, 100
+jsr $6, target3
+ld $5, 99          # Should NOT execute
+target3:
+add $7, $5, $6     # $7 = $5 + $6 (100 + return_address)
+# $6 now contains return address (PC+4 of the jmp instruction)
+
+# Test multiple sequential jumps
+ld $8, 0
+jmp jump_a
+ld $8, 99          # Should NOT execute
+jump_a:
+ld $9, 1
+jmp jump_b
+ld $9, 99          # Should NOT execute
+jump_b:
+ld $10, 2
+jmp jump_c
+ld $10, 99         # Should NOT execute
+jump_c:
+ld $11, 3          # $8=0, $9=1, $10=2, $11=3
+
+# Test backward jump (simple loop)
+ld $12, 5
+ld $13, 0
+loop_start:
+add $13, $13, 1
+sub $12, $12, 1
+bne $12, $0, loop_start
+ld $14, 100        # $14 = 100, $13 = 5 (looped 5 times)
+
+# Test nested jumps
+ld $15, 0
+jmp outer_jump
+ld $15, 99         # Should NOT execute
+outer_jump:
+ld $16, 1
+jmp inner_jump
+ld $16, 99         # Should NOT execute
+inner_jump:
+ld $17, 2
+jmp after_nested
+ld $17, 99         # Should NOT execute
+after_nested:
+ld $18, 3          # $15=0, $16=1, $17=2, $18=3
+
+# Test jump to very next instruction (no-op jump)
+ld $19, 42
+jmp next_instr
+next_instr:
+ld $20, 43         # Should execute normally, $19=42, $20=43
+
+# Test jump and link with calculation using return address
+ld $21, 0
+jsr $22, save_pc
+nop_location:
+ld $23, 1
+jmp after_calc
+save_pc:
+# $22 contains address of nop_location
+ld $24, 100
+jmp after_calc
+after_calc:
+ld $25, 2          # $22 has return address, $24=100, $25=2
+
+
+ld $30,0
+ret

@@ -1,0 +1,99 @@
+# Test word (32-bit) load and store operations
+
+# Test basic word store and load
+ld $1, 0x100       # Base address
+ld $2, 0x12345678
+stw $2, $1[0]      # Store at 0x100
+ldw $3, $1[0]      # Load back, $3 = 0x12345678
+
+# Test word store/load with positive offset
+ld $4, 0x200
+ld $5, 0xDEADBEEF
+stw $5, $4[16]     # Store at 0x210
+ldw $6, $4[16]     # Load back, $6 = 0xDEADBEEF
+
+# Test word store/load with different offsets
+ld $7, 0x300
+ld $8, 0xCAFEBABE
+stw $8, $7[4]      # Store at 0x304
+ldw $9, $7[4]      # Load back, $9 = 0xCAFEBABE
+
+ld $10, 0xABCD1234
+stw $10, $7[8]     # Store at 0x308
+ldw $11, $7[8]     # Load back, $11 = 0xABCD1234
+
+# Test multiple stores to adjacent addresses
+ld $12, 0x400
+ld $13, 0x11111111
+ld $14, 0x22222222
+ld $15, 0x33333333
+ld $16, 0x44444444
+stw $13, $12[0]    # Store at 0x400
+stw $14, $12[4]    # Store at 0x404
+stw $15, $12[8]    # Store at 0x408
+stw $16, $12[12]   # Store at 0x40C
+
+# Load them back
+ldw $17, $12[0]    # $17 = 0x11111111
+ldw $18, $12[4]    # $18 = 0x22222222
+ldw $19, $12[8]    # $19 = 0x33333333
+ldw $20, $12[12]   # $20 = 0x44444444
+
+# Test overwriting a word
+ld $21, 0x500
+ld $22, 0xAAAAAAAA
+stw $22, $21[0]    # Store at 0x500
+ldw $23, $21[0]    # $23 = 0xAAAAAAAA
+ld $24, 0x55555555
+stw $24, $21[0]    # Overwrite at 0x500
+ldw $25, $21[0]    # $25 = 0x55555555
+
+# Test with zero value
+ld $26, 0x600
+ld $27, 0x00000000
+stw $27, $26[0]    # Store zero at 0x600
+ldw $28, $26[0]    # $28 = 0x00000000
+
+# Test with all ones
+ld $29, 0x700
+ld $30, 0xFFFFFFFF
+stw $30, $29[0]    # Store at 0x700
+ldw $31, $29[0]    # $31 = 0xFFFFFFFF
+
+# Test at beginning of memory
+ld $1, 0x0
+ld $2, 0x87654321
+stw $2, $1[0]      # Store at 0x000
+ldw $3, $1[0]      # $3 = 0x87654321
+
+# Test near end of memory (4KB = 0x1000)
+ld $4, 0xF00
+ld $5, 0x99887766
+stw $5, $4[0]      # Store at 0xF00
+ldw $6, $4[0]      # $6 = 0x99887766
+
+# Test using register as base with offset
+ld $7, 0x800
+ld $8, 0x13572468
+stw $8, $7[32]     # Store at 0x820
+ldw $9, $7[32]     # $9 = 0x13572468
+
+# Test storing result of computation
+ld $10, 0x900
+ld $11, 100
+ld $12, 200
+add $13, $11, $12  # $13 = 300
+stw $13, $10[0]    # Store 300 at 0x900
+ldw $14, $10[0]    # $14 = 300
+
+# Test load, modify, store pattern
+ld $15, 0xA00
+ld $16, 1000
+stw $16, $15[0]    # Store 1000
+ldw $17, $15[0]    # Load it back
+add $17, $17, 234  # Add 234
+stw $17, $15[0]    # Store back
+ldw $18, $15[0]    # $18 = 1234
+
+ld $30,0
+ret

@@ -1,0 +1,154 @@
+# Test edge cases and corner cases for branches and jumps
+
+# Test branch to very next instruction (effectively a no-op)
+ld $1, 10
+ld $2, 10
+beq $1, $2, next1
+next1:
+ld $3, 1           # Should execute, $3 = 1
+
+# Test branch not taken to next instruction
+ld $4, 10
+ld $5, 20
+beq $4, $5, skip1
+skip1:
+ld $6, 2           # Should execute, $6 = 2
+
+# Test long forward branch
+ld $7, 5
+ld $8, 5
+beq $7, $8, far_target
+ld $9, 99          # Should NOT execute
+ld $9, 99
+ld $9, 99
+ld $9, 99
+ld $9, 99
+ld $9, 99
+ld $9, 99
+ld $9, 99
+ld $9, 99
+ld $9, 99
+far_target:
+ld $10, 3          # $10 = 3, $9 = undefined/99
+
+# Test series of branches (branch chain)
+ld $11, 1
+ld $12, 1
+beq $11, $12, chain1
+ld $13, 99
+chain1:
+beq $11, $12, chain2
+ld $14, 99
+chain2:
+beq $11, $12, chain3
+ld $15, 99
+chain3:
+ld $16, 4          # $16 = 4
+
+# Test all conditions with same operands
+ld $17, 42
+ld $18, 42
+ld $19, 0
+ld $20, 0
+ld $21, 0
+ld $22, 0
+ld $23, 0
+ld $24, 0
+
+beq $17, $18, eq_match
+ld $19, 99
+eq_match:
+ld $19, 1          # $19 = 1 (equal, so branch taken)
+
+bne $17, $18, ne_match
+ld $20, 1          # $20 = 1 (equal, so branch NOT taken)
+ne_match:
+
+blt $17, $18, lt_match
+ld $21, 1          # $21 = 1 (not less, branch NOT taken)
+lt_match:
+
+bgt $17, $18, gt_match
+ld $22, 1          # $22 = 1 (not greater, branch NOT taken)
+gt_match:
+
+bltu $17, $18, ltu_match
+ld $23, 1          # $23 = 1 (not less unsigned, branch NOT taken)
+ltu_match:
+
+bgtu $17, $18, gtu_match
+ld $24, 1          # $24 = 1 (not greater unsigned, branch NOT taken)
+gtu_match:
+
+# Test branches with boundary values
+ld $25, 0x7FFFFFFF  # Max positive
+ld $26, 0x80000000  # Min negative (signed) / large positive (unsigned)
+ld $27, 0
+
+blt $25, $26, boundary_lt
+ld $27, 1          # $27 = 1 (0x7FFFFFFF NOT < 0x80000000 signed)
+boundary_lt:
+
+ld $28, 0
+bltu $25, $26, boundary_ltu
+ld $28, 99         # Should NOT execute
+boundary_ltu:
+ld $28, 2          # $28 = 2 (0x7FFFFFFF < 0x80000000 unsigned)
+
+# Test backward branch in tight loop (count down)
+ld $29, 3
+ld $30, 0
+countdown:
+add $30, $30, 1
+sub $29, $29, 1
+bne $29, $0, countdown
+ld $31, 5          # $31 = 5, $30 = 3 (looped 3 times)
+
+# Test branch with $0 register
+ld $1, 100
+beq $0, $0, zero_branch1
+ld $1, 99          # Should NOT execute
+zero_branch1:
+ld $2, 6           # $2 = 6, $1 = 100
+
+bne $0, $0, zero_branch2
+ld $3, 7           # $3 = 7 (branch not taken, $0 == $0)
+zero_branch2:
+
+# Test overlapping branch targets
+ld $4, 1
+ld $5, 2
+beq $4, $4, target_a
+ld $6, 99
+target_a:
+add $5,1
+ld $7, 99
+ld $8, 8           # $8 = 8
+
+# Test maximum negative offset branch (backward)
+jmp branch_back_setup
+branch_back_target:
+ld $9, 9
+jmp after_back_branch
+branch_back_setup:
+ld $10, 10
+ld $11, 1
+beq $11, $11, branch_back_target
+ld $12, 99
+after_back_branch:
+ld $13, 11         # $13 = 11, $9 = 9, $10 = 10
+
+# Test conditional branch followed immediately by unconditional jump
+ld $14, 5
+ld $15, 10
+blt $14, $15, cond_then_uncond
+jmp skip_both
+cond_then_uncond:
+jmp continue_here
+skip_both:
+ld $16, 99
+continue_here:
+ld $17, 12         # $17 = 12 (first branch taken, then unconditional jump)
+
+ld $30,0
+ret
