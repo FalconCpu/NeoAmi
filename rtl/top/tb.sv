@@ -51,7 +51,7 @@ module tb;
   wire [35:0] GPIO_0;
   wire [35:0] GPIO_1;
 
-  falcon  falcon_inst (
+  neoami  neoami_inst (
     .AUD_ADCDAT(AUD_ADCDAT),
     .AUD_ADCLRCK(AUD_ADCLRCK),
     .AUD_BCLK(AUD_BCLK),

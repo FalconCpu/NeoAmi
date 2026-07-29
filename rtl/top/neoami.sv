@@ -1,7 +1,7 @@
 `timescale 1ns/1ns
 
 
-module falcon(
+module neoami(
 
 	//////////// Audio //////////
 	input 		          		AUD_ADCDAT,
