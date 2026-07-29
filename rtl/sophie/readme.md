@@ -1,4 +1,4 @@
-# SOPHIE (System Organision and Peripheral Hardware IntEgration)
+# SOPHIE (System Organisation and Peripheral Hardware IntEgration)
 
 SOPHIE is the "glue" for the system. It is responsible for arbitrating access to the memory bus, decoding the memory addresses and routing the requests to the appropriate peripheral.
 
