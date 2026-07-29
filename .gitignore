@@ -7,3 +7,4 @@
 binutils/build/
 hardware/a.out
 hardware/vga_output.txt
+fpga/

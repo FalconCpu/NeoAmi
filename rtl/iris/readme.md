@@ -1,15 +1,27 @@
 # IRIS — Interpolated Raster Image Synthesizer
 
-IRIS (Interpolated Raster Image Synthesizer) is the graphics "custom chip" in the Falcon. Its task is to combine a multiple graphics objects into a single output image, which is then sent to the VGA monitor. 
+IRIS (Interpolated Raster Image Synthesizer) is the graphics "custom chip" in the NoeAmi, the equivalent of the Amiga's "Denise" chip. It is responsible for combining multiple graphics objects into a single output image, which is then sent to the VGA monitor.
 
-Each object can be a simple 2D image (such as a window or a sprite) or a triangle with interpolated color or texture coordinates. The objects are stored in memory as a linked list, sorted in order of increasing Ytop coordinate. The IRIS hardware reads the linked list and renders each object in order, using a Z-buffer to determine which pixels are visible.
+Compared to the Amiga's Denise chip, IRIS is a much more powerful graphics subsystem. The main changes from Denise are:
+* The number of sprites has been increased from 8 to 256
+* Each sprite can now be of any width and height (up to the full screen size)
+* Sprites are drawn in 256 colors mode, with 4 separate palette banks (selectable per sprite). They can also be gouraud shaded (in 24-bit resolution).
+* Sprites can be triangular or rectangular
+* Bitmap images can be scaled and rotated in hardware, with 12-bit precision
+* Depth sorting is performed in hardware, so that sprites can be drawn in any order and the correct pixels will be visible.
+* Each sprite has an brightness setting, independent of the color palette, which can be used to fade sprites in and out, or to create lighting effects.
+* Each sprite has an independent clipping rectangle, so that only a portion of the sprite is visible. 
+* Sprites can be drawn with transparency, so that the background or other sprites can be seen through them (alpha blending). Alpha can be set either per color, or gourard shaded across the sprite. The alpha blending is performed in 24-bit resolution, so that the colors are not degraded by the blending.
+* Amiga style - sprites can be re-programmed partway through the screen refresh, by the Copper (or by GEMMA) allowing for more than 256 sprites to be displayed on the screen at once, or for effects where the sprites change size, color or position partway down the screen.
 
-There can be an almost unlimited number of layers, subject to a limit of 256 layers active at any one time, and subject to available memory bandwidth. 
+Note - there is only a finite memory bandwidth of the SDRAM. IRIS has the highest priority for memory access (as it needs data in a timely manner to drive the display). So if you make excessive use of sprites, the CPU and other peripherals may be starved of memory bandwidth, and eventually pixels will be dropped from the display. As a guide - A sprite the full size of the screen (640x480) will consume about 1/8 of the available memory bandwidth. So doing a 2 layer parallax scrolling effect with 2 full screen sprites will consume about 1/4 of the available memory bandwidth - still leaving 3/4 for the CPU and other peripherals. But an 8 layer parallax scrolling is probably not going to work.
 
+The depth sorting and alpha blending are mutually exclusive - if you want to use depth sorting, you cannot use alpha blending, and vice versa
 
 # Graphics Registers
 
-Each object is stored as a 64 byte structure in memory, which will be fetched by the IRIS hardware. The structure is defined as follows:
+Each sprite is stored as a 64 byte structure in memory. The array of 256 sprites is mapped at address 0xE0001000 in the NeoAmi's memory map. The structure is defined as follows:
+
 
 | Field      | Offset | Format | Description                                                           |
 |------------|--------|--------|-----------------------------------------------------------------------|
@@ -40,16 +52,16 @@ Each object is stored as a 64 byte structure in memory, which will be fetched by
 | DB/DY      | 0x30   | FP16   | Slope of the blue/brightness value down the triangle                  |
 | TEX_STRIDE | 0x32   | U16    | The stride of the texture in bytes (width * bytes per pixel)          |
 | TEX_ADDR   | 0x34   | U32    | The address of the texture in memory                                  |
-| NEXT       | 0x3C   | U32    | The address of the next object in the linked list (0 if last layer)   |
+| USERDATA   | 0x3C   | U32    | Not used by IRIS, but can be used by the application to store any data associated with the object |
 
 Note - internally all coordinates and slopes are processed in S12.12 fixed point format, but to keep the 
 data structure compact, a mix of S12.4 fixed point and 16-bit floating point formats are used in the object structure.
 
-X1,Y1 and X2,Y2 are the coordinates of the top and middle vertices of the triangle, they are stored with 4 bits of fractional precision to allow sub-pixel accuracy. The bottom vertex is not stored, but is calculated from the top and middle vertices, the slopes and YBOT.
+For a triangle, X1,Y1 and X2,Y2 are the coordinates of the top and middle vertices of the triangle, they are stored with 4 bits of fractional precision to allow sub-pixel accuracy. The bottom vertex is not stored, but is calculated from the top and middle vertices, the slopes and YBOT.
 
 YTOP and YBOT are the first and last visible scanlines of the object. It is permissible for Y1 and Y2 to be outside this range, in which case the triangle will be clipped to the visible range. 
 
-Axis aligned rectangles can be drawn by setting (X1,Y1) to the top left corner and (X2,Y2) to the top right corner,
+Rectangles can be drawn by setting (X1,Y1) to the top left corner and (X2,Y2) to the top right corner,
 setting all the slopes to zero and setting the RIGHT_EDGE flag to indicate that the middle vertex is the right edge. The rectangle will then be drawn from (X1,YTOP) to (X2,YBOT).
 
 R,G,B values are calculated at each pixel relative to the X1,Y1 vertex. For Gourard shaded triangles, the R,G,B values are the color at each vertex (in range 0..255). For textured triangles and bitmaps, the R,G values are the U,V texture coordinates, and the B value is the brightness of the texture.
@@ -75,3 +87,4 @@ The FLAGS field is a 16-bit value that controls the behavior of the layer. The b
 | 3:2 | PALETTE       | For 8 bit indexed color mode, this selects which of 4 pallete banks to use (0-3)           |
 | 4   | RIGHT_EDGE    | For triangles, this indicates the middle vertex is the right edge (1) or left edge (0)     |
 | 5   | TRANSPARENCY  | treat color index 0 as transparent (1) or opaque (0)                                       |
+| 6   | ALPHA         | Use the B value as an alpha value for blending (1) or as a brightness value (0) |
