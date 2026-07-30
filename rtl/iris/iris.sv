@@ -103,7 +103,7 @@ iris_objwalk  iris_objwalk_inst (
 logic        pixel_valid_gourand;
 logic        pixel_ready_gourand;
 logic        pixel_valid_texture;
-logic        pixel_ready_texture;
+logic        pixel_ready_texture = 1'b0;
 logic [9:0]  pixel_x;
 logic [23:0] pixel_z;
 logic [23:0] pixel_r;
@@ -139,7 +139,7 @@ iris_span  iris_span_inst (
     .pixel_b(pixel_b)
   );
 
-logic         pal_valid;
+logic         pal_valid=1'b0;
 logic         pal_ready;
 logic [7:0]   pal_flags;
 logic [9:0]   pal_x;
@@ -159,6 +159,7 @@ logic [19:0] gourand_z;
 
 iris_gourand  iris_gourand_inst (
     .clock(clock),
+    .reset(reset),
     .pixel_valid_gourand(pixel_valid_gourand),
     .pixel_ready_gourand(pixel_ready_gourand),
     .pixel_flags(pixel_flags),
@@ -187,6 +188,7 @@ logic [8:0]  texpath_brightness;
 
 iris_palette  iris_palette_inst (
     .clock(clock),
+    .reset(reset),
     .pal_valid(pal_valid),
     .pal_ready(pal_ready),
     .pal_flags(pal_flags),
@@ -217,6 +219,7 @@ logic [8:0]  bri_brightness;
 
 iris_combine  iris_combine_inst (
     .clock(clock),
+    .reset(reset),
     .src0_valid(texpath_valid),
     .src0_ready(texpath_ready),
     .src0_x(texpath_x),

@@ -2,6 +2,7 @@
 
 module iris_combine(
     input logic clock,
+    input logic reset,
 
     // Input interfaces
     input logic        src0_valid,
@@ -27,8 +28,8 @@ module iris_combine(
     output logic [8:0]  out_brightness
 );
 
-assign src0_ready = src0_valid;
-assign src1_ready = src1_valid && !src0_valid;
+assign src0_ready = src0_valid || reset;
+assign src1_ready = (src1_valid && !src0_valid) || reset;
 
 always_ff @(posedge clock) begin
     if (src0_valid) begin
@@ -38,7 +39,7 @@ always_ff @(posedge clock) begin
         out_z     <= src0_z;
         out_brightness <= src0_brightness;
     end else begin
-        out_valid <= 1'b1;
+        out_valid <= src1_valid;
         out_x     <= src1_x;
         out_color <= src1_color;
         out_z     <= src1_z;

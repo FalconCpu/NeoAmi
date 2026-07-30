@@ -1,0 +1,60 @@
+[*]
+[*] GTKWave Analyzer v3.3.100 (w)1999-2019 BSI
+[*] Wed Jul 29 17:29:14 2026
+[*]
+[dumpfile] "C:\Users\simon\NeoAmi\rtl\falcon_tb.vcd"
+[dumpfile_mtime] "Wed Jul 29 17:27:15 2026"
+[dumpfile_size] 5532005
+[savefile] "C:\Users\simon\NeoAmi\rtl\wave.gtkw"
+[timestart] 0
+[size] 1920 1129
+[pos] -1 -1
+*-24.938641 3097664100 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] tb.
+[treeopen] tb.neoami_inst.
+[treeopen] tb.neoami_inst.iris_inst.
+[treeopen] tb.neoami_inst.iris_inst.iris_objwalk_inst.
+[sst_width] 287
+[signals_width] 182
+[sst_expanded] 1
+[sst_vpaned_height] 339
+@28
+tb.neoami_inst.iris_inst.iris_objwalk_inst.iris_obj_mem_inst.wren
+@22
+tb.neoami_inst.iris_inst.iris_objwalk_inst.iris_obj_mem_inst.wraddress[11:0]
+tb.neoami_inst.iris_inst.iris_objwalk_inst.iris_obj_mem_inst.data[31:0]
+tb.neoami_inst.iris_inst.iris_objwalk_inst.obj_data[255:0]
+@200
+-
+@22
+tb.neoami_inst.iris_inst.iris_objwalk_inst.obj_index[8:0]
+tb.neoami_inst.iris_inst.iris_objwalk_inst.state[3:0]
+@28
+tb.neoami_inst.iris_inst.iris_objwalk_inst.start_of_line
+@420
+tb.neoami_inst.iris_inst.iris_objwalk_inst.ypos[9:0]
+@28
+tb.neoami_inst.iris_inst.pixel_valid_gourand
+tb.neoami_inst.iris_inst.pixel_valid_texture
+tb.neoami_inst.iris_inst.pixel_ready_gourand
+tb.neoami_inst.iris_inst.pixel_ready_texture
+tb.neoami_inst.iris_inst.iris_gourand_inst.out_ready
+tb.neoami_inst.iris_inst.iris_gourand_inst.out_valid
+tb.neoami_inst.iris_inst.gourand_ready
+@200
+-
+@28
+tb.neoami_inst.iris_inst.iris_combine_inst.src0_ready
+tb.neoami_inst.iris_inst.iris_combine_inst.src0_valid
+tb.neoami_inst.iris_inst.iris_combine_inst.src1_ready
+tb.neoami_inst.iris_inst.iris_combine_inst.src1_valid
+tb.neoami_inst.iris_inst.pal_ready
+tb.neoami_inst.iris_inst.pal_valid
+tb.neoami_inst.iris_inst.pal_ready
+tb.neoami_inst.iris_inst.texpath_ready
+tb.neoami_inst.iris_inst.texpath_valid
+tb.neoami_inst.iris_inst.iris_palette_inst.out_ready
+@29
+tb.neoami_inst.iris_inst.iris_combine_inst.src0_valid
+[pattern_trace] 1
+[pattern_trace] 0

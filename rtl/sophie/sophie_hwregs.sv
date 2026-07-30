@@ -89,13 +89,13 @@ logic [7:0] uart_input[0:65535];
 integer uart_input_len;
 integer uart_input_index;
 integer fh;
-initial begin
-    fh = $fopen("uart_log.bin","rb");
-    uart_input_len = $fread(uart_input, fh);
-    $fclose(fh);
-    fh =  $fopen("rtl_uart.log", "wb");
-    uart_input_index = 0;
-end
+// initial begin
+//     fh = $fopen("uart_log.bin","rb");
+//     uart_input_len = $fread(uart_input, fh);
+//     $fclose(fh);
+//     fh =  $fopen("rtl_uart.log", "wb");
+//     uart_input_index = 0;
+// end
 // synthesis translate_on
 
 always_ff @(posedge clock) begin

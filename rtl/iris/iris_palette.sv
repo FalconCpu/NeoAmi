@@ -2,6 +2,7 @@
 
 module iris_palette(
     input logic clock,
+    input logic reset,
 
     // Input interface
     input logic         pal_valid,
@@ -48,6 +49,10 @@ always_ff @(posedge clock) begin
             out_color <= palette[{pal_flags[3:2], pal_color_index}];
             out_brightness <= pal_brightness;
         end
+    end
+
+    if (reset) begin
+        out_valid <= 1'b0;
     end
 end
 

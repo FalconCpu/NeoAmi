@@ -2,6 +2,7 @@
 
 module iris_gourand(
     input logic clock,
+    input logic reset,
 
     // Input interface
     input logic         pixel_valid_gourand,
@@ -43,6 +44,10 @@ always_ff @(posedge clock) begin
         out_x     <= pixel_x;
         out_color <= {color_r, color_g, color_b};
         out_z     <= pixel_z;
+    end
+
+    if (reset) begin
+        out_valid <= 1'b0;
     end
 end
 

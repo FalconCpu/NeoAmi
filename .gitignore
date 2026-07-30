@@ -4,7 +4,8 @@
 *.hex
 *.labels
 *.vcd
+a.out
+
 binutils/build/
-hardware/a.out
 hardware/vga_output.txt
 fpga/
