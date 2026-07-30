@@ -109,92 +109,6 @@ static void flush_bytes() {
     }
 }
 
-/**
- * Emit constant data - used for pseudo-ops like dcb, dch, dcw
- */
-
-static void emit_bytes(Token**line) {
-    int i = 1;
-    while (1) {
-        if (line[i]->kind == '#') {
-            int value = line[i]->value;
-            if (value < 0 || value > 255)
-                error("Byte value out of range (0..255): %d", value);
-            emit_byte(value);
-        } else if (line[i]->kind == '"') {
-            // Handle string literal
-            String str = line[i]->text;
-            for (int j = 0; str[j]; j++)
-                emit_byte(str[j]);
-        } else {
-            error("Expected byte value, got: %s", line[i]->text);
-        }
-        i++;
-        if (line[i] && line[i]->kind == ',')
-            i++; // Skip comma
-        else
-        break;
-    }
-
-    if (line[i]!=0)
-        error("Unexpected token after byte values: %s", line[i]->text);
-    flush_bytes();
-}
-
-static void emit_half_words(Token**line) {
-    int i = 1;
-    while (1) {
-        if (line[i]->kind == '#') {
-            int value = line[i]->value;
-            if (value < -0x8000 || value > 0x7fff)
-                error("Half-word value out of range (-32768..32767): %d", value);
-            emit_byte(value & 0xff);
-            emit_byte((value >> 8) & 0xff);
-        } else {
-            error("Expected half-word value, got: %s", line[i]->text);
-        }
-        i++;
-        if (line[i] && line[i]->kind == ',')
-            i++; // Skip comma
-        else
-        break;
-    }
-
-    if (line[i]!=0)
-        error("Unexpected token after half-word values: %s", line[i]->text);
-}
-
-static void emit_words(Token**line) {
-    int i = 1;
-    while (1) {
-        if (line[i]->kind == '#') {
-            int value = line[i]->value;
-            emit(value);
-        } else {
-            error("Expected word value, got: %s", line[i]->text);
-        }
-        i++;
-        if (line[i] && line[i]->kind == ',')
-            i++; // Skip comma
-        else
-            break;
-    }
-
-    if (line[i]!=0)
-        error("Unexpected token after word values: %s", line[i]->text);
-}
-
-static void emit_constants(Token **line) {
-    if (line[0]->value==0)
-        emit_bytes(line);
-    else if (line[0]->value==1)
-        emit_half_words(line);
-    else if (line[0]->value==2)
-        emit_words(line);
-    else
-        error("Unknown data type: %s", line[0]->text);
-}
-
 /** 
  * Check if token sequence matches a format string. 
  * Where the format string is a sequence of token kinds
@@ -235,7 +149,7 @@ void report_malformed(Token** line) {
     printf("ERROR line %d: Unrecognized instruction", line_number);
     for (int i=0; line[i]; i++) {
         Token* t = line[i];
-        printf(" %s", t->text);
+        printf(" %c:%s", t->kind, t->text);
     }
     printf("\n");
     num_errors++;
@@ -312,6 +226,97 @@ int label_ref(Token* label) {
     ref->next = label_refs;
     label_refs = ref;
     return 0; // Return value is not used
+}
+
+
+/**
+ * Emit constant data - used for pseudo-ops like dcb, dch, dcw
+ */
+
+static void emit_bytes(Token**line) {
+    int i = 1;
+    while (1) {
+        if (line[i]->kind == '#') {
+            int value = line[i]->value;
+            if (value < 0 || value > 255)
+                error("Byte value out of range (0..255): %d", value);
+            emit_byte(value);
+        } else if (line[i]->kind == '"') {
+            // Handle string literal
+            String str = line[i]->text;
+            for (int j = 0; str[j]; j++)
+                emit_byte(str[j]);
+        } else {
+            error("Expected byte value, got: %s", line[i]->text);
+        }
+        i++;
+        if (line[i] && line[i]->kind == ',')
+            i++; // Skip comma
+        else
+        break;
+    }
+
+    if (line[i]!=0)
+        error("Unexpected token after byte values: %s", line[i]->text);
+    flush_bytes();
+}
+
+static void emit_half_words(Token**line) {
+    int i = 1;
+    while (1) {
+        if (line[i]->kind == '#') {
+            int value = line[i]->value;
+            if (value < -0x8000 || value > 0x7fff)
+                error("Half-word value out of range (-32768..32767): %d", value);
+            emit_byte(value & 0xff);
+            emit_byte((value >> 8) & 0xff);
+        } else {
+            error("Expected half-word value, got: %s", line[i]->text);
+        }
+        i++;
+        if (line[i] && line[i]->kind == ',')
+            i++; // Skip comma
+        else
+        break;
+    }
+
+    if (line[i]!=0)
+        error("Unexpected token after half-word values: %s", line[i]->text);
+}
+
+static void emit_words(Token**line) {
+    int i = 1;
+    while (1) {
+        if (line[i]->kind == '#') {
+            int value = line[i]->value;
+            emit(value);
+        } else if (line[i]->kind == 'l') {
+            // Label reference - will be backpatched later
+            label_ref(line[i]);
+            emit(0); // Placeholder for the label address
+        } else {
+            error("Expected word value, got: %s", line[i]->text);
+        }
+        i++;
+        if (line[i] && line[i]->kind == ',')
+            i++; // Skip comma
+        else
+            break;
+    }
+
+    if (line[i]!=0)
+        error("Unexpected token after word values: %s", line[i]->text);
+}
+
+static void emit_constants(Token **line) {
+    if (line[0]->value==0)
+        emit_bytes(line);
+    else if (line[0]->value==1)
+        emit_half_words(line);
+    else if (line[0]->value==2)
+        emit_words(line);
+    else
+        error("Unknown data type: %s", line[0]->text);
 }
 
 

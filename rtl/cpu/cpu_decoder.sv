@@ -40,6 +40,7 @@ module cpu_decoder (
     output logic        p3_is_divide,       // Indicates that the instruction is a divide operation
     output logic        p3_is_sys,          // Indicates that the instruction is a system operation
     output logic        p3_is_fpu,          // Indicates that the instruction is a floating-point operation
+    output logic        p3_is_idx,
     output logic [2:0]  p3_mem_op,          // Memory operation type (byte, halfword, word)
     output logic [31:0] p3_pc,              // The program counter value associated with the instruction
     output logic [31:0] p4_pc,
@@ -47,7 +48,8 @@ module cpu_decoder (
 
     output logic        p4_is_store,
     input logic [4:0]   p4_rd,              // Destination register for the instruction in stage 4
-    input logic         p4_wren             // Indicates that the destination register is valid
+    input logic         p4_wren,            // Indicates that the destination register is valid
+    input logic         p4_latent           // The writeback came from a multi-cycle instruction
 );
 
 // Break the instruction into its fields
@@ -75,6 +77,7 @@ assign p3_is_mult = p3_is_mult_x && !p4_jump_taken;
 assign p3_is_divide = p3_is_divide_x && !p4_jump_taken;
 assign p3_is_sys = p3_is_sys_x && !p4_jump_taken;
 assign p3_is_fpu = p3_is_fpu_x && !p4_jump_taken;
+assign p3_is_idx = p3_is_idx_x && !p4_jump_taken;
 
 // Scoreboard logic
 // 1 bit per register, 1=not ready, 0=ready
@@ -82,9 +85,9 @@ logic [31:0] scoreboard, next_scoreboard;
 
 
 logic        p2_is_alu, p2_is_shift, p2_is_branch, p2_is_load, p2_is_store;
-logic        p2_is_mult, p2_is_divide, p2_is_sys, p2_is_fpu;
+logic        p2_is_mult, p2_is_divide, p2_is_sys, p2_is_fpu, p2_is_idx;
 logic        p3_is_alu_x, p3_is_shift_x, p3_is_branch_x, p3_is_load_x, p3_is_store_x;
-logic        p3_is_mult_x, p3_is_divide_x, p3_is_sys_x, p3_is_fpu_x;
+logic        p3_is_mult_x, p3_is_divide_x, p3_is_sys_x, p3_is_fpu_x, p3_is_idx_x;
 logic [2:0]  p2_alu_op, p2_shift_op, p2_mem_op;
 logic [2:0]  p2_branch_op;
 logic        stall_regs;    // Indicates that the pipeline should stall due to a register not being ready
@@ -103,6 +106,7 @@ always_comb begin
     p2_is_divide = 1'b0;
     p2_is_sys = 1'b0;
     p2_is_fpu = 1'b0;
+    p2_is_idx = 1'b0;
     p2_alu_op = 3'bx;
     p2_shift_op = 3'bx;
     p2_branch_op = 3'bx;
@@ -203,6 +207,12 @@ always_comb begin
             p2_latent = 1'b1;
         end
 
+        `KIND_IDX: begin
+            p2_is_idx = 1'b1;
+            p2_alu_op = instr_i;
+            p2_wren = 1'b1;
+        end
+
         `KIND_MUL: begin
                 p2_alu_op = instr_i;
                 p2_wren = 1'b1;
@@ -253,14 +263,14 @@ always_comb begin
 
     // Check the scoreboard to see if the source registers are ready. If not, stall the pipeline.
     next_scoreboard = scoreboard;
-    if (p4_wren)
+    if (p4_wren && p4_latent)
         next_scoreboard[p4_rd] = 1'b0; // Mark the destination register as ready
     if (p4_jump_taken && p3_latent)
         next_scoreboard[p3_rd] = 1'b0; // Mark the destination register as ready if we are jumping and the instruction is latent
     next_scoreboard[0] = 1'b0; // Register 0 is always ready
     stall_regs = scoreboard[instr_a] || scoreboard[instr_b] || scoreboard[instr_d];
 
-    stall = stall_regs || stall_resource;
+    stall = p2_instr_valid && (stall_regs || stall_resource);
 
     if (stall) begin
         p2_is_alu = 1'b0;
@@ -272,6 +282,7 @@ always_comb begin
         p2_is_divide = 1'b0;
         p2_is_sys = 1'b0;
         p2_is_fpu = 1'b0;
+        p2_is_idx = 1'b0;
         p2_wren = 1'b0;
     end
 
@@ -296,6 +307,7 @@ always_ff @(posedge clock) begin
     p3_is_divide_x <= p2_is_divide;
     p3_is_sys_x <= p2_is_sys;
     p3_is_fpu_x <= p2_is_fpu;
+    p3_is_idx_x <= p2_is_idx;
     p3_alu_op <= p2_alu_op;
     p3_shift_op <= p2_shift_op;
     p3_branch_op <= p2_branch_op;

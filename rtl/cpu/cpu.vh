@@ -37,6 +37,10 @@
 `define BRANCH_JMP  3'b110
 `define BRANCH_JMPR 3'b111
 
+`define IDX_IDX1    3'h0
+`define IDX_IDX2    3'h1
+`define IDX_IDX4    3'h2
+
 `define MULT_MUL    3'b000
 `define MULT_MULH   3'b001
 `define MULT_MULHS  3'b010

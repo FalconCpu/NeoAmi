@@ -284,11 +284,18 @@ static String read_word() {
     str_clear();
     str_append(next_char());
 
-    int is_slash_name = (str[0] == '/'); // Check if the first character is a slash
+    int bracket_depth = 0;
 
     while (isalnum(current_char) || current_char == '.' || current_char == '_' || current_char == '@' ||
-       (is_slash_name && (current_char == '/' || current_char == '(' || current_char == ')' || current_char == ','))) 
+       current_char == '/' || current_char == '(' || current_char == ')' || 
+       current_char == '<' || current_char == '>' || current_char == '?' || 
+       (current_char == ',' && bracket_depth > 0)) {
+        if (current_char == '(' || current_char == '<')
+            bracket_depth++;
+        else if (current_char == ')' || current_char == '>')
+            bracket_depth--;
         str_append(next_char());
+    }
 
     if (current_char == '.') {
         // A word containing a dot could be a decimal number

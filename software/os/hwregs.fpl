@@ -1,0 +1,58 @@
+
+class HwRegs 
+    var seven_seg      : Int  # 6 digit hexadecimal seven segment display
+    var ledr           : Int  # 10 LEDs
+    var sw             : Int  # 10 Switches
+    var key            : Int  # 4 Push buttons
+    var uart_tx        : Int  # Write = byte of data to transmit, read = number of slots free in fifo
+    var uart_rx        : Int  # 1 byte of data from the uart, -1 if no data
+    var mouse_x        : Int  # Mouse X coordinate
+    var mouse_y        : Int  # Mouse Y coordinate
+    var mouse_buttons  : Int  # Mouse buttons (bit 0 = left, bit 1 = right, bit 2 = middle)
+    var keyboard       : Int  # Keyboard scan code, -1 if no key pressed
+    var timer          : Int  # 32 bit free running timer
+    var i2c_out        : Int  # 
+    var simulation     : Int  # Reads as 1 in simulation, 0 in hardware
+    var overflow       : Int  # Overflow flag for fifos
+    var vga_pos        : Int  # Current VGA row (Y) being drawn
+
+const hwregs = unsafe(0xE0000000 as HwRegs)
+
+fun uartTx(c:Char)
+    # wait for space in tx fifo
+    var a = -1
+    repeat
+        a = hwregs.uart_tx
+    until a>8
+    hwregs.uart_tx = (c as Int)
+
+
+class HwRegsAudio
+    var addr       : Int  # Address register for audio buffer
+    var length     : Int  # Length of audio buffer in bytes. Write to this register starts playback
+    var volume     : Int  # Volume (0-255)
+    var pitch      : Int  # Sample rate. 0x10000=48kHz, 0x8000=24kHz, 0x4000=12kHz etc
+    var rep_addr   : Int  # Address to loop back to when the sample loops
+    var rep_length : Int  # Length of loop section in bytes. 0 = no
+    var write_addr : Int  # Current write address (channel 7 only)
+    var write_len  : Int  # Current write length (channel 7 only)
+
+const hwregsAudio = const Array<HwRegsAudio>[
+    unsafe(0xE0000200 as HwRegsAudio),
+    unsafe(0xE0000220 as HwRegsAudio),
+    unsafe(0xE0000240 as HwRegsAudio),
+    unsafe(0xE0000260 as HwRegsAudio),
+    unsafe(0xE0000280 as HwRegsAudio),
+    unsafe(0xE00002A0 as HwRegsAudio),
+    unsafe(0xE00002C0 as HwRegsAudio),
+    unsafe(0xE00002E0 as HwRegsAudio) ]
+
+class HwRegsVideo
+    var addr        : Int  # Framebuffer address
+    var x1          : Int  # Visible area x1
+    var y1          : Int  # Visible area y1
+    var x2          : Int  # Visible area x2
+    var y2          : Int  # Visible area y2
+    var pitch       : Int  # Number of bytes per row
+
+const hwregsVideo = unsafe(0xE0000100 as HwRegsVideo)

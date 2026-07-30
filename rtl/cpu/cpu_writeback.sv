@@ -10,6 +10,7 @@ module cpu_writeback (
 
     // Input from the ALU
     input logic         p4_alu_valid,       // Indicates that the ALU result is valid
+    input logic         p4_alu_latent,       // Indicates that the ALU result is from a multi-cycle instruction
     input logic [4:0]   p4_alu_rd,          // Destination register for the ALU result
     input logic [31:0]  p4_alu_result,      // Result from the ALU operation
 
@@ -42,6 +43,7 @@ module cpu_writeback (
     output logic [4:0]  p4_rd,              // Destination register for the writeback
     output logic [31:0] p4_result,          // Result to be written back to the register file
     output logic        p4_wren,            // Indicates that the writeback is valid
+    output logic        p4_latent,          // Indicates that the writeback came from a multi-cycle instruction
     output logic        writeback_fault     // Indicates that a fault occurred during writeback
 );
 
@@ -130,14 +132,17 @@ always_comb begin
         p4_rd = p4_alu_rd;
         p4_result = p4_alu_result;
         p4_wren = 1'b1;
+        p4_latent = p4_alu_latent;
     end else if (dcache_rvalid) begin
         p4_rd = dcache_rdest;
         p4_result = dcache_rdata;
         p4_wren = 1'b1;
+        p4_latent = 1'b1;
     end else begin
         p4_rd = queue0.rd;
         p4_result = queue0.result;
         p4_wren = queue0.valid;
+        p4_latent = 1'b1;
     end 
 
     // reset

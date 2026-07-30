@@ -18,5 +18,7 @@ fun kernelMain() -> Int
         handleException(0, 0, 0)
         handleSysCall(0, 0)
         handleInterrupt(0)
-    val x = 1
+    for i in 0..10
+        kprintf("Hello world! %x\n", i)
+    kprintf("All done\n")
     return 0

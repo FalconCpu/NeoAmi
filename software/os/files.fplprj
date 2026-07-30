@@ -1,2 +1,4 @@
 boot.f32
+hwregs.fpl
+kprintf.fpl
 main.fpl

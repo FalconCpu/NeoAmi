@@ -22,6 +22,7 @@ module cpu_alu (
 
     input logic         p3_is_alu,         // Indicates this is an instruction for the ALU
     input logic         p3_is_mult,        // Indicates this is a multiply instruction (encoding is in p3_alu_op)
+    input logic         p3_is_idx,         // Indicates this is an index instruction (encoding is in p3_alu_op)
     input logic [2:0]   p3_alu_op,         // ALU operation type
 
     input logic [2:0]   p3_shift_op,       // Shift operation type
@@ -29,6 +30,7 @@ module cpu_alu (
 
     output logic [31:0] p3_alu_result,     // Result from the ALU operation - for register forwarding
     output logic        p4_alu_valid,      // Indicates that the ALU result is valid
+    output logic        p4_alu_latent,
     output logic [4:0]  p4_alu_rd,         // Destination register for the
     output logic [31:0] p4_alu_result,     // Result from the ALU operation - for register writeback
 
@@ -47,18 +49,29 @@ always_comb begin
     p3_alu_result = 32'hx;
 
     if (p3_is_alu)
-    case (p3_alu_op)
-        `ALU_AND: p3_alu_result = p3_data_a & p3_data_b;
-        `ALU_OR:  p3_alu_result = p3_data_a | p3_data_b;
-        `ALU_XOR: p3_alu_result = p3_data_a ^ p3_data_b;
-        `ALU_LD:  p3_alu_result = p3_data_b;
-        `ALU_ADD: p3_alu_result = p3_data_a + p3_data_b;
-        `ALU_SUB: p3_alu_result = p3_data_a - p3_data_b;
-        `ALU_CLT: p3_alu_result = (signed_a < signed_b) ? 32'h1 : 32'h0;
-        `ALU_CLTU: p3_alu_result = (p3_data_a < p3_data_b) ? 32'h1 : 32'h0;
-        default:  p3_alu_result = 32'hx;
-    endcase
+        case (p3_alu_op)
+            `ALU_AND: p3_alu_result = p3_data_a & p3_data_b;
+            `ALU_OR:  p3_alu_result = p3_data_a | p3_data_b;
+            `ALU_XOR: p3_alu_result = p3_data_a ^ p3_data_b;
+            `ALU_LD:  p3_alu_result = p3_data_b;
+            `ALU_ADD: p3_alu_result = p3_data_a + p3_data_b;
+            `ALU_SUB: p3_alu_result = p3_data_a - p3_data_b;
+            `ALU_CLT: p3_alu_result = (signed_a < signed_b) ? 32'h1 : 32'h0;
+            `ALU_CLTU: p3_alu_result = (p3_data_a < p3_data_b) ? 32'h1 : 32'h0;
+            default:  p3_alu_result = 32'hx;
+        endcase
+    else if (p3_is_idx) 
+        case (p3_alu_op)
+            `IDX_IDX1: p3_alu_result = p3_data_a;
+            `IDX_IDX2: p3_alu_result = p3_data_a << 1;
+            `IDX_IDX4: p3_alu_result = p3_data_a << 2;
+            default:  p3_alu_result = 32'hx;
+        endcase
+    else begin
+        p3_alu_result = 32'hx;
+    end
     
+
 end
 
 // Shift operations
@@ -121,11 +134,11 @@ always_ff @(posedge clock) begin
     mul_valid <= p3_is_mult;
     mul_rd <= p3_rd;
 
-    p4_alu_valid <= p3_is_alu || p3_is_shift;
+    p4_alu_valid <= p3_is_alu || p3_is_shift || p3_is_idx;
+    p4_alu_latent <= p3_is_shift;
     p4_alu_rd <= p3_rd;
 
-
-    if (p3_is_alu) begin
+    if (p3_is_alu || p3_is_idx) begin
         p4_alu_result <= p3_alu_result;
     end else if (p3_is_shift) begin
         p4_alu_result  <= p3_shift_result;

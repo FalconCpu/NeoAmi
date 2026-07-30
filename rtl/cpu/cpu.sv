@@ -78,6 +78,7 @@ logic        p3_is_mult;
 logic        p3_is_divide;
 logic        p3_is_sys;
 logic        p3_is_fpu;
+logic        p3_is_idx;
 logic [2:0]  p3_mem_op;
 logic [31:0] p3_pc;
 logic [31:0] p4_pc;
@@ -91,6 +92,7 @@ logic [31:0] p3_data_b;
 
 // signals driven by the ALU module
 logic        p4_alu_valid;
+logic        p4_alu_latent;
 logic [4:0]  p4_alu_rd;
 logic [31:0] p3_alu_result;
 logic [31:0] p4_alu_result;
@@ -103,6 +105,7 @@ logic [31:0] mul_result;
 logic [4:0]   p4_rd;
 logic [31:0]  p4_result;
 logic         p4_wren;
+logic         p4_latent;
 logic         writeback_fault;
 
 // signals driven by divider
@@ -196,6 +199,7 @@ cpu_decoder  cpu_decoder_inst (
     .p3_is_divide(p3_is_divide),
     .p3_is_sys(p3_is_sys),
     .p3_is_fpu(p3_is_fpu),
+    .p3_is_idx(p3_is_idx),
     .p3_shift_op(p3_shift_op),
     .p3_is_branch(p3_is_branch),
     .p3_branch_op(p3_branch_op),
@@ -208,6 +212,7 @@ cpu_decoder  cpu_decoder_inst (
     .p3_rd(p3_rd),
     .p4_rd(p4_rd),
     .p4_wren(p4_wren),
+    .p4_latent(p4_latent),
     .p4_is_store(p4_is_store)
   );
 
@@ -217,7 +222,7 @@ cpu_regfile  cpu_regfile_inst (
     .p2_rs2(p2_rs2),
     .p2_use_immediate(p2_use_immediate),
     .p2_immediate(p2_immediate),
-    .p3_is_alu(p3_is_alu),
+    .p3_is_alu(p3_is_alu || p3_is_idx),
     .p3_rd(p3_rd),
     .p3_alu_result(p3_alu_result),
     .p4_wren(p4_wren),
@@ -238,8 +243,10 @@ cpu_alu  cpu_alu_inst (
     .p3_shift_op(p3_shift_op),
     .p3_is_shift(p3_is_shift),
     .p3_is_mult(p3_is_mult),
+    .p3_is_idx(p3_is_idx),
     .p3_alu_result(p3_alu_result),
     .p4_alu_valid(p4_alu_valid),
+    .p4_alu_latent(p4_alu_latent),
     .p4_alu_rd(p4_alu_rd),
     .p4_alu_result(p4_alu_result),
     .mul_valid(mul_valid),
@@ -322,11 +329,13 @@ cpu_writeback  cpu_writeback_inst (
   .clock(clock),
   .reset(reset),
     .p4_alu_valid(p4_alu_valid),
+    .p4_alu_latent(p4_alu_latent),
     .p4_alu_rd(p4_alu_rd),
     .p4_alu_result(p4_alu_result),
     .p4_rd(p4_rd),
     .p4_result(p4_result),
     .p4_wren(p4_wren),
+    .p4_latent(p4_latent),
     .aux_wb_valid(cpu_aux_rvalid),
     .aux_wb_rd(cpu_aux_rdest),
     .aux_wb_result(cpu_aux_rdata),
