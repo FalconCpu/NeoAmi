@@ -1,0 +1,24 @@
+enum Error(description:String) [
+
+    # Hardware exceptions
+    NONE                ("None"),
+    INSTRUCTION_FAULT   ("Instruction Access Fault"),
+    ILLEGAL_INSTRUCTION ("Illegal Instruction"),
+    BREAKPOINT          ("Breakpoint"),
+    LOAD_MISALIGN       ("Load Address Misaligned"),
+    LOAD_FAULT          ("Load Access Fault (MPU)"),
+    STORE_MISALIGN      ("Store Address Misaligned"),
+    STORE_FAULT         ("Store Access Fault (MPU)"),
+    SYSCALL             ("System Call"),
+    INDEX_OVERFLOW      ("Index Overflow"),
+    
+    # Memory allocator errors
+    OUT_OF_MEMORY       ("Out of Memory"),
+    DOUBLE_FREE         ("Memory Double Free Detected"),
+    
+    # Misc errors
+    TIMEOUT              ("Operation Timed Out"),
+    INVALID_ARGUMENT     ("Invalid Argument"),
+    NOT_IMPLEMENTED      ("Not Implemented"),
+    UNKNOWN             ("Unknown Error"),
+    IO_ERROR            ("I/O Error")   ]

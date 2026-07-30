@@ -229,11 +229,11 @@ logic [7:0]   vga_sdram_rtag;
 logic            aux_iris_req;
 logic [15:0]     aux_iris_addr;
 logic [31:0]     aux_iris_wdata;
+logic [9:0]      ypos;
 
  iris  iris_inst (
     .clock(clock),
     .reset(reset),
-    .KEY(KEY[2:0]),
     .VGA_BLANK_N(VGA_BLANK_N),
     .VGA_B(VGA_B),
     .VGA_CLK(VGA_CLK),
@@ -242,6 +242,7 @@ logic [31:0]     aux_iris_wdata;
     .VGA_R(VGA_R),
     .VGA_SYNC_N(VGA_SYNC_N),
     .VGA_VS(VGA_VS),
+    .ypos(ypos),
     .aux_iris_req(aux_iris_req),
     .aux_iris_addr(aux_iris_addr),
     .aux_iris_wdata(aux_iris_wdata)
@@ -275,6 +276,7 @@ sophie  sophie_inst (
     .aux_iris_req(aux_iris_req),
     .aux_iris_addr(aux_iris_addr),
     .aux_iris_wdata(aux_iris_wdata),
+    .ypos(ypos),
     .HEX0(HEX0),
     .HEX1(HEX1),
     .HEX2(HEX2),

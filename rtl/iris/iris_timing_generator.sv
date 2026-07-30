@@ -7,7 +7,6 @@
 module iris_timing_generator (
     input logic                clock,           // 125 MHz system clock
     input logic                reset,
-    input logic signed [2:0]   KEY,
 
     output logic               start_of_pixel,
     output logic               start_of_line,

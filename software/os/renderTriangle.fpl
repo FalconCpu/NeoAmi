@@ -1,0 +1,196 @@
+extern fun bzero(dest:Int, n:Int)
+
+var first = true
+
+class GfxVertex(
+    val x:Float,
+    val y:Float,
+    val z:Float,
+    val r:Float,
+    val g:Float,
+    val b:Float)
+
+class GfxScene
+    val objects = new List<IrisSprite>()
+    var clipX1 = 0
+    var clipX2 = 640
+    var clipY1 = 0
+    var clipY2 = 480
+    var currentTexture : Array<Char>  = unsafe(0 as Array<Char>)
+    var currentTexStride = 0
+
+    fun floatToFixed12_4(value:Float) -> Short
+        return (value * 16.0) as Short
+
+    fun floatToFloat16(value:Float) -> Short
+        if value > -2.0 and value < 2.0
+            return (((value * 4096) as Int) & 0x3FFF) as Short
+        else if value > -16.0 and value < 16.0
+            return ((((value * 512) as Int) & 0x3FFF) | 0x4000) as Short
+        else if value > -128.0 and value < 128.0
+            return ((((value * 64) as Int) & 0x3FFF) | 0x8000) as Short
+        else
+            return (((value * 8) as Int) & 0x3FFF | 0xC000) as Short
+
+    fun addTriangle(textured:Bool, vertex1:GfxVertex, vertex2:GfxVertex, vertex3:GfxVertex) -> Bool
+        # Sort vertices by Y
+        var v1 = vertex1
+        var v2 = vertex2
+        var v3 = vertex3
+        if v2.y < v1.y
+            (v1, v2) = (v2, v1)
+        if v3.y < v1.y
+            (v1, v3) = (v3, v1)
+        if v3.y < v2.y
+            (v2, v3) = (v3, v2)
+
+        kprintf("Adding triangle with vertices:  Texture=%d\n", if textured then 1 else 0)
+        kprintf("Vertex1: x=%f y=%f z=%f r=%f g=%f b=%f\n", v1.x, v1.y, v1.z, v1.r, v1.g, v1.b)
+        kprintf("Vertex2: x=%f y=%f z=%f r=%f g=%f b=%f\n", v2.x, v2.y, v2.z, v2.r, v2.g, v2.b)
+        kprintf("Vertex3: x=%f y=%f z=%f r=%f g=%f b=%f\n", v3.x, v3.y, v3.z, v3.r, v3.g, v3.b)
+
+        # Find the scanline for each vertex, adjusting for 0.5 pixel center of the scanline
+        var y1 = (v1.y + 0.5) as Int
+        var y2 = (v2.y + 0.5) as Int
+        var y3 = (v3.y + 0.5) as Int
+
+        if y3 <= y1
+            return false
+        if y3 < clipY1 or y1 >= clipY2
+            return false
+
+        kprintf("Triangle scanlines: y1=%d y2=%d y3=%d\n", y1, y2, y3)
+
+        kprintf("Checking clip bounds: clipX1=%d clipX2=%d clipY1=%d clipY2=%d\n", clipX1, clipX2, clipY1, clipY2)
+        val clipX1F = clipX1 as Float
+        val clipX2F = clipX2 as Float
+        # if v1.x < clipX1F and v2.x < clipX1F and v3.x < clipX1F
+        #     return false
+        # if v1.x >= clipX2F and v2.x >= clipX2F and v3.x >= clipX2F
+        #     return false
+        kprintf("Triangle is within clipping bounds\n")
+
+        # Calculate the slopes of the three edges.
+        # Since we have only one divider, intersperse other operations between the divisions
+        var slope_12 = (v2.x - v1.x) / (v2.y - v1.y)
+
+        # Create GfxObject
+        val dest = new IrisSprite()
+        objects.add(dest)
+
+        var slope_13 = (v3.x - v1.x) / (v3.y - v1.y)
+
+        # Handle vertical clipping
+        if y3 > clipY2
+            y3 = clipY2
+        if y1 < clipY1
+            y1 = clipY1
+        dest.clip_x1 = clipX1 as Short
+        dest.clip_x2 = clipX2 as Short
+        dest.ytop    = y1 as Short
+        dest.ybot    = y3 as Short
+
+        var slope_23 = (v3.x - v2.x) / (v3.y - v2.y)
+
+        # Set texture parameters
+        dest.tex_addr = unsafe(currentTexture as Int)
+        dest.tex_stride = currentTexStride as Short
+
+        # Set up initial X and slopes based on which side has breakpoint
+        var slope1 : Float
+        var slope2 : Float
+        var slope3 : Float
+        var flags = if textured then 0 else 2
+
+        if y1 = y2
+            # Flat top triangle - Make sure v1 is the left vertex and v2 is the right
+            if v2.x < v1.x
+                (v1, v2) = (v2, v1)
+                (slope_13, slope_23) = (slope_23, slope_13)
+            slope1 = slope_13
+            slope2 = slope_23  # not used
+            slope3 = slope_23
+            flags = flags | 16
+        else if y2 = y3
+            # Flat bottom triangle - Make sure v3 is the right vertex and v2 is the left
+            if v3.x < v2.x
+                (v2, v3) = (v3, v2)
+                (slope_12, slope_13) = (slope_13, slope_12)
+            slope1 = slope_12
+            slope2 = slope_13
+            slope3 = 0.0    # not used
+        else if slope_12 < slope_13
+            # Middle vertex is on the left side of the triangle
+            slope1 = slope_12
+            slope2 = slope_13
+            slope3 = slope_23
+        else
+            # Middle vertex is on the right side of the triangle
+            slope1 = slope_13
+            slope2 = slope_12
+            slope3 = slope_23
+            flags = flags | 16
+
+        # Pack X positions and slopes into the GfxObject structure
+        dest.flags  = flags as Short
+        dest.x1 = floatToFixed12_4(v1.x)
+        dest.y1 = floatToFixed12_4(v1.y)
+        dest.x2 = floatToFixed12_4(v2.x)
+        dest.y2 = floatToFixed12_4(v2.y)
+        dest.dx1_dy = floatToFloat16(slope1)
+        dest.dx2_dy = floatToFloat16(slope2)
+        dest.dx3_dy = floatToFloat16(slope3)
+
+        val dx2 = v2.x - v1.x
+        val dy2 = v2.y - v1.y
+        val dx3 = v3.x - v1.x
+        val dy3 = v3.y - v1.y
+
+        val invDen = 1.0 / (dx2*dy3 - dx3*dy2)
+
+        val dZdX = ((v2.z - v1.z)*dy3 - (v3.z - v1.z)*dy2) * invDen
+        val dZdY = ((v3.z - v1.z)*dx2 - (v2.z - v1.z)*dx3) * invDen
+        dest.z1  = floatToFixed12_4(v1.z)
+        dest.dz_dx = floatToFloat16(dZdX)
+        dest.dz_dy = floatToFloat16(dZdY)
+
+        val dRdX = ((v2.r - v1.r)*dy3 - (v3.r - v1.r)*dy2) * invDen
+        val dRdY = ((v3.r - v1.r)*dx2 - (v2.r - v1.r)*dx3) * invDen
+        dest.r1  = floatToFixed12_4(v1.r)
+        dest.dr_dx = floatToFloat16(dRdX)
+        dest.dr_dy = floatToFloat16(dRdY)
+
+        val dGdX = ((v2.g - v1.g)*dy3 - (v3.g - v1.g)*dy2) * invDen
+        val dGdY = ((v3.g - v1.g)*dx2 - (v2.g - v1.g)*dx3) * invDen
+        dest.g1  = floatToFixed12_4(v1.g)
+        dest.dg_dx = floatToFloat16(dGdX)
+        dest.dg_dy = floatToFloat16(dGdY)
+
+        val dBdX = ((v2.b - v1.b)*dy3 - (v3.b - v1.b)*dy2) * invDen
+        val dBdY = ((v3.b - v1.b)*dx2 - (v2.b - v1.b)*dx3) * invDen
+        kprintf("Color gradients: dRdX=%f dRdY=%f dGdX=%f dGdY=%f dBdX=%f dBdY=%f\n", dRdX, dRdY, dGdX, dGdY, dBdX, dBdY)
+        dest.b1  = floatToFixed12_4(v1.b)
+        dest.db_dx = floatToFloat16(dBdX)
+        dest.db_dy = floatToFloat16(dBdY)
+
+        # kprintf("Object Z: %08x\n", dest.data[GFXOBJ_Z] & 0xFFF | ((dest.data[GFXOBJ_Z+1] & 0xFF) lsl 16))
+        return true
+
+
+    fun show()
+        val x = if objects.length < 255 then objects.length else 255
+        kprintf("Showing scene with %d objects\n", objects.length)
+        for i in 0..<x
+            val gobj = objects.get(i)
+            memcpy(VGA_OBJ_MEMORY+128*i, unsafe(gobj as Int), 80)
+        bzero(VGA_OBJ_MEMORY+128*objects.length, 128*(255-objects.length))
+
+    fun dump()
+        for i in 0..<objects.length
+            val gobj = objects.get(i)
+            gobj.dump()
+
+    fun clear()
+        for obj in objects
+            free obj
+        objects.clear()

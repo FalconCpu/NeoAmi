@@ -169,12 +169,15 @@ always_ff @(posedge clock) begin
     // Assemble final result
     if (is_integer) begin
         fpu_result_x <= in_mantissa; // just pass through integer value
+        round_bit <= 1'b0;
     end else if (in_nan) begin
         // Division result is NaN
         fpu_result_x <= 32'hffc00000; // quiet NaN
+        round_bit <= 1'b0;
     end else if (normalized_exponent == 8'hff) begin
         // Overflow to infinity
         fpu_result_x <= {in_sign, 8'hff, 23'h0};
+        round_bit <= 1'b0;
     end else if (normalized_exponent == 8'h00) begin
         // Subnormal
         fpu_result_x <= {in_sign, normalized_exponent, 1'b0,normalized_mantissa[22:1]};

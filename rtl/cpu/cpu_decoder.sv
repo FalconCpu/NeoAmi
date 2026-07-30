@@ -66,18 +66,6 @@ wire [4:0] instr_b = p2_instr[4:0];    // Source register 2
 assign p2_rs1 = instr_a;
 assign p2_rs2 = instr_b;
 
-// On a jump instruction, we need to flush the pipeline. We can do this by combinationally
-// setting all the p3_is_* signals to 0.
-assign p3_is_alu = p3_is_alu_x && !p4_jump_taken;
-assign p3_is_shift = p3_is_shift_x && !p4_jump_taken;
-assign p3_is_branch = p3_is_branch_x && !p4_jump_taken;
-assign p3_is_load = p3_is_load_x && !p4_jump_taken;
-assign p3_is_store = p3_is_store_x && !p4_jump_taken;
-assign p3_is_mult = p3_is_mult_x && !p4_jump_taken;
-assign p3_is_divide = p3_is_divide_x && !p4_jump_taken;
-assign p3_is_sys = p3_is_sys_x && !p4_jump_taken;
-assign p3_is_fpu = p3_is_fpu_x && !p4_jump_taken;
-assign p3_is_idx = p3_is_idx_x && !p4_jump_taken;
 
 // Scoreboard logic
 // 1 bit per register, 1=not ready, 0=ready
@@ -95,6 +83,20 @@ logic        stall_resource;  // Indicates that the pipeline should stall due to
 logic        stall;
 logic        p2_wren;
 logic        p2_latent, p3_latent;    // The instruction may take multiple cycles to complete 
+
+// On a jump instruction, we need to flush the pipeline. We can do this by combinationally
+// setting all the p3_is_* signals to 0.
+assign p3_is_alu = p3_is_alu_x && !p4_jump_taken;
+assign p3_is_shift = p3_is_shift_x && !p4_jump_taken;
+assign p3_is_branch = p3_is_branch_x && !p4_jump_taken;
+assign p3_is_load = p3_is_load_x && !p4_jump_taken;
+assign p3_is_store = p3_is_store_x && !p4_jump_taken;
+assign p3_is_mult = p3_is_mult_x && !p4_jump_taken;
+assign p3_is_divide = p3_is_divide_x && !p4_jump_taken;
+assign p3_is_sys = p3_is_sys_x && !p4_jump_taken;
+assign p3_is_fpu = p3_is_fpu_x && !p4_jump_taken;
+assign p3_is_idx = p3_is_idx_x && !p4_jump_taken;
+
 
 always_comb begin
     p2_is_alu = 1'b0;

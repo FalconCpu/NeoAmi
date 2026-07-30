@@ -19,6 +19,7 @@
 // E000002C  I2C_OUT        W    I2C Data to send (24 bits). Reads 0=Ready, 1=Busy, 2=Error
 // E0000030  SIMULATION     R    Reads as 1 in simulation, 0 in hardware
 // E0000034  OVERFLOW       R    bit 0 = uart tx fifo overflow, bit 1 = uart rx fifo overflow, bit 2 = keyboard fifo overflow
+// E0000038  VGA_YPOS       R    Current Y position of the rasterizer. Reads negative values during the vertical blanking period. This is for debug only.
 
 // verilator lint_off PINCONNECTEMPTY
 
@@ -36,6 +37,7 @@ module sophie_hwregs (
     output logic [31:0] aux_hwregs_rdata,   // Data read from memory
 
     // Connections to the chip pins
+    input  logic [9:0]  ypos,
     output logic [6:0]	HEX0,
 	output logic [6:0]	HEX1,
 	output logic [6:0]	HEX2,
@@ -178,6 +180,8 @@ always_ff @(posedge clock) begin
                         // synthesis translate_on
                       end
             16'h0034: aux_hwregs_rdata <= {29'b0, latched_fifo_overflow};
+            16'h0038: aux_hwregs_rdata <= {{22{ypos[9]}}, ypos};
+
             default:  aux_hwregs_rdata <= 32'b0;
         endcase
     end

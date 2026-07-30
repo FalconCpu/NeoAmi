@@ -28,6 +28,7 @@ module sophie (
     output logic        aux_iris_req,        // Request to read/write the Iris memory
     output logic [15:0] aux_iris_addr,       // Address for the read/write operation
     output logic [31:0] aux_iris_wdata,      // Data to be written to the Iris memory
+    input  logic [9:0]  ypos,                // Current Y position of the rasterizer (for debug)
 
     // Chip pins
     output logic [6:0]	HEX0,
@@ -97,6 +98,7 @@ sophie_hwregs  sophie_hwregs_inst (
     .aux_hwregs_strb(aux_hwregs_strb),
     .aux_hwregs_wdata(aux_hwregs_wdata),
     .aux_hwregs_rdata(aux_hwregs_rdata),
+    .ypos(ypos),
     .HEX0(HEX0),
     .HEX1(HEX1),
     .HEX2(HEX2),

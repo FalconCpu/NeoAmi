@@ -1,4 +1,9 @@
 boot.f32
 hwregs.fpl
+errors.fpl
+memory.fpl
+../stdlib/list.fpl
 kprintf.fpl
+IrisSprite.fpl
+renderTriangle.fpl
 main.fpl

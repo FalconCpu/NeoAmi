@@ -23,12 +23,12 @@
 module iris (
     input  logic            clock,           // 125 MHz system clock
     input  logic            reset,
-    input logic  [2:0]         KEY,
 
     // Aux bus - for configuration and memory access
     input logic            aux_iris_req,
     input logic [15:0]     aux_iris_addr,
     input logic [31:0]     aux_iris_wdata,
+    output logic [9:0]     ypos,
 
     // VGA interface
 	output logic       	   VGA_BLANK_N,
@@ -44,7 +44,6 @@ module iris (
 logic           start_of_pixel;
 logic           start_of_line;
 logic           start_of_frame;
-logic [9:0]     ypos;
 logic [10:0]    xpos;
 logic           vga_clk;
 logic           hsync;
@@ -305,7 +304,6 @@ iris_scanline_ram  iris_scanline_ram_inst (
 iris_timing_generator  iris_timing_generator_inst (
     .clock(clock),
     .reset(reset),
-    .KEY(KEY),
     .start_of_pixel(start_of_pixel),
     .start_of_line(start_of_line),
     .start_of_frame(start_of_frame),

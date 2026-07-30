@@ -13,12 +13,28 @@ fun handleInterrupt(interruptNumber: Int)
     # You can add your interrupt handling logic based on the interruptNumber parameter
 
 fun kernelMain() -> Int
+
+    kprintf("%f", -0.5)
+
     if 1=2
         # dummy calls to avoid warnings about unused functions
         handleException(0, 0, 0)
         handleSysCall(0, 0)
         handleInterrupt(0)
-    for i in 0..10
-        kprintf("Hello world! %x\n", i)
+
+    initializeMemorySystem()
+
+    val gs = new GfxScene()
+
+    val v1 = new GfxVertex(100.0, 100.0, 1.0, 255.0, 0.0, 0.0)
+    val v2 = new GfxVertex(200.0, 100.0, 1.0, 0.0, 255.0, 0.0)
+    val v3 = new GfxVertex(150.0, 200.0, 1.0, 0.0, 0.0, 255.0)
+    gs.addTriangle(false, v1, v2, v3)
+
+    gs.dump()
+
+    gs.show()
+
+
     kprintf("All done\n")
     return 0
