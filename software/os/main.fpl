@@ -1,0 +1,22 @@
+
+
+fun handleException(task: Int, error: Int, data: Int)
+    # Handle the exception here
+    # You can add your exception handling logic based on the task, error, and data parameters
+
+fun handleSysCall(task: Int, sysCallNumber: Int)
+    # Handle the system call here
+    # You can add your system call handling logic based on the task and sysCallNumber parameters
+
+fun handleInterrupt(interruptNumber: Int)
+    # Handle the interrupt here
+    # You can add your interrupt handling logic based on the interruptNumber parameter
+
+fun kernelMain() -> Int
+    if 1=2
+        # dummy calls to avoid warnings about unused functions
+        handleException(0, 0, 0)
+        handleSysCall(0, 0)
+        handleInterrupt(0)
+    val x = 1
+    return 0

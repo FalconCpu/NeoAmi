@@ -20,6 +20,9 @@ int main(int argc, char *argv[]) {
         } else if (!strcmp(arg, "-b") || !strcmp(arg, "--binary") ) {
             format = FORMAT_BINARY;
 
+        } else if (!strcmp(arg, "-hex") || !strcmp(arg, "--hex") ) {
+            format = FORMAT_HEX;
+
         } else if (!strcmp(arg, "-h") || !strcmp(arg, "--help")) {
             printf("Usage: f32asm [options] <input_files>\n");
             printf("Options:\n");

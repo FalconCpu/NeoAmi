@@ -5,8 +5,11 @@
 *.labels
 *.vcd
 a.out
+
 asm.trace
 wave.gtkw
+symbol-map.json
+asm.f32
 
 binutils/build/
 hardware/vga_output.txt

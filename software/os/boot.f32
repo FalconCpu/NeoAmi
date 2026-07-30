@@ -1,0 +1,421 @@
+jmp boot
+
+
+HWREGS_BASE = 0xE0000000
+SEVENSEG = 0x0000
+LEDS     = 0x0004    
+UART_TX  = 0x0010      # Transmit byte to UART, Read gives number of bytes free in FIFO
+UART_RX  = 0x0014      # Read byte from UART, -1 if no data available
+SIMULATION = 0x0044    # Reads as 1 in simulation, 0 on silicon
+
+# Task structure offsets
+TASK_R0  = 0x00
+TASK_R1  = 0x04
+TASK_R2  = 0x08
+TASK_R3  = 0x0C
+TASK_R4  = 0x10
+TASK_R5  = 0x14
+TASK_R6  = 0x18
+TASK_R7  = 0x1C
+TASK_R8  = 0x20
+TASK_R9  = 0x24
+TASK_R10 = 0x28
+TASK_R11 = 0x2C
+TASK_R12 = 0x30
+TASK_R13 = 0x34
+TASK_R14 = 0x38
+TASK_R15 = 0x3C
+TASK_R16 = 0x40
+TASK_R17 = 0x44
+TASK_R18 = 0x48
+TASK_R19 = 0x4C
+TASK_R20 = 0x50
+TASK_R21 = 0x54
+TASK_R22 = 0x58
+TASK_R23 = 0x5C
+TASK_R24 = 0x60
+TASK_R25 = 0x64
+TASK_R26 = 0x68
+TASK_R27 = 0x6C
+TASK_R28 = 0x70
+TASK_R29 = 0x74
+TASK_R30 = 0x78
+TASK_R31 = 0x7C
+TASK_PC  = 0x80
+TASK_STATUS = 0x84
+TASK_NAME = 0x88         # Not used by the kernel, just for debugging
+TASK_NUM_REGIONS = 0x8C  # Number of MPU regions used by the task
+TASK_REGIONS = 0x90      # Pointer to array of MPU region descriptors for the task
+
+
+
+# =================================================
+#            Exception Handler
+# =================================================
+# Saves all registers to the task structure pointed to by !escratch
+# Then calls FPL handleException function to process and display
+
+exception_handler:
+    # Get task structure pointer from !escratch.
+    # Do an atomic swap, so we get task pointer in $1, and 
+    # !escratch temporarily gets our task's $1 register
+    cfg $1, !escratch, $1
+
+    # Save all the registers into task structure
+    stw 0,   $1[TASK_R0]
+    stw $2,  $1[TASK_R2]
+    stw $3,  $1[TASK_R3]
+    stw $4,  $1[TASK_R4]
+    stw $5,  $1[TASK_R5]
+    stw $6,  $1[TASK_R6]
+    stw $7,  $1[TASK_R7]
+    stw $8,  $1[TASK_R8]
+    stw $9,  $1[TASK_R9]
+    stw $10, $1[TASK_R10]
+    stw $11, $1[TASK_R11]
+    stw $12, $1[TASK_R12]
+    stw $13, $1[TASK_R13]
+    stw $14, $1[TASK_R14]
+    stw $15, $1[TASK_R15]
+    stw $16, $1[TASK_R16]
+    stw $17, $1[TASK_R17]
+    stw $18, $1[TASK_R18]
+    stw $19, $1[TASK_R19]
+    stw $20, $1[TASK_R20]
+    stw $21, $1[TASK_R21]
+    stw $22, $1[TASK_R22]
+    stw $23, $1[TASK_R23]
+    stw $24, $1[TASK_R24]
+    stw $25, $1[TASK_R25]
+    stw $26, $1[TASK_R26]
+    stw $27, $1[TASK_R27]
+    stw $28, $1[TASK_R28]
+    stw $29, $1[TASK_R29]
+    stw $30, $1[TASK_R30]
+    stw $31, $1[TASK_R31]
+
+    cfg $2, !escratch, $1   # Get original $1 back from !escratch
+    stw $2, $1[TASK_R1]     # Save original $1 into task structure
+
+    # Save exception state registers (before they get clobbered)
+    cfg $2, !estatus
+    stw $2, $1[TASK_STATUS]
+    cfg $2, !epc
+    stw $2, $1[TASK_PC]
+
+    # Set up a stack pointer for the exception handler to use 
+    # (we can't trust the current stack since it may be corrupted)
+    ld $31, 0x1F800   # Set stack pointer to a safe address in memory
+    ld $29, 0x00100   # Setup kernels global variables pointer
+
+    cfg $2, !ecause   # Get exception cause from !ecause
+    ld $7, 8         
+    beq $2, $7,  .syscall_exception
+
+    # Pass exception cause and data to the handler as parameters
+    cfg $3, !edata
+
+    jsr /handleException(Int,Int,Int)
+    
+    # Exception handler should not return
+    # If it does, halt the system
+    jmp exit
+
+.syscall_exception:
+    # Handle system call exception 
+    ld $28, $1       # Save the task structure pointer in $28, for use if the syscall returns
+    cfg $2, !edata
+
+    jsr /handleSysCall(Int,Int)
+
+    # Return to the instruction after the syscall. 
+    # We need to restore register R1..$7 and $28..$31 from the task structure
+    # Register $8 will contain the return value from the syscall - so don't restore that one
+    # Regs 9..27 are caller-saved, so we don't need to restore them
+    # $28 contains the task structure pointer, which we need to restore into !escratch before returning
+    ldw $1, $28[TASK_PC]
+    add $1, 4          # Move to the instruction after the syscall
+    cfg !epc, $1       # Set return PC to after the syscall instruction
+    ldw $1, $28[TASK_STATUS]
+    cfg !estatus, $1   # Restore original status register
+
+    ldw $1, $28[TASK_R28]
+    cfg !escratch, $1   # Put task's $28 into !escratch
+    ldw $1,  $28[TASK_R1]
+    ldw $2,  $28[TASK_R2]
+    ldw $3,  $28[TASK_R3]
+    ldw $4,  $28[TASK_R4]
+    ldw $5,  $28[TASK_R5]
+    ldw $6,  $28[TASK_R6]
+    ldw $7,  $28[TASK_R7]
+    ldw $29, $28[TASK_R29]
+    ldw $30, $28[TASK_R30]
+    ldw $31, $28[TASK_R31]
+    cfg $28, !escratch, $28   # Restore $28 into !escratch, and set !escratch to point to the task structure again
+    rte
+
+
+
+
+# =================================================
+#            Boot entry point
+# =================================================
+
+TASK_STRUCT_ADDR = 0x1000
+
+boot:
+    # Initialize stack pointer
+    ld $31, 0x01F000
+
+    # Initialize globals pointer
+    ld $29, 0x00100
+
+    # Setup interrupts
+    ld $1, interrupt_handler
+    cfg !intvec, $1
+    ld $1, 3            # Enable interrupts, supervisor mode
+    cfg !status, $1
+
+
+    # Run the kernel main function
+    jsr /kernelMain()
+    ld $1,$8
+    jmp exit
+
+
+
+# =================================================
+#            Interrupt entry point
+# =================================================
+
+interrupt_handler:
+    # Swap !iscratch with $31 to give us an area to use as a stack pointer
+    cfg $31, !iscratch, $31
+    ld $31, 0x1FF00
+
+    # Save registers into the interrupt handler's reserved area in memory
+    stw $1,  $31[TASK_R1]
+    stw $2,  $31[TASK_R2]
+    stw $3,  $31[TASK_R3]
+    stw $4,  $31[TASK_R4]
+    stw $5,  $31[TASK_R5]
+    stw $6,  $31[TASK_R6]
+    stw $7,  $31[TASK_R7]
+    stw $8,  $31[TASK_R8]
+    stw $29, $31[TASK_R29]
+    stw $30, $31[TASK_R30]
+    ld $29, 0x00100   # Setup kernels global variables pointer
+    cfg $1, !icause
+
+    jsr /handleInterrupt(Int)
+
+    ldw $1, $31[TASK_R1]
+    ldw $2, $31[TASK_R2]
+    ldw $3, $31[TASK_R3]
+    ldw $4, $31[TASK_R4]
+    ldw $5, $31[TASK_R5]
+    ldw $6, $31[TASK_R6]
+    ldw $7, $31[TASK_R7]
+    ldw $8,  $31[TASK_R8]
+    ldw $29, $31[TASK_R29]
+    ldw $30, $31[TASK_R30]
+    cfg $31, !iscratch, $31   # Restore original $31 from !iscratch
+    rti
+
+
+# =================================================
+#            Helper Functions
+# =================================================
+
+/jumpToTask(Task):
+# Load all registers from task structure and jump to task.pc using rte
+# Input: $1 = pointer to Task structure
+# This function does NOT return - it jumps to the task
+ld $28, $1          # Save task pointer in $28
+
+# Set up the MPU for the task's memory regions
+cfg !mpu_clear, 0
+ldw $2, $28[TASK_NUM_REGIONS]
+ldw $3, $28[TASK_REGIONS]
+lsl $2, 2          # Multiply by 4 to get byte offset
+add $2, $3         # Get pointer to end of regions array
+.mpu_loop:
+    ldw $1, $3[0]   # Load region descriptor
+    cfg !mpu_data, $1  # Add region to MPU
+    add $3, 4       # Move to next region
+    blt $3, $2, .mpu_loop  # Loop until we've added all regions
+
+.mpu_done:
+# Load PC and status into exception registers
+ldw $2, $28[TASK_PC]
+ld $3, HWREGS_BASE
+stw $2, $3[SEVENSEG]   # Output PC to seven segment display for debugging
+
+cfg !epc, $2
+ldw $2, $28[TASK_STATUS]
+cfg !estatus, $2
+
+# Restore all registers from task structure
+# We load R28 first and save it to !escratch, then load everything else
+ldw $2, $28[TASK_R28]
+cfg !escratch, $2    # Temporarily hold R28 in !escratch
+
+ldw $1, $28[TASK_R1]
+ldw $2, $28[TASK_R2]
+ldw $3, $28[TASK_R3]
+ldw $4, $28[TASK_R4]
+ldw $5, $28[TASK_R5]
+ldw $6, $28[TASK_R6]
+ldw $7, $28[TASK_R7]
+ldw $8, $28[TASK_R8]
+ldw $9, $28[TASK_R9]
+ldw $10, $28[TASK_R10]
+ldw $11, $28[TASK_R11]
+ldw $12, $28[TASK_R12]
+ldw $13, $28[TASK_R13]
+ldw $14, $28[TASK_R14]
+ldw $15, $28[TASK_R15]
+ldw $16, $28[TASK_R16]
+ldw $17, $28[TASK_R17]
+ldw $18, $28[TASK_R18]
+ldw $19, $28[TASK_R19]
+ldw $20, $28[TASK_R20]
+ldw $21, $28[TASK_R21]
+ldw $22, $28[TASK_R22]
+ldw $23, $28[TASK_R23]
+ldw $24, $28[TASK_R24]
+ldw $25, $28[TASK_R25]
+ldw $26, $28[TASK_R26]
+ldw $27, $28[TASK_R27]
+ldw $29, $28[TASK_R29]
+ldw $30, $28[TASK_R30]
+ldw $31, $28[TASK_R31]
+# R0 is always zero, no need to restore
+
+# Finally restore R28 and set !escratch back to task pointer
+cfg $28, !escratch, $28   # Get saved R28, and set !escratch to task pointer
+
+# Jump to the task
+rte
+
+
+# =================================================
+#            Helper Functions
+# =================================================
+
+/abort:
+# Halt the system - same as exit
+# No inputs, no return
+ld $2, HWREGS_BASE
+jmp exit
+
+# =================================================
+#            peekWord
+# =================================================
+# Dummy function to test exception handling - tries to read a word from an arbitrary address and return it
+# Input: $1 = address to read from
+/peekWord(Int):
+    ldw $8, $1[0]
+    ret
+
+# =================================================
+                /bzero:
+# =================================================
+# Zero out a block of memory
+# Input: $1 = address to start zeroing, $2 = number of bytes to zero
+add $2, $1          # Calculate end address
+.bzero_loop:
+    stw 0, $1[0]    # Write zero to current address
+    add $1, 4       # Move to the next word
+    blt $1, $2, .bzero_loop  # Loop until we reach the end address
+ret
+
+# =================================================
+            /flushDCache():
+# =================================================
+# Need to flush each cache line in the data cache
+# TODOld $1, 0
+ret
+
+# =================================================
+            /invalidateICache():
+# =================================================
+# Flush the entire instruction cache
+ld $1, 1
+cfg !icache, $1
+.wait_loop:
+    cfg $1, !icache
+    bne $1, 0, .wait_loop
+ret
+
+# =================================================
+#            memcpy:
+# =================================================
+# Copy a block of memory from source to destination
+# Input: $1 = destination address
+#        $2 = source address
+#        $3 = number of bytes to copy
+#
+# This function assumes that the source and destination addresses are word-aligned,
+# and that the number of bytes to copy is a multiple of 4.
+/memcpy(Int,Int,Int): 
+    add $3, $2       # Calculate end address of source
+.memcpy_loop:
+    ldw $4, $2[0]    # Load word from source
+    add $1, 4        # Move to next word in destination
+    add $2, 4        # Move to next word in source
+    stw $4, $1[-4]   # Store word to destination (using $1[-4] because we already incremented $1)
+    blt $2, $3, .memcpy_loop  # Loop until we reach the end of the source block
+ret
+
+
+
+
+# =================================================
+#            Exit/Halt
+# =================================================
+exit:
+# Exit the program
+# In simulation - jump to address 0
+# On silicon - loop with LED pattern
+# $1 = exit code to display on seven segment display (for silicon debugging)
+ld $2, HWREGS_BASE
+ldw $3, $2[SIMULATION]
+beq $3, 0, .on_silicon
+
+# Simulation mode
+ld $30, 0
+ret
+
+.on_silicon:
+# Flash all LEDs to indicate halt
+#stw $1, $2[SEVENSEG]   # Output code to seven segment display for debugging
+beq $1, 0, .led_ripple  # Show a different pattern if exit code is 0 (success)
+
+ld $7, 0xFF
+.led_loop:
+stw $7, $2[LEDS]
+ld $1, 10000000
+.delay:
+sub $1, 1
+bne $1, 0, .delay
+xor $7, $7, 0xFF  # Toggle all LEDs
+jmp .led_loop
+
+
+.led_ripple:
+ld $7, 0x01
+.ripple_loop:
+stw $7, $2[LEDS]
+ld $1, 4000000
+.delay2:
+sub $1, 1
+bne $1, 0, .delay2  
+lsl $7, 1
+lsr $8, $7, 10
+or $7, $8, $7  # Wrap around to create a ripple effect
+jmp .ripple_loop
+
+dcw 33                  # Length of the string
+program_completed_message:
+dcb "Program completed successfully!\n"

@@ -53,7 +53,9 @@ logic [4:0]  clz;
 logic [4:0]  norm_shift;
 logic [7:0]  normalized_exponent;
 logic [22:0] normalized_mantissa;
+logic        round_bit;
 logic        is_integer;
+logic [31:0] fpu_result_x;      // FPU result before applying rounding
 
 // verilator lint_off BLKSEQ
 always_ff @(posedge clock) begin
@@ -151,33 +153,37 @@ always_ff @(posedge clock) begin
     if (in_mantissa == 32'd0) begin
         normalized_exponent = 8'd0;
         normalized_mantissa = 23'd0;
+        round_bit <= 1'b0;
     end else if (in_mantissa[31]) begin
         normalized_exponent = in_exponent + 8'd1;
         normalized_mantissa = in_mantissa[30:8];
+        round_bit <= in_mantissa[7] && (in_mantissa[6:0] != 7'd0 || in_mantissa[8]);
     end else begin
         logic [31:0] mantissa_sum_shifted;
         normalized_exponent = in_exponent - {3'b0,norm_shift}; 
         mantissa_sum_shifted = (in_mantissa << norm_shift);
         normalized_mantissa = mantissa_sum_shifted[29:7];
+        round_bit <= mantissa_sum_shifted[6] && (mantissa_sum_shifted[5:0] != 6'd0 || mantissa_sum_shifted[7]);
     end
 
     // Assemble final result
     if (is_integer) begin
-        fpu_result <= in_mantissa; // just pass through integer value
+        fpu_result_x <= in_mantissa; // just pass through integer value
     end else if (in_nan) begin
         // Division result is NaN
-        fpu_result <= 32'hffc00000; // quiet NaN
+        fpu_result_x <= 32'hffc00000; // quiet NaN
     end else if (normalized_exponent == 8'hff) begin
         // Overflow to infinity
-        fpu_result <= {in_sign, 8'hff, 23'h0};
+        fpu_result_x <= {in_sign, 8'hff, 23'h0};
     end else if (normalized_exponent == 8'h00) begin
         // Subnormal
-        fpu_result <= {in_sign, normalized_exponent, 1'b0,normalized_mantissa[22:1]};
+        fpu_result_x <= {in_sign, normalized_exponent, 1'b0,normalized_mantissa[22:1]};
     end else 
-        fpu_result <= {in_sign, normalized_exponent, normalized_mantissa};
+        fpu_result_x <= {in_sign, normalized_exponent, normalized_mantissa};
     fpu_valid <= in_valid;
     fpu_dest  <= in_dest;
 
 end
 
+assign fpu_result = fpu_result_x + {31'b0, round_bit};
 endmodule

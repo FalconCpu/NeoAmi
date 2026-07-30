@@ -357,7 +357,7 @@ void assemble_line(Token** line) {
     MATCH("C!,$")     emit(format_I(KIND_CFG, 1, 0, V3, V1));   // Write to config register
     MATCH("C$,!,$")   emit(format_I(KIND_CFG, 1, V1, V5, V3));  // Read/Write to config register
     MATCH("Y#")       emit(format_I(KIND_CFG, 3, 0, 0, V1));    // System call
-    MATCH("E")        emit(format_I(KIND_CFG, 2, 0, 0, 0));     // Return from exception (rte)
+    MATCH("E")        emit(format_I(KIND_CFG, 2, 0, 0, V0));     // Return from exception (rte)
     MATCH("M$,$,$")   emit(format_R(KIND_MUL, V0, 0, V1, V3, V5)); // mul $d,$a,$b
     MATCH("M$,$")     emit(format_R(KIND_MUL, V0, 0, V1, V1, V3)); // mul $d,$d,$b
     MATCH("M$,$,#")   emit(format_I(KIND_MULI, V0, V1, V3, V5));    // mul $d,$a,#
