@@ -1,0 +1,43 @@
+# Division tests including divide-by-zero
+ld $1, 10.0
+ld $2, 2.0
+fdiv $3, $1, $2      # 10.0 / 2.0 = 5.0
+
+ld $4, 7.0
+ld $5, 4.0
+fdiv $6, $4, $5      # 7.0 / 4.0 = 1.75
+
+ld $7, -15.0
+ld $8, 3.0
+fdiv $9, $7, $8      # -15.0 / 3.0 = -5.0
+
+ld $10, 8.0
+ld $11, -2.0
+fdiv $12, $10, $11   # 8.0 / -2.0 = -4.0
+
+ld $13, -12.0
+ld $14, -4.0
+fdiv $15, $13, $14   # -12.0 / -4.0 = 3.0
+
+# Divide by zero tests (should produce infinity)
+ld $16, 1.0
+ld $17, 0.0
+fdiv $18, $16, $17   # 1.0 / 0.0 = +inf
+
+ld $19, -1.0
+ld $20, 0.0
+fdiv $21, $19, $20   # -1.0 / 0.0 = -inf
+
+ld $22, 0.0
+ld $23, 0.0
+fdiv $24, $22, $23   # 0.0 / 0.0 = NaN
+
+# Store results
+ld $25, $3
+ld $26, $6
+ld $27, $9
+ld $28, $12
+ld $29, $15
+
+ld $30, 0
+ret

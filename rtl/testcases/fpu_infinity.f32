@@ -1,0 +1,58 @@
+# Infinity and special value handling
+# Tests infinity generation and operations with infinity
+
+# Generate positive infinity
+ld $1, 1.0
+ld $2, 0.0
+fdiv $3, $1, $2      # +inf
+
+# Generate negative infinity
+ld $4, -1.0
+fdiv $5, $4, $2      # -inf
+
+# Operations with infinity
+ld $6, 5.0
+fadd $7, $3, $6      # +inf + 5.0 = +inf
+fsub $8, $3, $6      # +inf - 5.0 = +inf
+fmul $9, $3, $6      # +inf * 5.0 = +inf
+fdiv $10, $6, $3     # 5.0 / +inf = 0.0
+
+# Negative infinity operations
+fadd $11, $5, $6     # -inf + 5.0 = -inf
+fmul $12, $5, $6     # -inf * 5.0 = -inf
+
+# Infinity with negative number
+ld $13, -3.0
+fmul $14, $3, $13    # +inf * -3.0 = -inf
+fmul $15, $5, $13    # -inf * -3.0 = +inf
+
+# Infinity operations with zero
+fmul $16, $3, $2     # +inf * 0.0 = NaN
+fdiv $17, $3, $2     # +inf / 0.0 = +inf
+
+# Infinity arithmetic
+fadd $18, $3, $3     # +inf + +inf = +inf
+fsub $19, $5, $5     # -inf - (-inf) = NaN
+fadd $20, $3, $5     # +inf + (-inf) = NaN
+
+# Division by infinity
+ld $21, 100.0
+fdiv $22, $21, $3    # 100.0 / +inf = 0.0
+fdiv $23, $21, $5    # 100.0 / -inf = -0.0
+
+# Infinity divided by infinity
+fdiv $24, $3, $3     # +inf / +inf = NaN
+fdiv $25, $5, $3     # -inf / +inf = NaN
+
+# Very large number operations (approach infinity)
+ld $26, 1e38
+ld $27, 2.0
+fmul $28, $26, $26   # May overflow to infinity
+fdiv $29, $28, $27   # Still infinity
+
+# Store some results for verification
+ld $30, $3
+ld $31, $5
+
+ld $30, 0
+ret

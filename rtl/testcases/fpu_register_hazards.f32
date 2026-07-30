@@ -1,0 +1,55 @@
+# Register hazard test - Read-After-Write (RAW) hazards
+# Tests forwarding and stalling logic in the scoreboard
+
+# Back-to-back RAW dependency
+ld $1, 5.0
+ld $2, 3.0
+fadd $3, $1, $2      # $3 = 8.0
+fadd $4, $3, $1      # RAW on $3 - immediate use
+fadd $5, $4, $1      # RAW on $4 - immediate use
+fadd $6, $5, $1      # RAW on $5 - immediate use
+
+# Multiple reads of same register
+ld $7, 2.0
+fmul $8, $7, $7      # Both sources same
+fmul $9, $8, $8      # RAW + both sources same
+fadd $10, $8, $9     # RAW on both $8 and $9
+
+# WAW (Write-After-Write) hazard
+ld $11, 10.0
+ld $12, 20.0
+fadd $13, $11, $12   # Write to $13
+fsub $13, $11, $12   # Write to $13 again (WAW hazard)
+fmul $14, $13, $11   # Read $13 (should get second value)
+
+# RAW with different operation types
+ld $15, 4.0
+ld $16, 2.0
+fdiv $17, $15, $16   # Slow division
+fadd $18, $17, $15   # RAW on slow op result
+fmul $19, $17, $16   # Another RAW on slow op result
+fsub $20, $18, $19   # RAW on both previous results
+
+# WAR (Write-After-Read) - less critical but should work
+ld $21, 5.0
+ld $22, 3.0
+fadd $23, $21, $22   # Read $21, $22
+fmul $21, $22, $22   # Write $21 (WAR hazard)
+fsub $24, $23, $21   # Read both $23 and new $21
+
+# Complex multi-register hazards
+ld $25, 7.0
+ld $26, 2.0
+fadd $27, $25, $26   # $27 = 9.0
+fmul $28, $25, $26   # $28 = 14.0
+fsub $29, $27, $28   # RAW on both $27 and $28
+fdiv $30, $29, $27   # RAW on $29 and reuse $27
+fadd $31, $30, $28   # RAW on $30 and reuse $28
+
+# Store final result
+ld $1, $6
+ld $2, $10
+ld $3, $14
+
+ld $30, 0
+ret

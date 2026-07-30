@@ -146,7 +146,7 @@ end
 
 
 always_ff @(posedge clock) begin
-    mem_ready <= !dcache_queue2.req;
+    mem_ready <= !dcache_queue1.req;
     prev_dcache_queue0 <= dcache_queue0;
     prev_dcache_queue1 <= dcache_queue1;
     prev_dcache_queue2 <= dcache_queue2;

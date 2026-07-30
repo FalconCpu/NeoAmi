@@ -105,6 +105,15 @@ static Token predefined_tokens[] = {
     {'I', "idx2", 1, 0},
     {'I', "idx4", 2, 0},
 
+    { 'F', "fadd", 0, 0},
+    { 'F', "fsub", 1, 0},
+    { 'F', "fmul", 2, 0},
+    { 'F', "fdiv", 3, 0},
+    { 'F', "fsqrt",4, 0},
+    { 'F', "fcmp" ,5, 0},
+    { 'F', "itof" ,6, 0},
+    { 'F', "ftoi" ,7, 0},
+
     {'C', "cfg", 0, 0},
     {'Y', "sys", 0, 0},
     {'E', "rte", 0, 0},
@@ -238,6 +247,14 @@ static String read_word() {
     while (isalnum(current_char) || current_char == '.' || current_char == '_' || current_char == '@' ||
        (is_slash_name && (current_char == '/' || current_char == '(' || current_char == ')' || current_char == ','))) 
         str_append(next_char());
+
+    if (current_char == '.') {
+        // A word containing a dot could be a decimal number
+        str_append(next_char());
+        while (isdigit(current_char))
+            str_append(next_char());
+    }
+
     return str;
 }
 
@@ -394,6 +411,13 @@ static void skip_whitespace_and_comments() {
  */
 
  static int my_atoi(String str) {
+
+    // If the string contains a dot, treat it as a decimal number
+    if (strchr(str, '.')) {
+        float d = atof(str);
+        return *(int*)&d; // Reinterpret the float bits as an int
+    }
+
     int minus = 0;
     if (*str == '-') {
         minus = 1;

@@ -1,0 +1,49 @@
+# Edge cases and special values
+
+# Zero handling
+ld $1, 0.0
+ld $2, 5.0
+fadd $3, $1, $2      # 0.0 + 5.0 = 5.0
+fsub $4, $2, $1      # 5.0 - 0.0 = 5.0
+fmul $5, $2, $1      # 5.0 * 0.0 = 0.0
+
+# Negative zero
+ld $6, -0.0
+ld $7, 3.0
+fadd $8, $6, $7      # -0.0 + 3.0 = 3.0
+fmul $9, $6, $7      # -0.0 * 3.0 = -0.0
+
+# Very small numbers (above subnormal range)
+ld $10, 0.000001
+ld $11, 0.000002
+fadd $12, $10, $11   # 0.000001 + 0.000002 = 0.000003
+fmul $13, $10, $11   # 0.000001 * 0.000002 = very small
+
+# Large numbers
+ld $14, 1000000.0
+ld $15, 2000000.0
+fadd $16, $14, $15   # 1M + 2M = 3M
+fmul $17, $14, $15   # 1M * 2M = 2T
+
+# Mixed magnitude operations (loss of precision)
+ld $18, 1000000.0
+ld $19, 1.0
+fadd $20, $18, $19   # 1000001.0 (may have rounding)
+fsub $21, $20, $18   # Should be ~1.0
+
+# Negative number operations
+ld $22, -5.5
+ld $23, -3.3
+fadd $24, $22, $23   # -8.8
+fsub $25, $22, $23   # -2.2
+fmul $26, $22, $23   # +18.15
+fdiv $27, $22, $23   # ~1.666...
+
+# Sign changes
+ld $28, 5.0
+ld $29, -5.0
+fadd $30, $28, $29   # 0.0
+fmul $31, $28, $29   # -25.0
+
+ld $30, 0
+ret

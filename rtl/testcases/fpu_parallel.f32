@@ -1,0 +1,60 @@
+# Parallel operations test
+# Tests scoreboard's ability to issue multiple independent ops
+
+# Set up many independent values
+ld $1, 1.0
+ld $2, 2.0
+ld $3, 3.0
+ld $4, 4.0
+ld $5, 5.0
+ld $6, 6.0
+ld $7, 7.0
+ld $8, 8.0
+ld $9, 9.0
+ld $10, 10.0
+
+# Issue many independent operations (all can execute in parallel)
+fadd $11, $1, $2     # Group 1: All independent
+fadd $12, $3, $4
+fadd $13, $5, $6
+fadd $14, $7, $8
+fadd $15, $9, $10
+
+# More independent ops with different operations
+fmul $16, $1, $3     # Group 2: All independent
+fmul $17, $2, $4
+fmul $18, $5, $7
+fmul $19, $6, $8
+fmul $20, $9, $10
+
+# Independent subtract operations
+fsub $21, $10, $1    # Group 3: All independent
+fsub $22, $9, $2
+fsub $23, $8, $3
+fsub $24, $7, $4
+fsub $25, $6, $5
+
+# Independent divide operations (slower)
+fdiv $26, $10, $2    # Group 4: All independent
+fdiv $27, $9, $3
+fdiv $28, $8, $4
+
+# Now create a convergence point (depends on many results)
+fadd $29, $11, $12
+fadd $30, $13, $14
+fadd $31, $15, $29
+fadd $1, $30, $31
+
+# Another parallel fan-out
+fmul $2, $16, $17
+fmul $3, $18, $19
+fmul $4, $20, $21
+fadd $5, $2, $3
+fadd $6, $4, $5
+
+# Final result combining both paths
+fadd $7, $1, $6
+
+ld $30, $7
+ld $30,0
+ret

@@ -23,7 +23,8 @@ module cpu_decoder (
     output logic        p2_use_immediate,  // Indicates that the instruction uses an immediate value for rs2
     output logic [31:0] p2_immediate,      // Immediate value for the instruction
     input  logic        mem_ready,         // Indicates that the memory is ready to accept a new request
-    input  logic        divider_ready,      // Indicates that the divide unit is ready to accept a new request
+    input  logic        divider_ready,     // Indicates that the divide unit is ready to accept a new request
+    input  logic        fpu_div_busy,      // Indicates that the FPU divide unit is busy
 
     // Output to the CPU pipeline
     output logic [31:0] p3_immediate,       // Literal value for the instruction
@@ -38,6 +39,7 @@ module cpu_decoder (
     output logic        p3_is_mult,         // Indicates that the instruction is a multiply operation
     output logic        p3_is_divide,       // Indicates that the instruction is a divide operation
     output logic        p3_is_sys,          // Indicates that the instruction is a system operation
+    output logic        p3_is_fpu,          // Indicates that the instruction is a floating-point operation
     output logic [2:0]  p3_mem_op,          // Memory operation type (byte, halfword, word)
     output logic [31:0] p3_pc,              // The program counter value associated with the instruction
     output logic [31:0] p4_pc,
@@ -72,6 +74,7 @@ assign p3_is_store = p3_is_store_x && !p4_jump_taken;
 assign p3_is_mult = p3_is_mult_x && !p4_jump_taken;
 assign p3_is_divide = p3_is_divide_x && !p4_jump_taken;
 assign p3_is_sys = p3_is_sys_x && !p4_jump_taken;
+assign p3_is_fpu = p3_is_fpu_x && !p4_jump_taken;
 
 // Scoreboard logic
 // 1 bit per register, 1=not ready, 0=ready
@@ -79,9 +82,9 @@ logic [31:0] scoreboard, next_scoreboard;
 
 
 logic        p2_is_alu, p2_is_shift, p2_is_branch, p2_is_load, p2_is_store;
-logic        p2_is_mult, p2_is_divide, p2_is_sys;
+logic        p2_is_mult, p2_is_divide, p2_is_sys, p2_is_fpu;
 logic        p3_is_alu_x, p3_is_shift_x, p3_is_branch_x, p3_is_load_x, p3_is_store_x;
-logic        p3_is_mult_x, p3_is_divide_x, p3_is_sys_x;
+logic        p3_is_mult_x, p3_is_divide_x, p3_is_sys_x, p3_is_fpu_x;
 logic [2:0]  p2_alu_op, p2_shift_op, p2_mem_op;
 logic [2:0]  p2_branch_op;
 logic        stall_regs;    // Indicates that the pipeline should stall due to a register not being ready
@@ -99,6 +102,7 @@ always_comb begin
     p2_is_mult = 1'b0;
     p2_is_divide = 1'b0;
     p2_is_sys = 1'b0;
+    p2_is_fpu = 1'b0;
     p2_alu_op = 3'bx;
     p2_shift_op = 3'bx;
     p2_branch_op = 3'bx;
@@ -161,8 +165,8 @@ always_comb begin
         end
 
         `KIND_LD: begin
-            p2_is_load = 1'b1;
             stall_resource = !mem_ready;
+            p2_is_load = mem_ready;
             p2_mem_op = instr_i;
             p2_latent = 1'b1;
             p2_immediate = {{19{instr_c[7]}}, instr_c, instr_b};
@@ -171,7 +175,7 @@ always_comb begin
 
         `KIND_ST: begin
             stall_resource = !mem_ready;
-            p2_is_store = 1'b1;
+            p2_is_store = mem_ready;
             p2_mem_op = instr_i;
             p2_immediate = {{19{instr_c[7]}}, instr_c, instr_d};
         end
@@ -234,6 +238,13 @@ always_comb begin
             p2_use_immediate = 1'b1;
         end
 
+        `KIND_FPU: begin
+            stall_resource = fpu_div_busy && (instr_i == 3'h3); // Stall if the FPU divide unit is busy and we are trying to execute a divide instruction
+            p2_is_fpu = 1'b1;
+            p2_alu_op = instr_i;
+            p2_wren = 1'b1;
+            p2_latent = 1'b1;
+        end
 
 
         default: begin
@@ -260,6 +271,7 @@ always_comb begin
         p2_is_mult = 1'b0;
         p2_is_divide = 1'b0;
         p2_is_sys = 1'b0;
+        p2_is_fpu = 1'b0;
         p2_wren = 1'b0;
     end
 
@@ -283,6 +295,7 @@ always_ff @(posedge clock) begin
     p3_is_mult_x <= p2_is_mult;
     p3_is_divide_x <= p2_is_divide;
     p3_is_sys_x <= p2_is_sys;
+    p3_is_fpu_x <= p2_is_fpu;
     p3_alu_op <= p2_alu_op;
     p3_shift_op <= p2_shift_op;
     p3_branch_op <= p2_branch_op;

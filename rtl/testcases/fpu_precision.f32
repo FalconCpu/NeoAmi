@@ -1,0 +1,59 @@
+# Precision and rounding test
+# Tests various precision scenarios
+
+# Basic precision
+ld $1, 1.0
+ld $2, 3.0
+fdiv $3, $1, $2      # 0.333333... (repeating decimal)
+
+ld $4, 2.0
+ld $5, 3.0
+fdiv $6, $4, $5      # 0.666666... (repeating decimal)
+
+# Very small differences
+ld $7, 1.000001
+ld $8, 1.0
+fsub $9, $7, $8      # 0.000001
+
+# Adding small to large (precision test)
+ld $10, 1000000.0
+ld $11, 1.0
+fadd $12, $10, $11   # 1000001.0
+fsub $13, $12, $10   # Should be 1.0 (precision dependent)
+
+# Multiplication that grows
+ld $14, 1.1
+fmul $15, $14, $14   # 1.21
+fmul $16, $15, $14   # 1.331
+fmul $17, $16, $14   # 1.4641
+fmul $18, $17, $14   # 1.61051
+
+# Division rounding
+ld $19, 7.0
+ld $20, 3.0
+fdiv $21, $19, $20   # 2.333...
+
+ld $22, 22.0
+ld $23, 7.0
+fdiv $24, $22, $23   # 3.142857... (approx pi)
+
+# Compound operations that accumulate rounding
+ld $25, 0.1
+fadd $26, $25, $25
+fadd $26, $26, $25
+fadd $26, $26, $25
+fadd $26, $26, $25
+fadd $26, $26, $25
+fadd $26, $26, $25
+fadd $26, $26, $25
+fadd $26, $26, $25
+fadd $26, $26, $25   # Should be 1.0 but may have rounding error
+
+# Reciprocal test
+ld $27, 1.0
+ld $28, 8.0
+fdiv $29, $27, $28   # 0.125
+fmul $30, $29, $28   # Should be 1.0
+
+ld $30, 0
+ret

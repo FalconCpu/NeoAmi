@@ -33,6 +33,11 @@ module cpu_writeback (
     input  logic [4:0]   divider_reg_d,           // Destination register for the divider result
     input  logic [31:0]  divider_result,
 
+    // Input from the FPU
+    input  logic         fpu_valid,         // Indicates that the FPU result is valid
+    input  logic [4:0]   fpu_dest,          // Destination register for the FPU result
+    input  logic [31:0]  fpu_result,        // Result from the FPU operation
+
     // Output to the register file
     output logic [4:0]  p4_rd,              // Destination register for the writeback
     output logic [31:0] p4_result,          // Result to be written back to the register file
@@ -109,6 +114,16 @@ always_comb begin
         next_queue2 = {aux_wb_valid, aux_wb_rd, aux_wb_result};
     else
         next_writeback_fault = next_writeback_fault || aux_wb_valid;
+
+    // Queue results from the FPU
+    if (next_queue0.valid==1'b0)
+        next_queue0 = {fpu_valid, fpu_dest, fpu_result};
+    else if (next_queue1.valid==1'b0)
+        next_queue1 = {fpu_valid, fpu_dest, fpu_result};
+    else if (next_queue2.valid==1'b0)
+        next_queue2 = {fpu_valid, fpu_dest, fpu_result};
+    else
+        next_writeback_fault = next_writeback_fault || fpu_valid;
 
     // Send a result to the register file. Priority is given to the ALU result, then dache, then queue
     if (p4_alu_valid) begin

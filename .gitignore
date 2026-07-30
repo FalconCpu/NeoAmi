@@ -5,7 +5,11 @@
 *.labels
 *.vcd
 a.out
+asm.trace
+wave.gtkw
 
 binutils/build/
 hardware/vga_output.txt
 fpga/
+
+

@@ -77,6 +77,7 @@ logic        p3_is_store;
 logic        p3_is_mult;
 logic        p3_is_divide;
 logic        p3_is_sys;
+logic        p3_is_fpu;
 logic [2:0]  p3_mem_op;
 logic [31:0] p3_pc;
 logic [31:0] p4_pc;
@@ -109,6 +110,9 @@ logic         divider_ready;
 logic         divider_valid;
 logic  [31:0] divider_result;
 logic  [4:0]  divider_reg_d;
+
+logic        fpu_div_busy;
+
 
 // Cpu to DCache interface signals    
 logic        dcache_req;
@@ -178,6 +182,7 @@ cpu_decoder  cpu_decoder_inst (
     .p2_instr(p2_instr),
     .mem_ready(mem_ready),
     .divider_ready(divider_ready),
+    .fpu_div_busy(fpu_div_busy),
     .p2_pc(p2_pc),
     .p2_ready(p2_ready),
     .p2_rs1(p2_rs1),
@@ -190,6 +195,7 @@ cpu_decoder  cpu_decoder_inst (
     .p3_is_mult(p3_is_mult),
     .p3_is_divide(p3_is_divide),
     .p3_is_sys(p3_is_sys),
+    .p3_is_fpu(p3_is_fpu),
     .p3_shift_op(p3_shift_op),
     .p3_is_branch(p3_is_branch),
     .p3_branch_op(p3_branch_op),
@@ -295,6 +301,23 @@ cpu_mem  cpu_mem_inst (
     .memif_fault(memif_fault)
   );
 
+logic        fpu_valid;
+logic [4:0]  fpu_dest;
+logic [31:0] fpu_result;
+
+fpu  fpu_inst (
+    .clock(clock),
+    .p3_is_fpu(p3_is_fpu),
+    .fpu_op(p3_alu_op),
+    .fpu_in_a(p3_data_a),
+    .fpu_in_b(p3_data_b),
+    .fpu_in_dest(p3_rd),
+    .fpu_valid(fpu_valid),
+    .fpu_dest(fpu_dest),
+    .fpu_result(fpu_result),
+    .fpu_div_busy(fpu_div_busy)
+  );
+
 cpu_writeback  cpu_writeback_inst (
   .clock(clock),
   .reset(reset),
@@ -316,6 +339,9 @@ cpu_writeback  cpu_writeback_inst (
     .dcache_rvalid(dcache_rvalid),
     .dcache_rdest(dcache_rdest),
     .dcache_rdata(dcache_rdata),
+    .fpu_valid(fpu_valid),
+    .fpu_dest(fpu_dest),
+    .fpu_result(fpu_result),
     .writeback_fault(writeback_fault)
 );
 

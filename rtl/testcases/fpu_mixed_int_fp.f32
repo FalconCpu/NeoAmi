@@ -1,0 +1,56 @@
+# Interleaved integer and FPU operations
+# Tests scoreboard with mixed instruction types
+
+# Start with FPU ops
+ld $1, 2.5
+ld $2, 3.5
+fadd $3, $1, $2      # $3 = 6.0
+
+# Mix in integer operations (if they exist in your ISA)
+# Integer load
+ld $4, 100
+ld $5, 200
+
+# Back to FPU
+fmul $6, $1, $2      # $6 = 8.75
+
+# Integer arithmetic (assuming they exist)
+ld $7, $4
+ld $8, $5
+
+# More FPU
+fsub $9, $2, $1      # $9 = 1.0
+
+# Integer ops
+ld $10, $7
+
+# FPU dependency chain
+fdiv $11, $3, $9     # Depends on $3 and $9
+
+# Integer ops
+ld $12, $8
+
+# Long FPU operation
+ld $13, 156.0
+ld $14, 12.0
+fdiv $15, $13, $14   # Slow division
+
+# More integer ops while div is running
+ld $16, $10
+ld $17, $12
+
+# FPU operations using div result
+fmul $18, $15, $1    # Depends on $15 (div result)
+fadd $19, $18, $3    # Depends on $18
+
+# Final mix
+ld $20, $19
+ld $21, $16
+ld $22, $17
+
+# Another FPU operation
+fadd $23, $19, $11
+
+ld $30, $23
+ld $30, 0
+ret
