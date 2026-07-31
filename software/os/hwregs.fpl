@@ -56,3 +56,16 @@ class HwRegsVideo
     var pitch       : Int  # Number of bytes per row
 
 const hwregsVideo = unsafe(0xE0000100 as HwRegsVideo)
+
+fun dummy()
+    val x = 1
+
+fun waitForVBlank()
+    # hwregs.vga_pos reads as negative when the VGA is in the vertical blanking period, and as a positive number when it is drawing the visible area.  This function waits for the start of the next vertical blanking period.
+    while hwregs.vga_pos <0
+        # kprintf("< %d\n", hwregs.vga_pos)
+        dummy()
+
+    while hwregs.vga_pos >=0
+        # kprintf("> %d\n", hwregs.vga_pos)
+        dummy()

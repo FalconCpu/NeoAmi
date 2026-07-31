@@ -1,0 +1,358 @@
+# Spinning cube demo - refactored with Object3D and ObjectInstance
+# This demonstrates a game-like architecture for 3D rendering
+
+# Include or import the Vertex and GfxScene classes from renderTriangle.fpl
+# For now, assuming they're available
+
+const SCREEN_CENTER_X = 320
+const SCREEN_CENTER_Y = 240
+const Z_SCALE = 100.0    # Adjust so the 1/Z values fit well in the z-buffer range
+var frameNumber = 0
+
+struct Vec3d(x:Float, y:Float, z:Float)
+
+struct FaceColor(r:Float, g:Float, b:Float)
+
+# Represents a single triangle face with vertex indices and per-vertex colors
+class Face(
+    val textured : Bool,
+    val v1:Int,      # Index into Object3D's vertex list
+    val v2:Int,
+    val v3:Int,
+    val color1:FaceColor,
+    val color2:FaceColor,
+    val color3:FaceColor)
+
+# Represents a 3D mesh object (geometry data)
+class Object3D(val numVertices:Int, val numFaces:Int)
+    val vertices = new Array<Vec3d>(numVertices)  # List of vertex positions
+    val normals = new Array<Vec3d>(numVertices)   # List of vertex normals
+    val faces = new Array<Face>(numFaces)       # List of faces (triangles)
+    var vertexCount = 0
+    var faceCount = 0
+
+    fun addVertex(x:Float, y:Float, z:Float, nx:Float, ny:Float, nz:Float)
+        vertices[vertexCount]=Vec3d(x, y, z)
+        normals[vertexCount]=Vec3d(nx, ny, nz)
+        vertexCount = vertexCount + 1
+        hwregs.ledr = 0x20
+        # kprintf("Set vertex %d: pos=(%f,%f,%f) normal=(%f,%f,%f)\n", vertexCount-1, x, y, z, nx, ny, nz)
+    
+    fun addFace(face:Face)
+        faces[faceCount]=face
+        faceCount = faceCount + 1
+    
+    fun cleanup()
+        free vertices
+        free normals
+        for f in faces
+            free f
+        free faces
+
+# Represents an instance of an Object3D in the world
+class ObjectInstance
+    var object3D:Object3D
+    var x:Float         # Position
+    var y:Float
+    var z:Float
+    var angleX:Int      # Rotation angles
+    var angleY:Int
+    var angleZ:Int
+
+# Create a cube mesh
+fun createCubeMesh(size:Float) -> Object3D
+    val cube = new Object3D(8,12)
+    val s = size / 2.0
+    
+    # Normalized normal for each corner (points from center toward corner)
+    val inv_sqrt3 = 0.57735  # 1/sqrt(3)
+    
+    # Add 8 vertices with normals
+    cube.addVertex(-s, -s, -s, -inv_sqrt3, -inv_sqrt3, -inv_sqrt3)  # 0: back-bottom-left
+    cube.addVertex( s, -s, -s,  inv_sqrt3, -inv_sqrt3, -inv_sqrt3)  # 1: back-bottom-right
+    cube.addVertex( s,  s, -s,  inv_sqrt3,  inv_sqrt3, -inv_sqrt3)  # 2: back-top-right
+    cube.addVertex(-s,  s, -s, -inv_sqrt3,  inv_sqrt3, -inv_sqrt3)  # 3: back-top-left
+    cube.addVertex(-s, -s,  s, -inv_sqrt3, -inv_sqrt3,  inv_sqrt3)  # 4: front-bottom-left
+    cube.addVertex( s, -s,  s,  inv_sqrt3, -inv_sqrt3,  inv_sqrt3)  # 5: front-bottom-right
+    cube.addVertex( s,  s,  s,  inv_sqrt3,  inv_sqrt3,  inv_sqrt3)  # 6: front-top-right
+    cube.addVertex(-s,  s,  s, -inv_sqrt3,  inv_sqrt3,  inv_sqrt3)  # 7: front-top-left
+    
+    # Add 12 faces (2 triangles per face)
+    # Front face (red) - GRADIENT FACE with different colors per vertex
+    cube.addFace(new Face(true, 4, 5, 6, 
+                 FaceColor(0.0, 0.0, 0.0),    # Vertex 4: Red
+                 FaceColor(0.0, 64.0, 0.0),    # Vertex 5: Green
+                 FaceColor(64.0, 64.0, 0.0)))    # Vertex 6: Blue
+    cube.addFace(new Face(true, 4, 6, 7,
+                 FaceColor(0.0, 0.0, 0.0),    # Vertex 4: Red
+                 FaceColor(64.0, 64.0, 0.0),    # Vertex 6: Blue
+                 FaceColor(64.0, 0.0, 0.0)))  # Vertex 7: Yellow
+    
+    # Back face (green) - solid
+    cube.addFace(new Face(false, 3, 2, 1, FaceColor(50.0, 150.0, 50.0), FaceColor(50.0, 150.0, 50.0), FaceColor(50.0, 150.0, 50.0)))
+    cube.addFace(new Face(false, 3, 1, 0, FaceColor(50.0, 150.0, 50.0), FaceColor(50.0, 150.0, 50.0), FaceColor(50.0, 150.0, 50.0)))
+    
+    # Top face (blue) - solid
+    cube.addFace(new Face(false, 3, 7, 6, FaceColor(50.0, 50.0, 200.0), FaceColor(50.0, 50.0, 200.0), FaceColor(50.0, 50.0, 200.0)))
+    cube.addFace(new Face(false, 3, 6, 2, FaceColor(50.0, 50.0, 200.0), FaceColor(50.0, 50.0, 200.0), FaceColor(50.0, 50.0, 200.0)))
+    
+    # Bottom face (yellow) - solid
+    cube.addFace(new Face(false, 0, 1, 5, FaceColor(200.0, 200.0, 50.0), FaceColor(200.0, 200.0, 50.0), FaceColor(200.0, 200.0, 50.0)))
+    cube.addFace(new Face(false, 0, 5, 4, FaceColor(200.0, 200.0, 50.0), FaceColor(200.0, 200.0, 50.0), FaceColor(200.0, 200.0, 50.0)))
+    
+    # Right face (cyan) - solid
+    cube.addFace(new Face(false, 1, 2, 6, FaceColor(50.0, 200.0, 200.0), FaceColor(50.0, 200.0, 200.0), FaceColor(50.0, 200.0, 200.0)))
+    cube.addFace(new Face(false, 1, 6, 5, FaceColor(50.0, 200.0, 200.0), FaceColor(50.0, 200.0, 200.0), FaceColor(50.0, 200.0, 200.0)))
+    
+    # Left face (magenta) - solid
+    cube.addFace(new Face(false, 0, 4, 7, FaceColor(200.0, 50.0, 200.0), FaceColor(200.0, 50.0, 200.0), FaceColor(200.0, 50.0, 200.0)))
+    cube.addFace(new Face(false, 0, 7, 3, FaceColor(200.0, 50.0, 200.0), FaceColor(200.0, 50.0, 200.0), FaceColor(200.0, 50.0, 200.0)))
+    
+    return cube
+
+# Transform and project a 3D point to screen space with instance transform
+fun transformAndProject(v:Vec3d, instance:ObjectInstance, distance:Float) -> Vec3d
+    # Apply instance position offset (could be done before rotation for local space offset)
+    var x = v.x
+    var y = v.y
+    var z = v.z
+    
+    # Rotation around Y axis
+    val cosY = cosPhase(instance.angleY)
+    val sinY = sinPhase(instance.angleY)
+    val x1 = x * cosY - z * sinY
+    val z1 = x * sinY + z * cosY
+    x = x1
+    z = z1
+    
+    # Rotation around X axis
+    val cosX = cosPhase(instance.angleX)
+    val sinX = sinPhase(instance.angleX)
+    val y1 = y * cosX - z * sinX
+    val z2 = y * sinX + z * cosX
+    y = y1
+    z = z2
+    
+    # Rotation around Z axis
+    val cosZ = cosPhase(instance.angleZ)
+    val sinZ = sinPhase(instance.angleZ)
+    val x2 = x * cosZ - y * sinZ
+    val y2 = x * sinZ + y * cosZ
+    x = x2
+    y = y2
+    
+    # Apply instance world position
+    x = x + instance.x
+    y = y + instance.y
+    z = z + instance.z
+    
+    # Move away from camera
+    z = z + distance
+    
+    # Perspective projection
+    val scale = 500.0 / z  # Adjust 200.0 for FOV
+    val screenX = x * scale + SCREEN_CENTER_X
+    val screenY = y * scale + SCREEN_CENTER_Y
+    val depth = z * 0.25  # Normalize for z-buffer
+    # kprintf("Transformed vertex: world=(%f,%f,%f) screen=(%f,%f) depth=%f\n", x, y, z, screenX, screenY, depth)
+    return Vec3d(screenX, screenY, depth)
+
+# Transform a normal vector (rotation only, no translation or projection)
+fun transformNormal(n:Vec3d, instance:ObjectInstance) -> Vec3d
+    var x = n.x
+    var y = n.y
+    var z = n.z
+    
+    # Rotation around Y axis
+    val cosY = cosPhase(instance.angleY)
+    val sinY = sinPhase(instance.angleY)
+    val x1 = x * cosY - z * sinY
+    val z1 = x * sinY + z * cosY
+    x = x1
+    z = z1
+    
+    # Rotation around X axis
+    val cosX = cosPhase(instance.angleX)
+    val sinX = sinPhase(instance.angleX)
+    val y1 = y * cosX - z * sinX
+    val z2 = y * sinX + z * cosX
+    y = y1
+    z = z2
+    
+    # Rotation around Z axis
+    val cosZ = cosPhase(instance.angleZ)
+    val sinZ = sinPhase(instance.angleZ)
+    val x2 = x * cosZ - y * sinZ
+    val y2 = x * sinZ + y * cosZ
+    
+    return Vec3d(x2, y2, z2)
+
+# Calculate lighting intensity for a vertex
+# lightDir should be normalized, normal should be normalized
+# Returns a value between 0.0 and 1.0
+fun calculateLighting(normal:Vec3d, lightDir: Vec3d) -> Float
+    # Dot product between normal and light direction
+    val dotProduct = normal.x * lightDir.x + normal.y * lightDir.y + normal.z * lightDir.z
+    
+    # Clamp to 0..1 range (diffuse lighting)
+    val diffuse = if dotProduct < 0.0 then 0.0 else dotProduct
+    
+    # Add ambient lighting so things aren't completely black
+    val ambient = 0.3
+    val intensity = ambient + (1.0 - ambient) * diffuse
+    
+    return if intensity > 1.0 then 1.0 else intensity
+
+# Check if a triangle is back-facing (should be culled)
+# Uses the signed area test in screen space
+# Returns true if the triangle is facing away from the camera
+fun isBackFacing(v1:Vec3d, v2:Vec3d, v3:Vec3d) -> Bool
+    val edge1x = v2.x - v1.x
+    val edge1y = v2.y - v1.y
+    val edge2x = v3.x - v1.x
+    val edge2y = v3.y - v1.y
+    
+    val signedArea = edge1x * edge2y - edge1y * edge2x
+    
+    # Cull if signed area is negative or very close to zero (degenerate)
+    return if signedArea <= 0.01 then false else true
+
+# Render an ObjectInstance to the scene
+fun renderObjectInstance(scene:GfxScene, instance:ObjectInstance, 
+                         distance:Float,
+                         lightDir:Vec3d)
+    val obj = instance.object3D
+    # kprintf("Rendering obj = %x %x %x %x\n", obj, obj.vertices, obj.normals, obj.faces)
+    
+    # Transform all vertices to screen space and calculate lighting
+    val screenVerts = new Array<Vec3d>(obj.vertices.length)
+    val lightingValues = new Array<Float>(obj.vertices.length)
+    
+    for i in 0..<obj.vertices.length
+        val v = obj.vertices[i]
+        hwregs.ledr = 0x10 + i
+        # kprintf("Processing vertex %d: world=(%x,%x,%x)\n", i, v.x, v.y, v.z)
+        val n = obj.normals[i]
+        
+        # Transform normal and calculate lighting
+        val transformedNormal = transformNormal(n, instance)
+        lightingValues[i]=calculateLighting(transformedNormal, lightDir)
+        
+        # Transform vertex to screen space
+        val transformed = transformAndProject(v, instance, distance)
+        screenVerts[i]=transformed
+    
+    # Render all faces
+    for face in obj.faces
+        val v1 = screenVerts[face.v1]
+        val v2 = screenVerts[face.v2]
+        val v3 = screenVerts[face.v3]
+        
+        # kprintf("Rendering face with vertices: %f %f %f, %f %f %f, %f %f %f\n", v1.x, v1.y, v1.z, v2.x, v2.y, v2.z, v3.x, v3.y, v3.z)
+
+        # Backface culling - skip triangles facing away from camera
+        if isBackFacing(v1, v2, v3)
+            continue
+        
+        # Get lighting values for each vertex
+        val light1 = lightingValues[face.v1]
+        val light2 = lightingValues[face.v2]
+        val light3 = lightingValues[face.v3]
+
+        # Apply per-vertex lighting to base color (Gouraud shading)
+        val cv1:GfxVertex
+        val cv2:GfxVertex
+        val cv3:GfxVertex
+
+        val one_over_z1 = Z_SCALE / v1.z
+        val one_over_z2 = Z_SCALE / v2.z
+        val one_over_z3 = Z_SCALE / v3.z
+
+        cv1 = new GfxVertex(v1.x, v1.y, one_over_z1*256, 
+                            face.color1.r * light1, 
+                            face.color1.g * light1, 
+                            face.color1.b * light1)
+        cv2 = new GfxVertex(v2.x, v2.y, one_over_z2*256, 
+                            face.color2.r * light2, 
+                            face.color2.g * light2, 
+                            face.color2.b * light2)
+        cv3 = new GfxVertex(v3.x, v3.y, one_over_z3*256, 
+                            face.color3.r * light3, 
+                            face.color3.g * light3, 
+                            face.color3.b * light3)
+        # kprintf("Verticies: %f %f %f, %f %f %f, %f %f %f\n", cv1.x, cv1.y, cv1.z, cv2.x, cv2.y, cv2.z, cv3.x, cv3.y, cv3.z)
+        scene.addTriangle(face.textured, cv1, cv2, cv3)
+        
+        free cv1
+        free cv2
+        free cv3
+    
+    # Cleanup
+    free screenVerts
+    free lightingValues
+
+# Scene state
+var objectInstances : List<ObjectInstance>
+
+fun renderScene(scene:GfxScene)
+    # Light direction (normalized vector pointing toward light)
+    # This rotates the light around the scene
+    val lightAngle = 0  # frameNumber * 10
+    val lightDir = Vec3d(cosPhase(lightAngle) * 0.7071, -0.5, sinPhase(lightAngle) * 0.7071)
+    
+    # Render all object instances in the scene
+    for instance in objectInstances
+        renderObjectInstance(scene, instance, 600.0, lightDir)
+
+fun updateScene()
+    # Update animation for all objects
+    for instance in objectInstances
+        instance.angleX = instance.angleX + 2
+        instance.angleY = instance.angleY + 3
+        instance.angleZ = instance.angleZ + 1
+        # kprintf("Updated instance angles: X=%d Y=%d Z=%d\n", instance.angleX, instance.angleY, instance.angleZ)
+
+fun waitMouseClick()
+    while hwregs.mouse_buttons = 0
+        dummy()
+    while hwregs.mouse_buttons != 0
+        dummy()
+
+fun main()
+
+    first = true
+    val scene = new GfxScene()
+
+    objectInstances = new List<ObjectInstance>()
+    # Create cube mesh (shared geometry)
+    val cubeMesh = createCubeMesh(200.0)
+    
+    # Create object instances
+    val cube1 = new ObjectInstance()
+    cube1.object3D = cubeMesh
+    cube1.x = -100.0
+    cube1.y = 0.0
+    cube1.z = 0.0
+
+    cube1.angleX = 17954
+    cube1.angleY = 27431
+    cube1.angleZ = 8477
+    objectInstances.add(cube1)    
+
+    frameNumber = 0
+    while true
+        frameNumber = frameNumber + 1
+        kprintf("Frame %d\n", frameNumber)
+
+        updateScene()
+        renderScene(scene)
+        scene.show()
+        # scene.dump()
+        hwregs.seven_seg = hwregs.vga_pos
+        # kprintf("Cube1 angles: X=%d Y=%d Z=%d\n", cube1.angleX, cube1.angleY, cube1.angleZ)
+        waitForVBlank()
+
+        # waitMouseClick()
+
+        scene.clear()
+        first = false

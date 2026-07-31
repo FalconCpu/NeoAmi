@@ -2,8 +2,10 @@ boot.f32
 hwregs.fpl
 errors.fpl
 memory.fpl
+math.fpl
 ../stdlib/list.fpl
 kprintf.fpl
 IrisSprite.fpl
 renderTriangle.fpl
+spinningCube.fpl
 main.fpl

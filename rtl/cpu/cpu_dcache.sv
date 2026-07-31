@@ -351,7 +351,8 @@ end
 
 localparam READY = 2'd0,        // Ready to process requests
            WRITEBACK = 2'd1,    // Waiting for write burst to complete after sending a dirty cache line to SDRAM
-           LOADING = 2'd2;      // Waiting for read burst to complete after requesting a cache line from SDRAM
+           LOADING = 2'd2,      // Waiting for read burst to complete after requesting a cache line from SDRAM
+           WAIT = 2'd3;         // Wait one cycle for cache to update after writing to it
 logic [1:0] state, next_state;           
 
 
@@ -448,9 +449,14 @@ always_comb begin
 
             // Once the entire burst has been received, we can transition back to READY state
             if (dcache_sdramr_rvalid == 2'b11) begin
-                dcache_ack = '1;
-                next_state = READY;
+                next_state = WAIT;
             end
+        end
+
+        WAIT: begin
+            // Wait one cycle for the cache to update after writing to it, then transition back to READY state
+            dcache_ack = '1;
+            next_state = READY;
         end
 
         default: 

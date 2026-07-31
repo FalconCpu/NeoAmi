@@ -126,7 +126,7 @@ initial begin
     // $dumpvars(0, tb_falcon);
     $dumpvars(2, tb);
     $dumpvars(0, tb.neoami_inst.iris_inst);
-    ///$dumpvars(0, tb.neoami_inst.cpu_inst);
+    // $dumpvars(0, tb.neoami_inst.cpu_inst);
     // Initialize inputs
 
     #16000000;

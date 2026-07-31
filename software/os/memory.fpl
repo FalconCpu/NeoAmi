@@ -61,6 +61,12 @@ fun initializeMemorySystem()
     freeList.size = HEAP_END - HEAP_START
     freeList.next = null
 
+    if 1=2
+        # dummy calls to avoid warnings about unused functions
+        handleException(0, 0, 0)
+        handleSysCall(0, 0)
+        handleInterrupt(0)
+
 
 fun insertBlockIntoFreeList(block:FreeMemBlock, size:Int)
     # Insert the block into the freelist, keeping the list sorted by size

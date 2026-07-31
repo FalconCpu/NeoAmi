@@ -126,24 +126,24 @@ wire [15:0] ram0_clip_x1 = obj_data[31:16];
 wire [15:0] ram0_clip_x2 = obj_data[47:32];
 wire [9:0]  ram0_clip_y1 = obj_data[57:48];
 wire [9:0]  ram0_clip_y2 = obj_data[73:64];
-wire [23:0] ram0_x1 = {obj_data[95:80], 8'h0};
-wire [23:0] ram0_y1 = {obj_data[111:96], 8'h0};
-wire [23:0] ram0_x2 = {obj_data[127:112], 8'h0};
-wire [23:0] ram0_y2 = {obj_data[143:128], 8'h0};
+wire [23:0] ram0_x1 = {obj_data[95:80], 8'hff};
+wire [23:0] ram0_y1 = {obj_data[111:96], 8'hff};
+wire [23:0] ram0_x2 = {obj_data[127:112], 8'hff};
+wire [23:0] ram0_y2 = {obj_data[143:128], 8'hff};
 wire [23:0] ram0_dx1_dy = fp16_to_s12_12(obj_data[159:144]);
 wire [23:0] ram0_dx2_dy = fp16_to_s12_12(obj_data[175:160]);
 wire [23:0] ram0_dx3_dy = fp16_to_s12_12(obj_data[191:176]);
-wire [23:0] ram0_z1 = {obj_data[207:192], 8'h0};
+wire [23:0] ram0_z1 = {obj_data[207:192], 8'hff};
 wire [23:0] ram0_dz_dx = fp16_to_s12_12(obj_data[223:208]);
 wire [23:0] ram0_dz_dy = fp16_to_s12_12(obj_data[239:224]);
 
-wire [23:0] ram1_r1 = {obj_data[15:0], 8'h0};
+wire [23:0] ram1_r1 = {obj_data[15:0], 8'hff};
 wire [23:0] ram1_dr_dx = fp16_to_s12_12(obj_data[31:16]);
 wire [23:0] ram1_dr_dy = fp16_to_s12_12(obj_data[47:32]);
-wire [23:0] ram1_g1 = {obj_data[63:48], 8'h0};
+wire [23:0] ram1_g1 = {obj_data[63:48], 8'hff};
 wire [23:0] ram1_dg_dx = fp16_to_s12_12(obj_data[79:64]);
 wire [23:0] ram1_dg_dy = fp16_to_s12_12(obj_data[95:80]);
-wire [23:0] ram1_b1 = {obj_data[111:96], 8'h0};
+wire [23:0] ram1_b1 = {obj_data[111:96], 8'hff};
 wire [23:0] ram1_db_dx = fp16_to_s12_12(obj_data[127:112]);
 wire [23:0] ram1_db_dy = fp16_to_s12_12(obj_data[143:128]);
 wire [15:0] ram1_tex_stride = obj_data[159:144];
@@ -291,16 +291,18 @@ always_comb begin
     1: begin
         // Calculate the right edge of this scanline
         if (this_dy2<0 || ram0_flags[4]==1'b0) begin
-            // Above the mid vertex, or mid vertex is on the right - so calc left edge relative to x1,y1
+            // Above the mid vertex, or mid vertex is on the left - so calc left edge relative to x1,y1
             mult_a1 = ram0_dx2_dy;
             mult_a2 = this_dy1;
             mult_b1 = 24'h0;
             mult_b2 = 24'h0;
             mult_c  = ram0_x1;
         end else begin
-            // Below the mid vertex and mid vertex is on the left - so calc left edge relative to x2,y2
+            // Below the mid vertex and mid vertex is on the right - so calc left edge relative to x2,y2
             mult_a1 = ram0_dx3_dy;
             mult_a2 = next_dy2;
+            mult_b1 = 24'h0;
+            mult_b2 = 24'h0;
             mult_c  = ram0_x2;
         end
         next_state = 4'h2;
