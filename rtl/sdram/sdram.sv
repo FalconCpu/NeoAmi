@@ -34,6 +34,19 @@ module sdram (
     output logic [31:0]  vga_sdram_rdata,
     output logic [7:0]   vga_sdram_rtag,
 
+    // Connection to gemma (GEOMetry and Matrix Multiplication Accelerator)
+    input  logic         gemma_sdram_req,
+    input  logic         gemma_sdram_write,
+    output logic         gemma_sdram_ack,
+    input  logic [127:0] gemma_sdram_wdata,
+    input  logic [7:0]   gemma_sdram_tag,
+    input  logic [15:0]  gemma_sdram_strb,
+    input  logic [25:0]  gemma_sdram_addr,
+    output logic [1:0]   gemma_sdram_rvalid,
+    output logic [7:0]   gemma_sdram_rtag,
+    output logic [31:0]  gemma_sdram_rdata,
+
+
     // Connection to the SDRAM chip
     output logic [12:0]   DRAM_ADDR,
   	output logic  [1:0]   DRAM_BA,
@@ -83,6 +96,16 @@ sdram_arbiter  sdram_arbiter_inst (
     .vga_sdram_rvalid(vga_sdram_rvalid),
     .vga_sdram_rdata(vga_sdram_rdata),
     .vga_sdram_rtag(vga_sdram_rtag),
+    .gemma_sdram_req(gemma_sdram_req),
+    .gemma_sdram_write(gemma_sdram_write),
+    .gemma_sdram_ack(gemma_sdram_ack),
+    .gemma_sdram_wdata(gemma_sdram_wdata),
+    .gemma_sdram_strb(gemma_sdram_strb),
+    .gemma_sdram_tag(gemma_sdram_tag),
+    .gemma_sdram_addr(gemma_sdram_addr),
+    .gemma_sdram_rvalid(gemma_sdram_rvalid),
+    .gemma_sdram_rtag(gemma_sdram_rtag),
+    .gemma_sdram_rdata(gemma_sdram_rdata),
     .sdram_req(sdram_req),
     .sdram_ack(sdram_ack),
     .sdram_write(sdram_write),

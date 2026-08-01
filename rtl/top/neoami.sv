@@ -184,6 +184,17 @@ logic [1:0]   vga_sdram_rvalid;
 logic [31:0]  vga_sdram_rdata;
 logic [7:0]   vga_sdram_rtag;
 
+logic        gemma_sdram_req;
+logic        gemma_sdram_ack;
+logic        gemma_sdram_write;
+logic [25:0] gemma_sdram_addr;
+logic [7:0]  gemma_sdram_tag;
+logic [127:0] gemma_sdram_wdata;
+logic [15:0] gemma_sdram_strb;
+logic [1:0]  gemma_sdram_rvalid;
+logic [7:0]  gemma_sdram_rtag;
+logic [31:0] gemma_sdram_rdata;
+
 
 
   sdram  sdram_inst (
@@ -211,6 +222,16 @@ logic [7:0]   vga_sdram_rtag;
     .vga_sdram_rvalid(vga_sdram_rvalid),
     .vga_sdram_rdata(vga_sdram_rdata),
     .vga_sdram_rtag(vga_sdram_rtag),
+    .gemma_sdram_req(gemma_sdram_req),
+    .gemma_sdram_ack(gemma_sdram_ack),
+    .gemma_sdram_write(gemma_sdram_write),
+    .gemma_sdram_addr(gemma_sdram_addr),
+    .gemma_sdram_tag(gemma_sdram_tag),
+    .gemma_sdram_wdata(gemma_sdram_wdata),
+    .gemma_sdram_strb(gemma_sdram_strb),
+    .gemma_sdram_rvalid(gemma_sdram_rvalid),
+    .gemma_sdram_rtag(gemma_sdram_rtag),
+    .gemma_sdram_rdata(gemma_sdram_rdata),
     .DRAM_ADDR(DRAM_ADDR),
     .DRAM_BA(DRAM_BA),
     .DRAM_CAS_N(DRAM_CAS_N),
@@ -223,36 +244,21 @@ logic [7:0]   vga_sdram_rtag;
     .DRAM_WE_N(DRAM_WE_N)
   );
 
-// =======================================================
-//                           IRIS
-// =======================================================
+//=======================================================
+//  SOPHIE
+//=======================================================
+
 logic            aux_iris_req;
 logic [15:0]     aux_iris_addr;
 logic [31:0]     aux_iris_wdata;
 logic [9:0]      ypos;
 
- iris  iris_inst (
-    .clock(clock),
-    .reset(reset),
-    .VGA_BLANK_N(VGA_BLANK_N),
-    .VGA_B(VGA_B),
-    .VGA_CLK(VGA_CLK),
-    .VGA_G(VGA_G),
-    .VGA_HS(VGA_HS),
-    .VGA_R(VGA_R),
-    .VGA_SYNC_N(VGA_SYNC_N),
-    .VGA_VS(VGA_VS),
-    .ypos(ypos),
-    .aux_iris_req(aux_iris_req),
-    .aux_iris_addr(aux_iris_addr),
-    .aux_iris_wdata(aux_iris_wdata)
-  ); 
+logic            aux_gemma_req;
+logic            aux_gemma_write;
+logic [15:0]     aux_gemma_addr;
+logic [31:0]     aux_gemma_wdata;
+logic [31:0]     aux_gemma_rdata;
 
-
-
-//=======================================================
-//  SOPHIE
-//=======================================================
 logic [9:0] mouse_x;
 logic [9:0] mouse_y;
 
@@ -276,6 +282,11 @@ sophie  sophie_inst (
     .aux_iris_req(aux_iris_req),
     .aux_iris_addr(aux_iris_addr),
     .aux_iris_wdata(aux_iris_wdata),
+    .aux_gemma_req(aux_gemma_req),
+    .aux_gemma_write(aux_gemma_write),
+    .aux_gemma_addr(aux_gemma_addr),
+    .aux_gemma_wdata(aux_gemma_wdata),
+    .aux_gemma_rdata(aux_gemma_rdata),
     .ypos(ypos),
     .HEX0(HEX0),
     .HEX1(HEX1),
@@ -297,6 +308,53 @@ sophie  sophie_inst (
     .mouse_x(mouse_x),
     .mouse_y(mouse_y),
     .cpu_pc(cpu_pc)
+  );
+
+// =======================================================
+//                           IRIS
+// =======================================================
+
+ iris  iris_inst (
+    .clock(clock),
+    .reset(reset),
+    .VGA_BLANK_N(VGA_BLANK_N),
+    .VGA_B(VGA_B),
+    .VGA_CLK(VGA_CLK),
+    .VGA_G(VGA_G),
+    .VGA_HS(VGA_HS),
+    .VGA_R(VGA_R),
+    .VGA_SYNC_N(VGA_SYNC_N),
+    .VGA_VS(VGA_VS),
+    .ypos(ypos),
+    .aux_iris_req(aux_iris_req),
+    .aux_iris_addr(aux_iris_addr),
+    .aux_iris_wdata(aux_iris_wdata)
+  ); 
+
+
+
+// ======================================================
+//                           GEMMA
+// ======================================================
+
+gemma  gemma_inst (
+    .clock(clock),
+    .reset(reset),
+    .aux_gemma_req(aux_gemma_req),
+    .aux_gemma_write(aux_gemma_write),
+    .aux_gemma_addr(aux_gemma_addr),
+    .aux_gemma_wdata(aux_gemma_wdata),
+    .aux_gemma_rdata(aux_gemma_rdata),
+    .gemma_sdram_req(gemma_sdram_req),
+    .gemma_sdram_ack(gemma_sdram_ack),
+    .gemma_sdram_write(gemma_sdram_write),
+    .gemma_sdram_addr(gemma_sdram_addr),
+    .gemma_sdram_wdata(gemma_sdram_wdata),
+    .gemma_sdram_tag(gemma_sdram_tag),
+    .gemma_sdram_strb(gemma_sdram_strb),
+    .gemma_sdram_rvalid(gemma_sdram_rvalid),
+    .gemma_sdram_rtag(gemma_sdram_rtag),
+    .gemma_sdram_rdata(gemma_sdram_rdata)
   );
 
 

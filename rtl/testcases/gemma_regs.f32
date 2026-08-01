@@ -1,0 +1,21 @@
+# Testcase to access to GEMMA registers 
+
+GEMMA_BASE = 0xE0020000
+
+ld $1, GEMMA_BASE
+
+ld $2, 0x12345678   # Write to GEMMA register 0x300
+stw $2, $1[0x300]
+ld $3, 0xCAFEBABE   # Write to GEMMA register 0x304
+stw $3, $1[0x304]
+ld $2, 0xC001D00D   # Write to GEMMA register 0x400
+stw $2, $1[0x400]
+
+ldw $4, $1[0x300]
+ldw $5, $1[0x304]
+ldw $6, $1[0x400]
+add $7, $4, $5
+add $8, $7, $6
+
+ld $31,0
+ret

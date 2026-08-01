@@ -30,6 +30,13 @@ module sophie (
     output logic [31:0] aux_iris_wdata,      // Data to be written to the Iris memory
     input  logic [9:0]  ypos,                // Current Y position of the rasterizer (for debug)
 
+    // Gemma bus (read/write)
+    output logic        aux_gemma_req,       // Request to read/write the Gemma memory
+    output logic        aux_gemma_write,     // Indicates a write operation to the Gemma memory
+    output logic [15:0] aux_gemma_addr,      // Address for the read/write operation
+    output logic [31:0] aux_gemma_wdata,     // Data to be written to the Gemma memory
+    input  logic [31:0] aux_gemma_rdata,     // Data read from the Gemma memory
+
     // Chip pins
     output logic [6:0]	HEX0,
   	output logic [6:0]	HEX1,
@@ -84,6 +91,11 @@ sophie_address_decoder  sophie_address_decoder_inst (
     .aux_irom_addr(aux_irom_addr),
     .aux_irom_wdata(aux_irom_wdata),
     .aux_irom_rdata(aux_irom_rdata),
+    .aux_gemma_req(aux_gemma_req),
+    .aux_gemma_write(aux_gemma_write),
+    .aux_gemma_addr(aux_gemma_addr),
+    .aux_gemma_wdata(aux_gemma_wdata),
+    .aux_gemma_rdata(aux_gemma_rdata),
     .aux_iris_req(aux_iris_req),
     .aux_iris_addr(aux_iris_addr),
     .aux_iris_wdata(aux_iris_wdata)

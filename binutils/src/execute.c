@@ -189,6 +189,7 @@ static int mul_op(int op, int a, int b) {
     }
 }
 
+
 /**
  * Read HWREGS and return the value.
  */
@@ -217,6 +218,10 @@ static int read_memory(int address) {
     else if (addr >= 0xE0000000U && addr < 0xE0001000U)
         // Address in HWREGS
         return read_hwreg(addr & 0xffff);
+
+    else if (addr >= 0xE0020000U && addr < 0xE0030000U)
+        // Address in GEMMA
+        return read_gemma((addr & 0xffff)/4);
 
     else if (addr >= 0xFFFF0000U) {
         // Address in Boot ROM
@@ -277,12 +282,17 @@ static void write_memory(int address, int value) {
         code_buffer[(addr & 0xFFFF)/4] = value;
 
     } else if (addr >= 0xE0000000U && addr < 0xE0001000U) {
-        // Address in program memory
+        // Address in HWREGS
         write_hwreg(addr & 0xFFFF, value);
+
+    } else if (addr >= 0xE0020000U && addr < 0xE0030000U) {
+        // Address in GEMMA
+        write_gemma((addr & 0xFFFF)/4, value);
 
     } else {
         raise_exception(CAUSE_ADDRESS_ERROR, address);
     }
+
     if (trace_file)
         fprintf(trace_file, " [0x%08x]=0x%08x", address, value);
 }
@@ -293,7 +303,7 @@ static void write_memory(int address, int value) {
  * Handles different load sizes (byte, half-word, word) and sign-extends the result as needed.
  */
 
-static int load_op(int op, int base, int offset) {
+int do_load(int op, int base, int offset) {
     int addr = base + offset;
     int word_addr = addr & ~0x3;
     int shift_amt = 8*(addr % 4);
@@ -329,7 +339,7 @@ static int load_op(int op, int base, int offset) {
  * Store a word to memory at the given address, 
  * handling different store sizes (byte, half-word, word).
  */
-static void store_op(int op, int base, int offset, int value) {
+void do_store(int op, int base, int offset, int value) {
     int addr = base + offset;
     int word_addr = addr & ~0x3;
     int shift_amt = 8*(addr % 4);
@@ -510,13 +520,13 @@ static void execute_instruction(int instr) {
         }
 
         case KIND_LD: {
-            int value = load_op(i, regs[a], imm13);
+            int value = do_load(i, regs[a], imm13);
             set_reg(d, value);
             break;
         }
 
         case KIND_ST:  {
-            store_op(i, regs[a], imm13d, regs[b]);
+            do_store(i, regs[a], imm13d, regs[b]);
             break;
         }
 

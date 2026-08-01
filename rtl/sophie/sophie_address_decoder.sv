@@ -32,6 +32,13 @@ module sophie_address_decoder (
     output logic [15:0] aux_iris_addr,       // Address for the read/write operation
     output logic [31:0] aux_iris_wdata,      // Data to be written to the Iris memory
 
+    // Gemma bus (read/write)
+    output logic        aux_gemma_req,       // Request to read/write the Gemma memory
+    output logic        aux_gemma_write,     // Indicates a write operation to the Gemma memory
+    output logic [15:0] aux_gemma_addr,      // Address for the read/write operation
+    output logic [31:0] aux_gemma_wdata,     // Data to be written to the Gemma memory
+    input  logic [31:0] aux_gemma_rdata,     // Data read from the Gemma memory
+
     // Instruction memory
     output logic        aux_irom_req,        // Request to read/write the instruction memory
     output logic        aux_irom_write,      // Indicates a write operation to the instruction memory
@@ -60,7 +67,11 @@ always_ff @(posedge clock) begin
     aux_iris_req <= 1'b0;
     aux_iris_addr <= 16'bx;
     aux_iris_wdata <= 32'bx;
-    
+    aux_gemma_req <= 1'b0;
+    aux_gemma_write <= 1'bx;
+    aux_gemma_addr <= 16'bx;
+    aux_gemma_wdata <= 32'bx;
+
     // Delay the destination register and byte enable signals by 2 cycles to match the
     // latency of the memory read operations. 
     cpu_aux_rvalid <= rvalid_dly2;
@@ -75,7 +86,7 @@ always_ff @(posedge clock) begin
     // Combine the data read from the various sources
     // And apply the byte enables
     // verilator lint_off BLKSEQ
-    rdata = aux_hwregs_rdata | aux_irom_rdata;
+    rdata = aux_hwregs_rdata | aux_irom_rdata | aux_gemma_rdata;
     case (strb_dly2)
         4'b0001: cpu_aux_rdata <= {{24{rdata[7]}}, rdata[7:0]};
         4'b0010: cpu_aux_rdata <= {{24{rdata[15]}}, rdata[15:8]};
@@ -101,6 +112,12 @@ always_ff @(posedge clock) begin
             aux_iris_req <= 1'b1;
             aux_iris_addr <= cpu_aux_addr[15:0];
             aux_iris_wdata <= cpu_aux_wdata;
+        end else if (cpu_aux_addr[31:16] == 16'hE002) begin
+            // Route to GEMMA
+            aux_gemma_req <= 1'b1;
+            aux_gemma_write <= cpu_aux_write;
+            aux_gemma_addr <= cpu_aux_addr[15:0];
+            aux_gemma_wdata <= cpu_aux_wdata;
         end else if (cpu_aux_addr[31:16] == 16'hFFFF) begin
             // Route to the instruction memory
             aux_irom_req <= 1'b1;

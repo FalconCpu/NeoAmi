@@ -110,6 +110,9 @@ fun createCubeMesh(size:Float) -> Object3D
     
     return cube
 
+
+    
+
 # Transform and project a 3D point to screen space with instance transform
 fun transformAndProject(v:Vec3d, instance:ObjectInstance, distance:Float) -> Vec3d
     # Apply instance position offset (could be done before rotation for local space offset)

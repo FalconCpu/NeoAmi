@@ -38,6 +38,19 @@ module sdram_arbiter(
     output logic [31:0]  vga_sdram_rdata,
     output logic [7:0]   vga_sdram_rtag,
 
+    // Connection to gemma (read/write, does need tags)
+    input  logic         gemma_sdram_req,
+    input  logic         gemma_sdram_write,
+    output logic         gemma_sdram_ack,
+    input  logic [127:0] gemma_sdram_wdata,
+    input  logic [15:0]  gemma_sdram_strb,
+    input  logic [7:0]   gemma_sdram_tag,
+    input  logic [25:0]  gemma_sdram_addr,
+    output logic [1:0]   gemma_sdram_rvalid,
+    output logic [7:0]   gemma_sdram_rtag,
+    output logic [31:0]  gemma_sdram_rdata,
+
+
     // Connection to the SDRAM controller
     output logic         sdram_req,
     input  logic         sdram_ack,
@@ -77,6 +90,7 @@ always_comb begin
     dcache_sdramw_ack = 1'b0;
     dcache_sdramr_ack = 1'b0;
     icache_sdram_ack = 1'b0;
+    gemma_sdram_ack = 1'b0;
     vga_sdram_ack = 1'b0;
 
     // If the SDRAM is ready then shift the new request through, otherwise hold it in the queue
@@ -159,6 +173,16 @@ always_comb begin
         new_sdram_wmask = 16'bx;
         new_sdram_tag = 10'h0xx;
 
+    end else if (gemma_sdram_req) begin
+        // Accept request from gemma
+        gemma_sdram_ack = 1'b1;
+        new_sdram_req = 1'b1;
+        new_sdram_write = gemma_sdram_write;
+        new_sdram_addr = gemma_sdram_addr;
+        new_sdram_wdata = gemma_sdram_wdata;
+        new_sdram_wmask = gemma_sdram_strb;
+        new_sdram_tag = {2'b11, gemma_sdram_tag};
+
     end else begin
         // No new request
         new_sdram_req = 1'b0;
@@ -205,6 +229,9 @@ always_comb begin
     vga_sdram_rvalid = 2'b0;
     vga_sdram_rdata = 32'bx;
     vga_sdram_rtag = 8'bx;
+    gemma_sdram_rvalid = 2'b0;
+    gemma_sdram_rdata = 32'bx;
+    gemma_sdram_rtag = 8'bx;
 
     if (sdram_rtag[9:8] == 2'h0) begin
         // Response for icache
@@ -219,8 +246,12 @@ always_comb begin
         vga_sdram_rvalid = sdram_rvalid;
         vga_sdram_rdata = sdram_rdata;
         vga_sdram_rtag = sdram_rtag[7:0];
+    end else if (sdram_rtag[9:8] == 2'h3) begin
+        // Response for gemma  
+        gemma_sdram_rvalid = sdram_rvalid;
+        gemma_sdram_rdata = sdram_rdata;
+        gemma_sdram_rtag = sdram_rtag[7:0];
     end
-
 end
 
 

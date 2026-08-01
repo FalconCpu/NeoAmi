@@ -59,6 +59,12 @@ void disassemble_code(void);
 
 // emulator.c
 void execute_code(void);
+void do_store(int op, int base, int offset, int value);
+int do_load(int op, int base, int offset);
+
+// gemma.c
+void write_gemma(int index, int value);
+int  read_gemma(int index);
 
 // Utils.c
 void error(const char* fmt, ...);
