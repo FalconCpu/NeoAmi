@@ -205,3 +205,47 @@ class GfxScene
         for obj in objects
             free obj
         objects.clear()
+
+
+fun setupGemma()
+    # Set up the Gemma hardware for rendering
+    hwGemma.output_ptr     = 0x100000
+    hwGemma.clip_x1        = 0
+    hwGemma.clip_y1        = 0
+    hwGemma.clip_x2        = 640
+    hwGemma.clip_y2        = 480
+    hwGemma.texture_addr   = 0x200000
+    hwGemma.texture_stride = 640
+
+fun floatToFixed12_4(value:Float) -> Int
+    return (value * 16.0) as Int
+
+fun floatToFixed12_12(value:Float) -> Int
+    return (value * 4096.0) as Int
+
+
+fun renderTriangleGemma(vertex1:GfxVertex, vertex2:GfxVertex, vertex3:GfxVertex) -> IrisSprite
+    val ret = unsafe(hwGemma.output_ptr as IrisSprite)
+    hwGemmaTriangleSetup.v0_x = floatToFixed12_4(vertex1.x)
+    hwGemmaTriangleSetup.v0_y = floatToFixed12_4(vertex1.y)
+    hwGemmaTriangleSetup.v0_z = floatToFixed12_4(vertex1.z)
+    hwGemmaTriangleSetup.v0_r = floatToFixed12_4(vertex1.r)
+    hwGemmaTriangleSetup.v0_g = floatToFixed12_4(vertex1.g)
+    hwGemmaTriangleSetup.v0_b = floatToFixed12_4(vertex1.b)
+    hwGemmaTriangleSetup.v1_x = floatToFixed12_4(vertex2.x)
+    hwGemmaTriangleSetup.v1_y = floatToFixed12_4(vertex2.y)
+    hwGemmaTriangleSetup.v1_z = floatToFixed12_4(vertex2.z)
+    hwGemmaTriangleSetup.v1_r = floatToFixed12_4(vertex2.r)
+    hwGemmaTriangleSetup.v1_g = floatToFixed12_4(vertex2.g)
+    hwGemmaTriangleSetup.v1_b = floatToFixed12_4(vertex2.b)
+    hwGemmaTriangleSetup.v2_x = floatToFixed12_4(vertex3.x)
+    hwGemmaTriangleSetup.v2_y = floatToFixed12_4(vertex3.y)
+    hwGemmaTriangleSetup.v2_z = floatToFixed12_4(vertex3.z)
+    hwGemmaTriangleSetup.v2_r = floatToFixed12_4(vertex3.r)
+    hwGemmaTriangleSetup.v2_g = floatToFixed12_4(vertex3.g)
+    hwGemmaTriangleSetup.v2_b = floatToFixed12_4(vertex3.b)
+    hwGemmaTriangleSetup.flags = 0x00000000  # No special flags
+
+    hwGemma.start = 0x8   # Start the triangle setup operation
+
+    return ret

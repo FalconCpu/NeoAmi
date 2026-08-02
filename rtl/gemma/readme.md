@@ -66,19 +66,19 @@ The input registers are as follows:
 | 0x0500   | V0_X      | The X coordinate of the topmost vertex in screen space. S12.4 format. |
 | 0x0504   | V0_Y      | The Y coordinate of the topmost vertex in screen space. S12.4 format. |
 | 0x0508   | V0_Z      | The inverse depth value of the topmost vertex. Pixels with a higher Z value are closer to the camera. U20 format. |
-| 0x050C   | V0_R      | The red color component, or U coordinate of the topmost vertex. S12.12 format. |
-| 0x0510   | V0_G      | The green color component, or V coordinate of the topmost vertex. S12.12 format. |
-| 0x0514   | V0_B      | The blue color component, or brighness value, of the topmost vertex. S12.12 format. |
+| 0x050C   | V0_R      | The red color component, or U coordinate of the topmost vertex. S12.4 format. |
+| 0x0510   | V0_G      | The green color component, or V coordinate of the topmost vertex. S12.4 format. |
+| 0x0514   | V0_B      | The blue color component, or brighness value, of the topmost vertex. S12.4 format. |
 | 0x0520   | V1_X      | The X coordinate of the middle vertex in screen space. S12.4 format. |
 | 0x0524   | V1_Y      | The Y coordinate of the middle vertex in screen space. S12.4 format. |
 | 0x0528   | V1_Z      | The inverse depth value of the middle vertex. Pixels with a higher Z value are closer to the camera. U20 format. |
-| 0x052C   | V1_R      | The red color component, or U coordinate of the middle vertex. S12.12 format. |
-| 0x0530   | V1_G      | The green color component, or V coordinate of the middle vertex. S12.12 format. |
-| 0x0534   | V1_B      | The blue color component, or brighness value, of the middle vertex. S12.12 format. |
+| 0x052C   | V1_R      | The red color component, or U coordinate of the middle vertex. S12.4 format. |
+| 0x0530   | V1_G      | The green color component, or V coordinate of the middle vertex. S12.4 format. |
+| 0x0534   | V1_B      | The blue color component, or brighness value, of the middle vertex. S12.4 format. |
 | 0x0540   | V2_X      | The X coordinate of the bottommost vertex in screen space. S12.4 format. |
 | 0x0544   | V2_Y      | The Y coordinate of the bottommost vertex in screen space. S12.4 format. |
 | 0x0548   | V2_Z      | The inverse depth value of the bottommost vertex. Pixels with a higher Z value are closer to the camera. U20 format. |
-| 0x054C   | V2_R      | The red color component, or U coordinate of the bottommost vertex. S12.12 format. |
+| 0x054C   | V2_R      | The red color component, or U coordinate of the bottommost vertex. S12.4 format. |
 | 0x0550   | V2_G      | The green color component, or V coordinate of the bottommost vertex. S12.12 format. |
 | 0x0554   | V2_B      | The blue color component, or brighness value, of the bottommost vertex. S12.12 format. |
 | 0x057C   | FLAGS     | Control flags for the triangle setup operation, see below. Writing to this register marks the input data as valid, and will start the triangle setup operation if the AUTO bit is set in the general control register. |

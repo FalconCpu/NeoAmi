@@ -46,9 +46,9 @@ logic [31:0] bank_read_data0, bank_read_data1, bank_read_data2, bank_read_data3;
 logic        bank_write_enable0=1'b0, bank_write_enable1=1'b0, bank_write_enable2=1'b0, bank_write_enable3=1'b0;
 logic [4:0]  bank_write_index0, bank_write_index1, bank_write_index2, bank_write_index3;
 logic [31:0] bank_write_data0, bank_write_data1, bank_write_data2, bank_write_data3;
-logic [31:0] aux_gemma_rdata0, aux_gemma_rdata1, aux_gemma_rdata2, aux_gemma_rdata3;
+logic [31:0] aux_gemma_rdata0, aux_gemma_rdata1, aux_gemma_rdata2, aux_gemma_rdata3, aux_gemma_rdata_ctrl;
 
-assign aux_gemma_rdata = aux_gemma_rdata0 | aux_gemma_rdata1 | aux_gemma_rdata2 | aux_gemma_rdata3;
+assign aux_gemma_rdata = aux_gemma_rdata0 | aux_gemma_rdata1 | aux_gemma_rdata2 | aux_gemma_rdata3 | aux_gemma_rdata_ctrl;
 
 gemma_regbank  gemma_regbank_0 (
     .clock(clock),
@@ -101,6 +101,7 @@ gemma_regbank  gemma_regbank_2 (
     .bank_cpu_read_data(aux_gemma_rdata2)
   );
 
+
 gemma_regbank  gemma_regbank_3 (
     .clock(clock),
     .reset(reset),
@@ -118,6 +119,109 @@ gemma_regbank  gemma_regbank_3 (
     .bank_cpu_read_data(aux_gemma_rdata3)
   );
 
+// =============================================================
+//                  Main control registers
+// =============================================================
+logic [3:0]   stage_busy;
+logic [3:0]  stage_auto;
+logic [25:0] output_ptr;
+logic        inc_output_ptr;
+logic [15:0] clip_x1;
+logic [15:0] clip_y1;
+logic [15:0] clip_x2;
+logic [15:0] clip_y2;
+logic [25:0] texture_addr;
+logic [15:0] texture_stride;
+
+gemma_regs  gemma_regs_inst (
+    .clock(clock),
+    .reset(reset),
+    .aux_gemma_req(aux_gemma_req && (aux_gemma_addr[15:8] == 8'h0)),
+    .aux_gemma_write(aux_gemma_write),
+    .aux_gemma_addr(aux_gemma_addr),
+    .aux_gemma_wdata(aux_gemma_wdata),
+    .aux_gemma_rdata(aux_gemma_rdata_ctrl),
+    .stage_start(stage_start),
+    .stage_valid(stage_valid),
+    .stage_busy(stage_busy),
+    .stage_auto(stage_auto),
+    .output_ptr(output_ptr),
+    .clip_x1(clip_x1),
+    .clip_y1(clip_y1),
+    .clip_x2(clip_x2),
+    .clip_y2(clip_y2),
+    .texture_addr(texture_addr),
+    .texture_stride(texture_stride),
+    .inc_output_ptr(inc_output_ptr)
+  );
+
+
+// =============================================================
+//                  Triangle Setup Stage
+// =============================================================
+
+logic         ts_sdram_req;
+logic         ts_sdram_ack;
+logic [25:0]  ts_sdram_addr;
+logic [127:0] ts_sdram_wdata;
+logic [15:0]  ts_sdram_strb;
+logic         ts_recip_req;
+logic [26:0]  ts_recip_in;
+logic         ts_recip_valid;
+logic [26:0]  ts_recip_out;
+
+
+
+gemma_triangle_setup  gemma_triangle_setup_inst (
+    .clock(clock),
+    .reset(reset),
+    .ts_start(stage_start[3]),
+    .ts_busy(stage_busy[3]),
+    .clip_x1(clip_x1),
+    .clip_y1(clip_y1),
+    .clip_x2(clip_x2),
+    .clip_y2(clip_y2),
+    .texture_addr(texture_addr),
+    .texture_stride(texture_stride),
+    .ts_output_ptr(output_ptr),
+    .ts_recip_req(ts_recip_req),
+    .ts_recip_in(ts_recip_in),
+    .ts_recip_valid(ts_recip_valid),
+    .ts_recip_out(ts_recip_out),
+    .ts_inc_output_ptr(inc_output_ptr),
+    .ts_read_index(bank_read_index3),
+    .ts_read_data(bank_read_data3),
+    .ts_sdram_req(ts_sdram_req),
+    .ts_sdram_ack(ts_sdram_ack),
+    .ts_sdram_addr(ts_sdram_addr),
+    .ts_sdram_wdata(ts_sdram_wdata),
+    .ts_sdram_strb(ts_sdram_strb)
+  );
+
+
+// =============================================================
+//                  SDRAM Arbiter
+// =============================================================
+
+gemma_sdram_arb  gemma_sdram_arb_inst (
+    .clock(clock),
+    .reset(reset),
+    .ts_sdram_req(ts_sdram_req),
+    .ts_sdram_ack(ts_sdram_ack),
+    .ts_sdram_addr(ts_sdram_addr),
+    .ts_sdram_wdata(ts_sdram_wdata),
+    .ts_sdram_strb(ts_sdram_strb),
+    .gemma_sdram_req(gemma_sdram_req),
+    .gemma_sdram_ack(gemma_sdram_ack),
+    .gemma_sdram_write(gemma_sdram_write),
+    .gemma_sdram_addr(gemma_sdram_addr),
+    .gemma_sdram_tag(gemma_sdram_tag),
+    .gemma_sdram_wdata(gemma_sdram_wdata),
+    .gemma_sdram_strb(gemma_sdram_strb),
+    .gemma_sdram_rvalid(gemma_sdram_rvalid),
+    .gemma_sdram_rtag(gemma_sdram_rtag),
+    .gemma_sdram_rdata(gemma_sdram_rdata)
+);
 
 
 endmodule

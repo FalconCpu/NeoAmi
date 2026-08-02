@@ -18,6 +18,58 @@ class HwRegs
 
 const hwregs = unsafe(0xE0000000 as HwRegs)
 
+
+class HwGemma
+    var start          : Int  # One bit per processing unit. Writing a 1 to a bit starts the corresponding processing unit.
+    var busy           : Int  # One bit per processing unit. A bit is set to 1 when the corresponding processing unit is busy, and cleared to 0 when it is idle.
+    var auto           : Int  # One bit per processing unit. When set to 1, the corresponding processing unit will automatically start processing as soon as its input data is available, and its output buffer is free. When cleared to 0, the processing unit will only start when the START bit is set.
+    var output_ptr     : Int  # The destination write pointer for the triangle setup stage. This holds an address in main memory where the triangle data will be written. The address is a 32-bit value, and must be aligned to a 16-byte boundary.
+    var clip_x1        : Int  # The left edge of the clipping rectangle. Used in the triangle setup stage. This is a 16-bit signed integer, and must be less than CLIP_X2.
+    var clip_y1        : Int  # The top edge of the clipping rectangle. Used in the triangle setup stage. This is a 16-bit signed integer, and must be less than CLIP_Y2.
+    var clip_x2        : Int  # The right edge of the clipping rectangle. Used in the triangle setup stage. This is a 16-bit signed integer, and must be greater than CLIP_X1.
+    var clip_y2        : Int  # The bottom edge of the clipping rectangle. Used in the triangle setup stage. This is a 16-bit signed integer, and must be greater than CLIP_Y1.
+    var texture_addr   : Int  # The base address of the texture in main memory. Used in the triangle setup stage for textured triangles. This is a 32-bit value, and must be aligned to a 16-byte boundary.
+    var texture_stride : Int  # The stride of the texture in bytes. Used in the triangle setup stage for textured triangles. This is a 16-bit unsigned integer, and must be greater than 0.
+
+const hwGemma = unsafe(0xE0020000 as HwGemma)
+
+class HwGemmaTriangleSetup
+    var v0_x      : Int  # The X coordinate of the topmost vertex in screen space. S12.4 format.
+    var v0_y      : Int  # The Y coordinate of the topmost vertex in screen space. S12.4 format.
+    var v0_z      : Int  # The inverse depth value of the topmost vertex. Pixels with a higher Z value are closer to the camera. U20 format.
+    var v0_r      : Int  # The red color component, or U coordinate of the topmost vertex. S12.12 format.
+    var v0_g      : Int  # The green color component, or V coordinate of the topmost vertex. S12.12 format.
+    var v0_b      : Int  # The blue color component, or brighness value, of the topmost vertex. S12.12 format.
+    var reserved1 : Int  # Reserved for future use. Must be set to 0.
+    var reserved2 : Int  # Reserved for future use. Must be set to 0
+    var v1_x      : Int  # The X coordinate of the middle vertex in screen space. S12.4 format.
+    var v1_y      : Int  # The Y coordinate of the middle vertex in screen space. S12.4 format.
+    var v1_z      : Int  # The inverse depth value of the middle vertex. Pixels with a higher Z value are closer to the camera. U20 format.
+    var v1_r      : Int  # The red color component, or U coordinate of the middle vertex. S12.12 format.
+    var v1_g      : Int  # The green color component, or V coordinate of the middle vertex. S12.12 format.
+    var v1_b      : Int  # The blue color component, or brighness value, of the middle vertex. S12.12 format.
+    var reserved3 : Int  # Reserved for future use. Must be set to 0.   
+    var reserved4 : Int  # Reserved for future use. Must be set to 0.
+    var v2_x      : Int  # The X coordinate of the bottommost vertex in screen space. S12.4 format.
+    var v2_y      : Int  # The Y coordinate of the bottommost vertex in screen space. S12.4 format.
+    var v2_z      : Int  # The inverse depth value of the bottommost vertex. Pixels with a higher Z value are closer to the camera. U20 format.
+    var v2_r      : Int  # The red color component, or U coordinate of the bottommost vertex. S12.12 format.
+    var v2_g      : Int  # The green color component, or V coordinate of the bottommost vertex. S12.12 format.
+    var v2_b      : Int  # The blue color component, or brighness value, of the bottommost vertex. S12.12 format.
+    var reserved5 : Int  # Reserved for future use. Must be set to 0.
+    var reserved6 : Int  # Reserved for future use. Must be set to 0.
+    var reserved7 : Int  # Reserved for future use. Must be set to 0.
+    var reserved8 : Int  # Reserved for future use. Must be set to 0.
+    var reserved9 : Int  # Reserved for future use. Must be set to 0.
+    var reserved10: Int  # Reserved for future use. Must be set to 0.
+    var reserved11: Int  # Reserved for future use. Must be set to 0.
+    var reserved12: Int  # Reserved for future use. Must be set to 0.
+    var reserved13: Int  # Reserved for future use. Must be set to 0.
+    var flags     : Int  # Control flags for the triangle setup operation, see below.   
+
+const hwGemmaTriangleSetup = unsafe(0xE0020500 as HwGemmaTriangleSetup)
+
+
 fun uartTx(c:Char)
     # wait for space in tx fifo
     var a = -1
@@ -25,37 +77,6 @@ fun uartTx(c:Char)
         a = hwregs.uart_tx
     until a>8
     hwregs.uart_tx = (c as Int)
-
-
-class HwRegsAudio
-    var addr       : Int  # Address register for audio buffer
-    var length     : Int  # Length of audio buffer in bytes. Write to this register starts playback
-    var volume     : Int  # Volume (0-255)
-    var pitch      : Int  # Sample rate. 0x10000=48kHz, 0x8000=24kHz, 0x4000=12kHz etc
-    var rep_addr   : Int  # Address to loop back to when the sample loops
-    var rep_length : Int  # Length of loop section in bytes. 0 = no
-    var write_addr : Int  # Current write address (channel 7 only)
-    var write_len  : Int  # Current write length (channel 7 only)
-
-const hwregsAudio = const Array<HwRegsAudio>[
-    unsafe(0xE0000200 as HwRegsAudio),
-    unsafe(0xE0000220 as HwRegsAudio),
-    unsafe(0xE0000240 as HwRegsAudio),
-    unsafe(0xE0000260 as HwRegsAudio),
-    unsafe(0xE0000280 as HwRegsAudio),
-    unsafe(0xE00002A0 as HwRegsAudio),
-    unsafe(0xE00002C0 as HwRegsAudio),
-    unsafe(0xE00002E0 as HwRegsAudio) ]
-
-class HwRegsVideo
-    var addr        : Int  # Framebuffer address
-    var x1          : Int  # Visible area x1
-    var y1          : Int  # Visible area y1
-    var x2          : Int  # Visible area x2
-    var y2          : Int  # Visible area y2
-    var pitch       : Int  # Number of bytes per row
-
-const hwregsVideo = unsafe(0xE0000100 as HwRegsVideo)
 
 fun dummy()
     val x = 1

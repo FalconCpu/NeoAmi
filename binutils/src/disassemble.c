@@ -198,11 +198,11 @@ String disassemble_line(int instr, int pc) {
     }
     
     case KIND_FPU: { // 0x1D - Floating point operations
-        const char* fpops[] = {"fadd", "fsub", "fmul", "fdiv", "???", "fcmp", "ftoi", "itof"};
+        const char* fpops[] = {"fadd", "fsub", "fmul", "fdiv", "???", "fcmp", "itof", "ftoi"};
         if (i < 8 && i != 4) {
             if (i == 6 || i == 7) {
                 // ftoi and itof only use two operands
-                FMT("%s $%d, $%d", fpops[i], d, a);
+                FMT("%s $%d, $%d", fpops[i], d, b);
             } else {
                 FMT("%s $%d, $%d, $%d", fpops[i], d, a, b);
             }

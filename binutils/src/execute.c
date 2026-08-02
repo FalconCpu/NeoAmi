@@ -138,8 +138,8 @@ static int fpu_op(int op, int a, int b) {
             else if (fa > fb) return 1;
             else return 0;
         }
-        case 6: return (int)fa; // ftoi
-        case 7: result = (float)a; break; // itof
+        case 6: result = (float)b; break; // itof
+        case 7: return (int)fb; // ftoi
         default: fatal("Invalid FPU operation: %d", op);
     }
     return *(int*)&result;
