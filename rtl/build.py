@@ -6,7 +6,8 @@ import glob
 # --- Configuration ---
 sv_files = glob.glob("*/*.sv")
 
-exclude_files = ["gemma\\regfile_ram.sv", "top\\cpu.sv", "top\\sophie.sv", "top\\iris.sv", "top\\gemma.sv", "top\\sdram.sv"]
+exclude_files = ["gemma\\regfile_ram.sv", "top\\cpu.sv", "top\\sophie.sv", "top\\iris.sv", 
+                 "top\\gemma.sv", "top\\sdram.sv", "top\\sdcard.sv"]
 sv_files = [f for f in sv_files if f not in exclude_files]
 
 # print(f"Found {len(sv_files)} SystemVerilog files:\n" + "\n".join(sv_files))

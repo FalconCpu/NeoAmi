@@ -8,13 +8,48 @@
 
 module gemma_fast_recip (
     input logic         clock,
-    input logic         recip_req,       // Someone is requesting a reciprocal
-    output logic        recip_ready,     // We are ready to accept a new reciprocal request
-    input  logic [23:0] recip_in,        // U12.12 fixed point format
-    output logic [23:0] recip_out        // U4.20 fixed point format (one cycle latency)
+
+    input logic         ts_recip_req,       // Someone is requesting a reciprocal
+    input  logic [23:0] ts_recip_in,        // U12.12 fixed point format
+    output logic        ts_recip_valid,     // We are ready to accept a new reciprocal request
+    output logic [23:0] ts_recip_out        // U4.20 fixed point format (one cycle latency)
 );
 
-assign recip_ready = 1'b1; // Always ready to accept a new request
+assign ts_recip_valid = 1'b1; // Always ready to accept a new request
+
+// ===========================================================================
+//                         Prioritize input requests
+// ===========================================================================
+
+logic        recip_req;
+logic        recip_source;
+logic [23:0] recip_in;
+logic        p1_req;
+logic        p1_source;
+logic [23:0] p1_out;
+
+always_comb begin
+    if (ts_recip_req) begin
+        recip_req = 1'b1;
+        recip_source = 1'b0; // Triangle setup stage
+        recip_in = ts_recip_in;
+    end else begin
+        recip_req = 1'b0;
+        recip_source = 1'b0;
+        recip_in = 24'd0;
+    end
+end
+
+always_ff @(posedge clock) begin
+    if (ts_recip_req)
+        ts_recip_valid <= 1'b0;
+
+    if (p1_req && p1_source == 1'b0) begin
+        ts_recip_out <= p1_out;
+        ts_recip_valid <= 1'b1;
+    end
+end
+
 
 // ===========================================================================
 //                         Lookup Table for Reciprocal Values
@@ -80,9 +115,9 @@ always_comb begin
         recip_out_temp = 27'h7FFFFFF; // Output zero for small input values
     else 
         recip_out_temp = {14'b0, p1_leading_bit, !p1_leading_bit, p1_second_bit, p1_recip_value} << p1_shift; 
-    recip_out = recip_out_temp[26:3]; // Convert to U4.20 format
+    p1_out = recip_out_temp[26:3]; // Convert to U4.20 format
 end
 
-wire unused = &{recip_out_temp[1:0], recip_req}; // Avoid unused signal warning
+wire unused = &{recip_out_temp[2:0], recip_req}; // Avoid unused signal warning
 
 endmodule

@@ -33,13 +33,11 @@ module gemma (
 //                  Misc registers
 // =============================================================
 
-assign gemma_sdram_req = 1'b0;
-
 // =============================================================
 //                  Register Banks
 // =============================================================
 
-logic [3:0] stage_start = 4'h0;
+logic [3:0] stage_start;
 logic [3:0] stage_valid;
 logic [4:0] bank_read_index0, bank_read_index1, bank_read_index2, bank_read_index3;
 logic [31:0] bank_read_data0, bank_read_data1, bank_read_data2, bank_read_data3;
@@ -186,7 +184,6 @@ gemma_triangle_setup  gemma_triangle_setup_inst (
     .ts_output_ptr(output_ptr),
     .ts_recip_req(ts_recip_req),
     .ts_recip_in(ts_recip_in),
-    .ts_recip_valid(ts_recip_valid),
     .ts_recip_out(ts_recip_out),
     .ts_inc_output_ptr(inc_output_ptr),
     .ts_read_index(bank_read_index3),

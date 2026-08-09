@@ -25,15 +25,15 @@ Each sprite is stored as a 64 byte structure in memory. The array of 256 sprites
 
 | Field      | Offset | Format | Description                                                           |
 |------------|--------|--------|-----------------------------------------------------------------------|
-| FLAGS      | 0x00   | U16    | object flags (see below)                                              |
-| CLIP_X1    | 0x02   | U16    | The left X coordinate of the clipping rectangle (inclusive)           |
-| CLIP_X2    | 0x04   | U16    | The right X coordinate of the clipping rectangle (exclusive)          |
-| YTOP       | 0x06   | U16    | The first visible scanline of the object (inclusive)                  |
-| YBOT       | 0x08   | U16    | The last visible scanline of the object (exclusive)                   |
-| X1         | 0x0A   | S12.4  | X-coordianate of the topmost vertex of the object                     |
-| Y1         | 0x0C   | S12.4  | Y-coordianate of the topmost vertex of the object                     |
-| X2         | 0x0E   | S12.4  | X-coordianate of the middle vertex of the object                      |
-| Y2         | 0x10   | S12.4  | Y-coordianate of the middle vertex of the object                      |
+| CLIP_X1    | 0x00   | U16    | The left X coordinate of the clipping rectangle (inclusive)           |
+| CLIP_X2    | 0x02   | U16    | The right X coordinate of the clipping rectangle (exclusive)          |
+| YTOP       | 0x04   | U16    | The first visible scanline of the object (inclusive)                  |
+| YBOT       | 0x06   | U16    | The last visible scanline of the object (exclusive)                   |
+| X1         | 0x08   | S12.4  | X-coordianate of the topmost vertex of the object                     |
+| Y1         | 0x0A   | S12.4  | Y-coordianate of the topmost vertex of the object                     |
+| X2         | 0x0C   | S12.4  | X-coordianate of the middle vertex of the object                      |
+| Y2         | 0x0E   | S12.4  | Y-coordianate of the middle vertex of the object                      |
+| FLAGS      | 0x10   | U16    | object flags (see below)                                              |
 | DX1/DY     | 0x12   | FP16   | Slope of the left edge from top vertex                                |
 | DX2/DY     | 0x14   | FP16   | Slope of the right edge from top vertex                               |
 | DX3/DY     | 0x16   | FP16   | Slope from middle vertex to bottom vertex                             |

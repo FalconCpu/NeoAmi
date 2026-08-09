@@ -37,6 +37,7 @@ always_ff @(posedge clock) begin
     //                   Write logic
     // =============================================================
     stage_start <= 4'h0; // Clear the stage_start register after each write. This is a pulse register.
+    aux_gemma_rdata <= 32'h0; // Default read data to 0. This will be overridden if a valid read occurs.
 
     if (aux_gemma_req && aux_gemma_write)
         case (aux_gemma_addr)
