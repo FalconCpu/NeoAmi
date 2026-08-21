@@ -1,0 +1,10 @@
+../os/boot.f32
+../os/hwregs.fpl
+../os/errors.fpl
+../os/memory.fpl
+../os/math.fpl
+../stdlib/list.fpl
+../os/kprintf.fpl
+ir.fpl
+kernelMain.fpl
+main.fpl

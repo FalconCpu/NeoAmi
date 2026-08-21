@@ -6,7 +6,7 @@ SEVENSEG = 0x0000
 LEDS     = 0x0004    
 UART_TX  = 0x0010      # Transmit byte to UART, Read gives number of bytes free in FIFO
 UART_RX  = 0x0014      # Read byte from UART, -1 if no data available
-SIMULATION = 0x0044    # Reads as 1 in simulation, 0 on silicon
+SIMULATION = 0x0030    # Reads as 1 in simulation, 0 on silicon
 
 # Task structure offsets
 TASK_R0  = 0x00

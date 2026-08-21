@@ -1,0 +1,243 @@
+
+enum IRKind [
+    NOP,
+    MOV,
+    MOV_IMM,
+    ALU,
+    INSERT,
+    EXT,
+    ALU_IMM,
+    LOAD,
+    STORE,
+    BRANCH,
+    JMP,
+    CALL,
+    RET,
+    LABEL ]
+
+const ALU_AND = 0
+const ALU_OR  = 1
+const ALU_XOR = 2
+const ALU_SHIFT = 3
+const ALU_ADD = 4
+const ALU_SUB = 5
+const ALU_CLT = 6
+const ALU_CLTU = 7
+const aluOps = const Array<String> [
+    "and",
+    "or",
+    "xor",
+    "shift",
+    "add",
+    "sub",
+    "clt",
+    "cltu" ]
+
+const loadOps = const Array<String> [
+    "ldb",
+    "ldh",
+    "ldw" ]
+    
+const storeOps = const Array<String> [
+    "stb",
+    "sth",
+    "stw" ]
+
+const OP_B = 0
+const OP_H = 1
+const signedExtOps = const Array<String> [
+    "extb",
+    "exth" ]
+
+const insertOps = const Array<String> [
+    "insb",
+    "insh" ]
+
+
+const branchOps = const Array<String> [
+    "beq",
+    "bne",
+    "blt",
+    "ble",
+    "bltu",
+    "bgeu" ]
+
+
+const REG_0  = 0
+const REG_T1 = 1
+const REG_T2 = 2
+const REG_C  = 3        # Non zero indicates carry flag set
+const REG_V  = 4        # Negative value indicates V flag set
+const REG_Z  = 5        # Zero value indicates Z flag set
+const REG_N  = 6        # Negative value indicates N flag set
+const REG_X  = 7        # Non zero indicates X flag set
+const REG_D0 = 8
+const REG_A0 = 16
+const REG_ADDR = 24     # Address register used for memory access
+const REG_RES = 25      # Result of ALU operation
+const REG_SP = 31
+
+const regNames = const Array<String> [
+    "R0",
+    "R_T1",
+    "R_T2",
+    "R_C",
+    "R_V",
+    "R_Z",
+    "R_N",
+    "R_X",
+    "R_D0",
+    "R_D1",
+    "R_D2",
+    "R_D3",
+    "R_D4",
+    "R_D5",
+    "R_D6",
+    "R_D7",
+    "R_A0",
+    "R_A1",
+    "R_A2",
+    "R_A3",
+    "R_A4",
+    "R_A5",
+    "R_A6",
+    "R_A7",
+    "R_ADDR",
+    "R_RES", 
+    "R_26",
+    "R_27",
+    "R_28",
+    "R_29",
+    "R_30",
+    "R_SP" ]
+
+class IRInstr (
+    val kind   : IRKind,
+    val op     : Int,
+    val dest   : Int,
+    val src1   : Int,
+    val src2   : Int,
+    val imm    : Int )
+
+fun print(instr: IRInstr)
+    when instr.kind
+        IRKind.NOP ->     kprintf("NOP\n")
+        IRKind.MOV ->     kprintf("mov %s, %s\n", regNames[instr.dest], regNames[instr.src1])
+        IRKind.MOV_IMM -> kprintf("mov %s, %d\n", regNames[instr.dest], instr.imm)
+        IRKind.ALU ->     kprintf("%s %s, %s, %s\n", aluOps[instr.op], regNames[instr.dest], regNames[instr.src1], regNames[instr.src2])
+        IRKind.ALU_IMM -> kprintf("%s %s, %s, %d\n", aluOps[instr.op], regNames[instr.dest], regNames[instr.src1], instr.imm)    
+        IRKind.EXT ->     kprintf("%s %s, %s\n", signedExtOps[instr.op], regNames[instr.dest], regNames[instr.src1])
+        IRKind.LOAD ->    kprintf("%s %s, %s[%d]\n", loadOps[instr.op], regNames[instr.dest], regNames[instr.src1], instr.imm)
+        IRKind.STORE ->   kprintf("%s %s, %s[%d]\n", storeOps[instr.op], regNames[instr.src2], regNames[instr.src1], instr.imm)
+        IRKind.BRANCH ->  kprintf("%s %s, %s, %x\n", branchOps[instr.op], regNames[instr.src1], regNames[instr.src2], instr.imm)
+        IRKind.INSERT ->  kprintf("%s %s, %s\n", insertOps[instr.op], regNames[instr.dest], regNames[instr.src1], regNames[instr.src2])
+        IRKind.JMP ->     kprintf("jmp @%x\n", instr.imm)
+        IRKind.CALL ->    kprintf("call @%x\n", instr.imm)
+        IRKind.RET ->     kprintf("ret\n")
+        IRKind.LABEL ->   kprintf("@%x:\n", instr.imm)
+
+val irBuffer = new List<IRInstr>()
+
+fun emit(kind :IRKind, op:Int, dest:Int, src1:Int, src2:Int, imm:Int )
+    val instr = new IRInstr(kind, op, dest, src1, src2, imm)
+    irBuffer.add(instr)
+
+fun emitAlu(op:Int, dest:Int, src1:Int, src2:Int )
+    val instr = new IRInstr(IRKind.ALU, op, dest, src1, src2, 0)
+    irBuffer.add(instr)
+
+fun emitAluImm(op:Int, dest:Int, src1:Int, imm:Int )
+    val instr = new IRInstr(IRKind.ALU_IMM, op, dest, src1, 0, imm)
+    irBuffer.add(instr)
+
+fun emitLoad(op:Int, dest:Int, src1:Int, imm:Int )
+    val instr = new IRInstr(IRKind.LOAD, op, dest, src1, 0, imm)
+    irBuffer.add(instr)
+
+fun emitStore(op:Int, src2:Int, src1:Int, imm:Int )
+    val instr = new IRInstr(IRKind.STORE, op, 0, src1, src2, imm)
+    irBuffer.add(instr) 
+
+fun emitBranch(op:Int, src1:Int, src2:Int, imm:Int )
+    val instr = new IRInstr(IRKind.BRANCH, op, 0, src1, src2, imm)
+    irBuffer.add(instr)
+
+fun emitExt(op:Int, dest:Int, src1:Int )
+    val instr = new IRInstr(IRKind.EXT, op, dest, src1, 0, 0)
+    irBuffer.add(instr)
+
+fun emitIns(op:Int, dest:Int, src1:Int, src2:Int )
+    val instr = new IRInstr(IRKind.INSERT, op, dest, src1, src2, 0)
+    irBuffer.add(instr)
+
+fun emitMov(dest:Int, src1:Int )
+    val instr = new IRInstr(IRKind.MOV, 0, dest, src1, 0, 0)
+    irBuffer.add(instr)
+
+fun emitMovImm(dest:Int, imm:Int )
+    val instr = new IRInstr(IRKind.MOV_IMM, 0, dest, 0, 0, imm)
+    irBuffer.add(instr)
+
+
+# ==========================================================
+#               Code Generation Routines
+# ==========================================================
+
+fun gen_add_b(dest: Int, src1: Int, src2: Int)
+    # Take copies of src1 and src2 into temporary registers, to preserve their value for flag generation 
+    emitExt(OP_B, REG_T1, src1)            # Get sign extension of src1  (needed for compute C,V)
+    emitExt(OP_B, REG_T2, src2)            # Get sign extension of src2  (needed for compute V)
+
+    # Compute the result of addition and store it in dest
+    emitAlu(ALU_ADD, REG_RES, src1, src2)  # Compute result of addition (use 32-bit addition, but only the lower 8 bits are used)
+    emitIns(OP_B, dest, REG_RES, 0)        # Store the lower 8 bits of the result into dest
+
+    # Compute the flags 
+    emitExt(OP_B, REG_Z, REG_RES)           # Simply sign extend the result to compute Z flag
+    emitExt(OP_B, REG_N, REG_RES)           # Simply sign extend the result to compute N flag
+    emitAlu(ALU_CLTU, REG_C, REG_Z, REG_T1) # C flag set if sign extension of result is unsigned_less_than sign extension of src1
+    emitAlu(ALU_CLTU, REG_X, REG_Z, REG_T1) # Compute X flag - same as C flag for arithmetic operations
+    # V flag is a bit more complex. Set if (sign of src1 == sign of src2) AND (sign of src1 != sign of result)
+    emitAlu(ALU_XOR, REG_V, REG_T1, REG_Z) 
+    emitAlu(ALU_XOR, REG_T1, REG_T1, REG_T2) 
+    emitAluImm(ALU_XOR, REG_T1, REG_T1, -1)  
+    emitAlu(ALU_AND, REG_V, REG_V, REG_T1)  # REG_V now negative if overflow, >=0 if no overflow
+
+fun gen_add_w(dest: Int, src1: Int, src2: Int)
+    # Take copies of src1 and src2 into temporary registers, to preserve their value for flag generation 
+    emitExt(OP_H, REG_T1, src1)            # Get sign extension of src1  (needed for compute C,V)
+    emitExt(OP_H, REG_T2, src2)            # Get sign extension of src2  (needed for compute V)
+
+    # Compute the result of addition and store it in dest
+    emitAlu(ALU_ADD, REG_RES, src1, src2)  # Compute result of addition (use 32-bit addition, but only the lower 16 bits are used)
+    emitIns(OP_H, dest, REG_RES, 0)        # Store the lower 16 bits of the result into dest
+
+    # Compute the flags 
+    emitExt(OP_H, REG_Z, REG_RES)           # Simply sign extend the result to compute Z flag
+    emitExt(OP_H, REG_N, REG_RES)           # Simply sign extend the result to compute N flag
+    emitAlu(ALU_CLTU, REG_C, REG_Z, REG_T1) # C flag set if sign extension of result is unsigned_less_than sign extension of src1
+    emitAlu(ALU_CLTU, REG_X, REG_Z, REG_T1) # Compute X flag - same as C flag for arithmetic operations
+    # V flag is a bit more complex. Set if (sign of src1 == sign of src2) AND (sign of src1 != sign of result)
+    emitAlu(ALU_XOR, REG_V, REG_T1, REG_Z) 
+    emitAlu(ALU_XOR, REG_T1, REG_T1, REG_T2) 
+    emitAluImm(ALU_XOR, REG_T1, REG_T1, -1)  
+    emitAlu(ALU_AND, REG_V, REG_V, REG_T1)  # REG_V now negative if overflow, >=0 if no overflow
+
+fun gen_add_l(dest: Int, src1: Int, src2: Int)
+    # Take copies of src1 and src2 into temporary registers, to preserve their value for flag generation 
+    emitMov(REG_T1, src1)
+    emitMov(REG_T2, src2)
+
+    # Compute the result of addition and store it in dest
+    emitAlu(ALU_ADD, dest, src1, src2)  # Compute result of addition (use 32-bit addition)
+
+    # Compute the flags 
+    emitMov(REG_Z, dest)           # Simply sign extend the result to compute Z flag
+    emitMov(REG_N, dest)           # Simply sign extend the result to compute N flag
+    emitAlu(ALU_CLTU, REG_C, dest, REG_T1) # C flag set if sign extension of result is unsigned_less_than sign extension of src1
+    emitAlu(ALU_CLTU, REG_X, dest, REG_T1) # Compute X flag - same as C flag for arithmetic operations
+    # V flag is a bit more complex. Set if (sign of src1 == sign of src2) AND (sign of src1 != sign of result)
+    emitAlu(ALU_XOR, REG_V, REG_T1, dest) 
+    emitAlu(ALU_XOR, REG_T1, REG_T1, REG_T2) 
+    emitAluImm(ALU_XOR, REG_T1, REG_T1, -1)  
+    emitAlu(ALU_AND, REG_V, REG_V, REG_T1)  # REG_V now negative if overflow, >=0 if no overflow

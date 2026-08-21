@@ -153,6 +153,20 @@ gemma_regs  gemma_regs_inst (
     .inc_output_ptr(inc_output_ptr)
   );
 
+// =============================================================
+//                  Reciprocal Unit
+// =============================================================
+
+logic [26:0]  ts_recip_in;
+logic [26:0]  ts_recip_out;
+
+gemma_fast_recip  gemma_fast_recip_inst (
+    .clock(clock),
+    .ts_recip_req(ts_recip_req),
+    .ts_recip_in(ts_recip_in),
+    .ts_recip_out(ts_recip_out)
+);
+
 
 // =============================================================
 //                  Triangle Setup Stage
@@ -164,9 +178,6 @@ logic [25:0]  ts_sdram_addr;
 logic [127:0] ts_sdram_wdata;
 logic [15:0]  ts_sdram_strb;
 logic         ts_recip_req;
-logic [26:0]  ts_recip_in;
-logic         ts_recip_valid;
-logic [26:0]  ts_recip_out;
 
 
 

@@ -18,7 +18,7 @@ All this is to say, something that can be implemented on a CycloneV FPGA,  would
 
 ## Alternate history
 
-So lets imagine an alternative history, where Commodore had prioritized R&D throughout the Amiga's life cycle. So the chipset revisions would have come at 2 year intervals. OCS in 1985, ECS in 1987, AGA in 1989 and AAA in 1991. Thus around 1993 we would be looking at a next generation Amiga chipset - which I've called the FALCON.
+So lets imagine an alternative history, where Commodore had prioritized R&D throughout the Amiga's life cycle. So the chipset revisions would have come at 2 year intervals. OCS in 1985, ECS in 1987, AGA in 1989 and AAA in 1991. Thus around 1993 we would be looking at a next generation Amiga chipset - which I've called the NeoAmi.
 
 > I'm ignoring the Hombre chipset - it really doesn't fit with the Amiga's design philosophy, and is more of a 3D graphics accelerator than a general purpose computer system.
 
@@ -89,7 +89,7 @@ A copper will also be included, to allow for the same kind of display effects th
 
 The project is split into several sub-projects, each of which is more or less independent of the others. 
 
-* FALCON 
+* Top 
    * Top level system, combining all the sub-projects into a single system
 
 * CPU
@@ -109,7 +109,7 @@ The project is split into several sub-projects, each of which is more or less in
    + Historical Context: SDRAM at this speed would not have been available in 1995, but a real system at that time would have used wider memory buses, and Amiga style Chip- and Fast- Banks. So this should give roughly the same memory bandwidth as a 1995 system would have had, just in a more modern form factor.
 
 * IRIS (Interpolated Raster Image Synthesizer)
-    * Graphics "custom chip" for the Falcon
+    * Graphics "custom chip" for the NeoAmi
     * Provide the signals to drives an external VGA monitor
     * 640x480 resoultion with 24 bit color depth, 60Hz refresh rate
     * Composes an output image from multiple sources on the fly

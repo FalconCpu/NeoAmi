@@ -45,7 +45,7 @@ module gemma_triangle_setup (
 );
 
 logic [5:0] state, next_state;
-logic [26:0] dx01, next_dx01;
+logic [26:0] dx01, next_dx01;       // Delta X from vertex 0 to vertex 1, S23.4 format
 logic [26:0] dy01, next_dy01;
 logic [26:0] dx02, next_dx02;
 logic [26:0] dy02, next_dy02;
@@ -157,7 +157,7 @@ always_comb begin
     end
     
     // State machine for triangle setup
-    next_state = (state==6'h63) ? 6'h63 : state + 1'b1; 
+    next_state = (state==6'd63) ? 6'd63 : state + 1'b1; 
     case (state)
         6'h0: begin // Read vertex 0 Y coordinate
             ts_read_index = INPUT_V0_Y;
@@ -182,7 +182,7 @@ always_comb begin
             next_dy02 = ts_read_data[26:0] - dy02;
             next_dy12 = ts_read_data[26:0] - dy12;
             ts_recip_req = 1'b1;
-            ts_recip_in = dy01;
+            ts_recip_in = {dy01[18:0], 8'b0}; // Convert from S23.4 to S15.12 format for reciprocal calculation
         end
 
         6'h3: begin // Read vertex 0 X coordinate, and calculate reciprocal of dy01
@@ -192,7 +192,7 @@ always_comb begin
             next_wdata[OUT_0_X1] = ts_read_data[15:0];
             next_recip_dy01 = ts_recip_out;
             ts_recip_req = 1'b1;
-            ts_recip_in = dy02;
+            ts_recip_in = {dy02[18:0], 8'b0}; // Convert from S23.4 to S15.12 format for reciprocal calculation
         end
 
         6'h4: begin // Read vertex 1 X coordinate, and calculate reciprocal of dy02
@@ -202,7 +202,7 @@ always_comb begin
             next_wdata[OUT_0_X2] = ts_read_data[15:0];
             next_recip_dy02 = ts_recip_out;
             ts_recip_req = 1'b1;
-            ts_recip_in = dy12;
+            ts_recip_in = {dy12[18:0], 8'b0}; // Convert from S23.4 to S15.12 format for reciprocal calculation
             next_state = 6'h8;
         end
 
@@ -252,7 +252,7 @@ always_ff @(posedge clock) begin
     ts_sdram_addr <= next_ts_sdram_addr;
     ts_inc_output_ptr <= next_ts_inc_output_ptr;
     mult_result <= mult_a * mult_b;
-    ts_busy <= (next_state != 6'h63); // Busy when not in reset state
+    ts_busy <= (next_state != 6'd63); // Busy when not in reset state
 end
 
 endmodule
