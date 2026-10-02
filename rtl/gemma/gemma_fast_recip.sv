@@ -37,7 +37,7 @@ end
 
 logic [9:0] recip_lookup [0:1023];  // 10 bit lookup table for reciprocal values
 initial
-    $readmemh("gemma/recip_lookup.hex", recip_lookup);
+    $readmemh("recip_lookup.hex", recip_lookup);
 
 // ===========================================================================
 //                       Normalize Input Value

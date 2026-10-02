@@ -22,13 +22,14 @@ String find_label(int address) {
     return buf;
 }
 
-
 static String get_cfg(int cfg_num) {
     const char* cfg_regs[] = {
         "!version","!status","!epc","!ecause","!edata","!estatus",
-        "!escratch","!timer","!mpu_clear","!mpu_data" };
+        "!escratch","!timer","!mpu_clear","!mpu_data",
+        "!ipc","!icause","!istatus","!iscratch","!intvec","!icache",
+        "!unknown","!unknown","!unknown","!unknown","!unknown","!unknown"};
 
-    if (cfg_num >= 0 && cfg_num < 10)
+    if (cfg_num >= 0 && cfg_num < 16)
         return cfg_regs[cfg_num];
     else {
         static char buf[16];

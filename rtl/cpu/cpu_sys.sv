@@ -133,19 +133,21 @@ always_comb begin
     if (p3_is_sys && (p3_alu_op==3'b000 || p3_alu_op==3'b001)) begin
         case (p3_imm[7:0]) 
             `CFGREG_VERSION: result = 32'h00020000;
+            `CFGREG_STATUS: result = {24'b0, reg_status};
             `CFGREG_EPC: result = reg_epc;
             `CFGREG_ECAUSE: result = {24'b0, reg_ecause};
             `CFGREG_EDATA: result = reg_edata;
             `CFGREG_ESTATUS: result = {24'b0, reg_estatus};
             `CFGREG_ESCRATCH: result = reg_escratch;
-            `CFGREG_STATUS: result = {24'b0, reg_status};
+            `CFGREG_TIMER: result = reg_timer;
             `CFGREG_IPC: result = reg_ipc;
+            `CFGREG_MPU_CLR: result = 32'b0; // Reading this register always returns 0
+            `CFGREG_MPU_DATA: result = 32'b0; // Reading this register always returns 0
             `CFGREG_ICAUSE: result = {24'b0, reg_icause};
             `CFGREG_ISTATUS: result = {24'b0, reg_istatus};
-            `CFGREG_INTVEC: result = reg_intvec;
-            `CFGREG_TIMER: result = reg_timer;
-            `CFGREG_ICACHE: result = {31'b0, icache_flush_in_progress}; // Indicate whether an icache flush is in progress in bit 0 
             `CFGREG_ISCRATCH: result = reg_iscratch;
+            `CFGREG_INTVEC: result = reg_intvec;
+            `CFGREG_ICACHE: result = {31'b0, icache_flush_in_progress}; // Indicate whether an icache flush is in progress in bit 0 
             default: begin end
         endcase
     end

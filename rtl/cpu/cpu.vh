@@ -58,11 +58,10 @@
 `define CFGREG_MPU_DATA 9
 `define CFGREG_IPC      10
 `define CFGREG_ICAUSE   11
-`define CFGREG_IDATA    12
-`define CFGREG_ISTATUS  13
-`define CFGREG_ISCRATCH 14
-`define CFGREG_INTVEC   15
-`define CFGREG_ICACHE   16
+`define CFGREG_ISTATUS  12
+`define CFGREG_ISCRATCH 13
+`define CFGREG_INTVEC   14
+`define CFGREG_ICACHE   15
 
 `define CAUSE_INS_FAULT      8'h01
 `define CAUSE_ILLEGAL        8'h02

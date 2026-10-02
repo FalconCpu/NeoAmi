@@ -10,7 +10,7 @@ exclude_files = ["gemma\\regfile_ram.sv", "top\\cpu.sv", "top\\sophie.sv", "top\
                  "top\\gemma.sv", "top\\sdram.sv", "top\\sdcard.sv"]
 sv_files = [f for f in sv_files if f not in exclude_files]
 
-# print(f"Found {len(sv_files)} SystemVerilog files:\n" + "\n".join(sv_files))
+#print(f"Found {len(sv_files)} SystemVerilog files:\n" + "\n".join(sv_files))
 command = ["iverilog", "-g2012", "-I", "./cpu", "-I", "./top", "-s", "tb"] + sv_files
 pattern1 = re.compile(r"^.*constant selects in always.*$")
 pattern2 = re.compile(r"^.*cannot be synthesized in an always_ff process.*$")

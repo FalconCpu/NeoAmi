@@ -34,6 +34,11 @@ module cpu_writeback (
     input  logic [4:0]   divider_reg_d,           // Destination register for the divider result
     input  logic [31:0]  divider_result,
 
+    // Input from the CSR unit (Control and Status Registers)
+    input  logic         sys_valid,          // Indicates that the CSR result is valid
+    input  logic [4:0]   sys_dest,           // Destination register for the CSR result
+    input  logic [31:0]  sys_result,
+
     // Input from the FPU
     input  logic         fpu_valid,         // Indicates that the FPU result is valid
     input  logic [4:0]   fpu_dest,          // Destination register for the FPU result
@@ -126,6 +131,16 @@ always_comb begin
         next_queue2 = {fpu_valid, fpu_dest, fpu_result};
     else
         next_writeback_fault = next_writeback_fault || fpu_valid;
+
+    // Queue results from the CSR unit
+    if (next_queue0.valid==1'b0)
+        next_queue0 = {sys_valid, sys_dest, sys_result};
+    else if (next_queue1.valid==1'b0)
+        next_queue1 = {sys_valid, sys_dest, sys_result};
+    else if (next_queue2.valid==1'b0)
+        next_queue2 = {sys_valid, sys_dest, sys_result};
+    else
+        next_writeback_fault = next_writeback_fault || sys_valid;
 
     // Send a result to the register file. Priority is given to the ALU result, then dache, then queue
     if (p4_alu_valid) begin

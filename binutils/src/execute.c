@@ -28,6 +28,15 @@ static int cfg_escratch;
 static int cfg_timer;
 static int cfg_mpu_clear;
 static int cfg_mpu_data;
+static int cfg_ipc;
+static int cfg_icause;
+static int cfg_istatus;
+static int cfg_iscratch;
+static int cfg_intvec;
+static int cfg_icache;
+
+
+
 static int raising_exception = 0;
 static int this_instr;
 
@@ -381,17 +390,24 @@ void do_store(int op, int base, int offset, int value) {
  * Store a value to a configuration register. 
  */
 
+
 static void write_cfg(int reg, int value) {
     switch(reg) {
-        case 1: cfg_status = value & 0xFF; break;
-        case 2: cfg_epc = value; break;
-        case 3: cfg_ecause = value & -0xff; break;
-        case 4: cfg_edata = value; break;
-        case 5: cfg_estatus = value & -0xff; break;
-        case 6: cfg_escratch = value; break;
-        case 7: cfg_timer = value; break;
-        case 8: cfg_mpu_clear = value; break;   // NOT YET IMPLEMENTED - should clear the MPU if value is 0
-        case 9: cfg_mpu_data = value; break;
+        case 1:  cfg_status = value & 0xFF; break;
+        case 2:  cfg_epc = value; break;
+        case 3:  cfg_ecause = value & 0xff; break;
+        case 4:  cfg_edata = value; break;
+        case 5:  cfg_estatus = value & 0xff; break;
+        case 6:  cfg_escratch = value; break;
+        case 7:  cfg_timer = value; break;
+        case 8:  cfg_mpu_clear = value; break;   // NOT YET IMPLEMENTED - should clear the MPU if value is 0
+        case 9:  cfg_mpu_data = value; break;
+        case 10: cfg_ipc = value; break;
+        case 11: cfg_icause = value & 0xff; break;
+        case 12: cfg_istatus = value & 0xff; break;
+        case 13: cfg_iscratch = value; break;
+        case 14: cfg_intvec = value; break;
+        case 15: cfg_icache = value; break;
         default: break; // Writing to invalid or read-only config registers has no effect
     }
 }
@@ -412,6 +428,12 @@ static int read_cfg(int reg) {
         case 7: return cfg_timer;
         case 8: return cfg_mpu_clear;
         case 9: return cfg_mpu_data;
+        case 10: return cfg_ipc;
+        case 11: return cfg_icause;
+        case 12: return cfg_istatus;
+        case 13: return cfg_iscratch;
+        case 14: return cfg_intvec;
+        case 15: return cfg_icache;
         default: return 0; // Reading from invalid or write-only config registers returns 0
     }
 }
