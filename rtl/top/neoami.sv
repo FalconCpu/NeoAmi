@@ -176,7 +176,7 @@ logic [25:0]  icache_sdram_addr;
 logic [1:0]   icache_sdram_rvalid;
 logic [31:0]  icache_sdram_rdata;
 
-logic         vga_sdram_req=1'b0;
+logic         vga_sdram_req;
 logic         vga_sdram_ack;
 logic [25:0]  vga_sdram_addr;
 logic [7:0]   vga_sdram_tag;
@@ -332,7 +332,14 @@ sophie  sophie_inst (
     .ypos(ypos),
     .aux_iris_req(aux_iris_req),
     .aux_iris_addr(aux_iris_addr),
-    .aux_iris_wdata(aux_iris_wdata)
+    .aux_iris_wdata(aux_iris_wdata),
+    .vga_sdram_ready(vga_sdram_ack),
+    .vga_sdram_req(vga_sdram_req),
+    .vga_sdram_addr(vga_sdram_addr),
+    .vga_sdram_tag(vga_sdram_tag),
+    .vga_sdram_rvalid(vga_sdram_rvalid),
+    .vga_sdram_rdata(vga_sdram_rdata),
+    .vga_sdram_rtag(vga_sdram_rtag)
   ); 
 
 

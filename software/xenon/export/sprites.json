@@ -1,0 +1,32 @@
+{
+  "palette": "sprites_palette.bin",
+  "data": "sprites.bin",
+  "sprites": [
+    {
+      "frame_width": 64,
+      "frame_height": 64,
+      "columns": 7,
+      "rows": 3,
+      "name": "Ship",
+      "source": "Ship2.bmp",
+      "type": "Ship",
+      "num_frames": 21,
+      "frame_size": 4096,
+      "offset": 0,
+      "hotspot": [
+        32,
+        32
+      ],
+      "animation_rate": 0.0,
+      "properties": {
+        "InitialShield": 125,
+        "KillBonus": 0
+      },
+      "row_names": [
+        "normal",
+        "cloaked",
+        "dive"
+      ]
+    }
+  ]
+}

@@ -59,7 +59,7 @@ module iris_objwalk (
     // Object list interface
     output logic        span_valid,
     input  logic        span_ready,
-    output logic [7:0]  span_flags,
+    output logic [15:0] span_flags,
     output logic [9:0]  span_x1,          // Start X coordinate
     output logic [9:0]  span_x2,          // End X coordinate
     output logic [23:0] span_z,
@@ -78,7 +78,7 @@ logic [8:0] obj_index, next_obj_index;
 logic [255:0] obj_data;
 
 logic        next_span_valid;
-logic [7:0]  next_span_flags;
+logic [15:0]  next_span_flags;
 logic [9:0]  next_span_x1;
 logic [9:0]  next_span_x2;
 logic [23:0] next_span_z;
@@ -260,7 +260,7 @@ always_comb begin
         // Check if the current object is active on this scanline
         if (ypos >= ram0_clip_y1 && ypos < ram0_clip_y2) begin
             // The object is active on this scanline, extract the fields and output them
-            next_span_flags = ram0_flags[7:0];
+            next_span_flags = ram0_flags[15:0];
 
             // Calulate left edge of this scanline
             next_dy1 = {2'b0,ypos,12'hFFF} - ram0_y1;
@@ -340,7 +340,7 @@ always_comb begin
         mult_b2 = this_dy1;
         mult_c  = ram0_z1;
         next_span_dzdx = ram0_dz_dx;
-        next_span_flags = ram0_flags[7:0];
+        next_span_flags = ram0_flags;
 
         // Move the RAM onto the next half of the object for the color and texture data
         next_obj_index = obj_index + 9'd1;

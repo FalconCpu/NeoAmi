@@ -30,15 +30,24 @@ module iris (
     input logic [31:0]     aux_iris_wdata,
     output logic [9:0]     ypos,
 
+    // SDRAM interface for VGA
+    input  logic         vga_sdram_ready,    // SDRAM is ready for a req_valid
+    output logic         vga_sdram_req,      // Request memory
+    output logic [25:0]  vga_sdram_addr,     // Address
+    output logic [7:0]   vga_sdram_tag,      // Tag to identify request
+    input  logic [1:0]   vga_sdram_rvalid,   // 00:No data, 01:First word, 10:Mid burst, 11:Last word
+    input  logic [31:0]  vga_sdram_rdata,    // Read data
+    input  logic [7:0]   vga_sdram_rtag,     // Tag identifying which request this data is for
+
     // VGA interface
-	output logic       	   VGA_BLANK_N,
-	output logic  [7:0]	   VGA_B,
-	output logic       	   VGA_CLK,
-	output logic  [7:0]	   VGA_G,
-	output logic       	   VGA_HS,
-	output logic  [7:0]	   VGA_R,
-	output logic       	   VGA_SYNC_N,
-	output logic       	   VGA_VS
+    output logic       	   VGA_BLANK_N,
+    output logic  [7:0]	   VGA_B,
+    output logic       	   VGA_CLK,
+    output logic  [7:0]	   VGA_G,
+    output logic       	   VGA_HS,
+    output logic  [7:0]	   VGA_R,
+    output logic       	   VGA_SYNC_N,
+    output logic       	   VGA_VS
 );
 
 logic           start_of_pixel;
@@ -52,7 +61,7 @@ logic           vsync;
 // Span bus
 logic        span_valid;
 logic        span_ready;
-logic [7:0]  span_flags;
+logic [15:0]  span_flags;
 logic [9:0]  span_x1;
 logic [9:0]  span_x2;
 logic [23:0] span_z;
@@ -102,13 +111,15 @@ iris_objwalk  iris_objwalk_inst (
 logic        pixel_valid_gourand;
 logic        pixel_ready_gourand;
 logic        pixel_valid_texture;
-logic        pixel_ready_texture = 1'b0;
+logic        pixel_ready_texture;
 logic [9:0]  pixel_x;
 logic [23:0] pixel_z;
 logic [23:0] pixel_r;
 logic [23:0] pixel_g;
 logic [23:0] pixel_b;
-logic [7:0]  pixel_flags;
+logic [15:0] pixel_flags;
+logic [25:0] pixel_texaddr;
+logic [15:0] pixel_texstride;
 
 iris_span  iris_span_inst (
     .clock(clock),
@@ -118,6 +129,8 @@ iris_span  iris_span_inst (
     .span_flags(span_flags),
     .span_x1(span_x1),
     .span_x2(span_x2),
+    .span_texaddr(span_texaddr),
+    .span_texstride(span_texstride),
     .span_z(span_z),
     .span_dzdx(span_dzdx),
     .span_r(span_r),
@@ -132,19 +145,13 @@ iris_span  iris_span_inst (
     .pixel_ready_texture(pixel_ready_texture),
     .pixel_flags(pixel_flags),
     .pixel_x(pixel_x),
+    .pixel_texaddr(pixel_texaddr),
+    .pixel_texstride(pixel_texstride),
     .pixel_z(pixel_z),
     .pixel_r(pixel_r),
     .pixel_g(pixel_g),
     .pixel_b(pixel_b)
   );
-
-logic         pal_valid=1'b0;
-logic         pal_ready;
-logic [7:0]   pal_flags;
-logic [9:0]   pal_x;
-logic [7:0]   pal_color_index;
-logic [19:0]  pal_z;
-logic [8:0]   pal_brightness;
 
 // ============================================================
 //                GOURAND SHADER
@@ -175,6 +182,78 @@ iris_gourand  iris_gourand_inst (
 );
 
 // ============================================================
+//         TEXTURE SHADER - ADDRGEN
+// ============================================================
+
+logic         readmem_ready;
+logic         readmem_req;
+logic [15:0]  readmem_mode;
+logic [25:0]  readmem_addr;
+logic [23:0]  readmem_z;
+logic [8:0]   readmem_bright;
+logic [9:0]   readmem_x;
+
+iris_addrgen  iris_addrgen_inst (
+    .clock(clock),
+    .reset(reset),
+    .pixel_ready(pixel_ready_texture),
+    .pixel_valid(pixel_valid_texture),
+    .pixel_flags(pixel_flags),
+    .pixel_addr(pixel_texaddr),
+    .pixel_stride(pixel_texstride),
+    .pixel_u(pixel_r),      // U coordinate muxed with red channel
+    .pixel_v(pixel_g),      // V coordinate muxed with green channel
+    .pixel_bright(pixel_b), // Brightness muxed with blue channel
+    .pixel_z(pixel_z),
+    .pixel_x(pixel_x),
+    .readmem_ready(readmem_ready),
+    .readmem_req(readmem_req),
+    .readmem_mode(readmem_mode),
+    .readmem_addr(readmem_addr),
+    .readmem_z(readmem_z),
+    .readmem_bright(readmem_bright),
+    .readmem_x(readmem_x)
+  );
+
+// ============================================================
+//                TEXTURE SHADER - READMEM
+// ============================================================
+
+logic         palette_req;
+logic         palette_ready;
+logic [15:0]  palette_mode;
+logic [9:0]   palette_x;
+logic [7:0]   palette_color_index;
+logic [23:0]  palette_z;
+logic [8:0]   palette_bright;
+
+
+iris_readmem  iris_readmem_inst (
+    .clock(clock),
+    .reset(reset),
+    .readmem_ready(readmem_ready),
+    .readmem_req(readmem_req),
+    .readmem_mode(readmem_mode),
+    .readmem_addr(readmem_addr),
+    .readmem_z(readmem_z),
+    .readmem_x(readmem_x),
+    .readmem_bright(readmem_bright),
+    .palette_req(palette_req),
+    .palette_mode(palette_mode),
+    .palette_color_index(palette_color_index),
+    .palette_x(palette_x),
+    .palette_bright(palette_bright),
+    .palette_z(palette_z),
+    .vga_sdram_ready(vga_sdram_ready),
+    .vga_sdram_req(vga_sdram_req),
+    .vga_sdram_addr(vga_sdram_addr),
+    .vga_sdram_tag(vga_sdram_tag),
+    .vga_sdram_rvalid(vga_sdram_rvalid),
+    .vga_sdram_rdata(vga_sdram_rdata),
+    .vga_sdram_rtag(vga_sdram_rtag)
+  );
+
+// ============================================================
 //                Palette Lookup
 // ============================================================
 
@@ -188,13 +267,13 @@ logic [8:0]  texpath_brightness;
 iris_palette  iris_palette_inst (
     .clock(clock),
     .reset(reset),
-    .pal_valid(pal_valid),
-    .pal_ready(pal_ready),
-    .pal_flags(pal_flags),
-    .pal_x(pal_x),
-    .pal_color_index(pal_color_index),
-    .pal_z(pal_z),
-    .pal_brightness(pal_brightness),
+    .pal_valid(palette_req),
+    .pal_ready(palette_ready),
+    .pal_flags(palette_mode[7:0]),
+    .pal_x(palette_x),
+    .pal_color_index(palette_color_index),
+    .pal_z(palette_z[23:4]),
+    .pal_brightness(palette_bright),
     .out_valid(texpath_valid),
     .out_ready(texpath_ready),
     .out_x(texpath_x),

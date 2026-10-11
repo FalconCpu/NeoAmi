@@ -122,14 +122,16 @@ always begin
 end
 
 initial begin
+    KEY = 4'hF;
+    SW = 10'h3FF;
     $dumpfile("falcon_tb.vcd");
-    $dumpvars(0, tb);
-    // $dumpvars(2, tb);
-    // $dumpvars(0, tb.neoami_inst.iris_inst);
+    // $dumpvars(0, tb);
+    $dumpvars(2, tb);
+    $dumpvars(0, tb.neoami_inst.iris_inst);
     // $dumpvars(0, tb.neoami_inst.cpu_inst);
     // Initialize inputs
 
-    #16000000;
+    #2500000;
     //#100000
     $finish;
 end

@@ -13,25 +13,8 @@ fun handleInterrupt(interruptNumber: Int)
     # You can add your interrupt handling logic based on the interruptNumber parameter
 
 fun kernelMain() -> Int
-
-    kprintf("%f", 1.0)
-
+    kprintf("Kernel main started\n")
     initializeMemorySystem()
-    setupGemma()
-
-    val vertex0 = new GfxVertex(100.0, 100.0, 10.0 , 255.0, 0.0, 0.0)
-    val vertex1 = new GfxVertex(200.0, 100.0, 10.0 , 0.0, 255.0, 0.0)
-    val vertex2 = new GfxVertex(150.0, 200.0, 10.0 , 0.0, 0.0, 255.0)
-
-    val sp1 = renderTriangleGemma(vertex0, vertex1, vertex2)
-    kprintf("sprite at %08x\n", sp1)
-    sp1.dump()
-
-
-    val gfxScene = new GfxScene()
-    gfxScene.addTriangle(false, vertex0, vertex1, vertex2)
-    gfxScene.objects.get(0).dump()
-
     main()
     return 0
 

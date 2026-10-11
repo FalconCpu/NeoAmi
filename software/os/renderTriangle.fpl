@@ -188,6 +188,8 @@ class GfxScene
         # kprintf("Object Z: %08x\n", dest.data[GFXOBJ_Z] & 0xFFF | ((dest.data[GFXOBJ_Z+1] & 0xFF) lsl 16))
         return true
 
+    fun addSprite(sprite:IrisSprite)
+        objects.add(sprite)
 
     fun show()
         val x = if objects.length < 255 then objects.length else 255

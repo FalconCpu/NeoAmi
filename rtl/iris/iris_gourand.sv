@@ -7,7 +7,7 @@ module iris_gourand(
     // Input interface
     input logic         pixel_valid_gourand,
     output logic        pixel_ready_gourand,
-    input logic [7:0]   pixel_flags,
+    input logic [15:0]  pixel_flags,
     input logic [9:0]   pixel_x,
     input logic [23:0]  pixel_r,
     input logic [23:0]  pixel_g,

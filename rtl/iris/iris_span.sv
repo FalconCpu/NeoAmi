@@ -7,9 +7,11 @@ module iris_span(
     // Input bus
     input logic        span_valid,
     output logic       span_ready,
-    input logic [7:0]  span_flags,
+    input logic [15:0]  span_flags,
     input logic [9:0]  span_x1,          // Start X coordinate
     input logic [9:0]  span_x2,          // End X coordinate
+    input logic [25:0] span_texaddr,
+    input logic [15:0] span_texstride,
     input logic [23:0] span_z,
     input logic [23:0] span_dzdx,
     input logic [23:0] span_r,
@@ -25,7 +27,9 @@ module iris_span(
     input logic         pixel_ready_gourand,
     input logic         pixel_ready_texture,
     output logic [9:0]  pixel_x,         // Pixel X coordinate
-    output logic [7:0]  pixel_flags,
+    output logic [15:0] pixel_flags,
+    output logic [25:0] pixel_texaddr,
+    output logic [15:0] pixel_texstride,
     output logic [23:0] pixel_z,
     output logic [23:0] pixel_r,
     output logic [23:0] pixel_g,
@@ -52,6 +56,8 @@ always_ff @(posedge clock) begin
         pixel_flags <= span_flags;
         pixel_x    <= span_x1;
         pixel_x2   <= span_x2;
+        pixel_texaddr <= span_texaddr;
+        pixel_texstride <= span_texstride;
         pixel_z    <= span_z;
         pixel_dzdx <= span_dzdx;
         pixel_r    <= span_r;

@@ -1,0 +1,11 @@
+../os/boot.f32
+../os/hwregs.fpl
+../os/errors.fpl
+../os/memory.fpl
+../os/math.fpl
+../stdlib/list.fpl
+../os/kprintf.fpl
+../os/IrisSprite.fpl
+../os/renderTriangle.fpl
+../os/kernel_main.fpl
+main.fpl

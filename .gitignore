@@ -5,6 +5,8 @@
 *.labels
 *.vcd
 *.png
+*.bin
+*.dis
 a.out
 
 asm.trace
@@ -19,3 +21,5 @@ fpga/
 software/os/IrisSprite.fpl
 software/xenon/out/
 software/xenon/__pycache__/
+software/xenon/export/tilemap.bin
+rtl/asm.dis

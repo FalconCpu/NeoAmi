@@ -1,0 +1,56 @@
+
+
+const IRIS_FP_ONE = 4096      # Fixed-point representation of 1.0 in Iris FP format
+
+fun newSprite() -> IrisSprite
+    # for a rectangular sprite, the slope fields can be set to 0
+    val ret = new IrisSprite()
+    ret.flags   = 0|16     # Mode 0 = 8 bit indexed color
+    ret.clip_x1 = 0
+    ret.clip_x2 = 640
+    ret.ytop = 10
+    ret.ybot = 20
+    ret.x1 = 100*16     # Coordinates of the sprite's top-left vertex (in Q12.4)
+    ret.y1 = 10*16    
+    ret.x2 = 120*16     # Coordinates of the sprite's top-right vertex (in Q12.4)
+    ret.y2 = 10*16
+    ret.dx1_dy = 0    # Slopes are all zero
+    ret.dx2_dy = 0
+    ret.dx3_dy = 0
+    ret.z1 = 0
+    ret.dz_dx = 0
+    ret.dz_dy = 0
+    ret.reserved = 0
+    ret.r1 = 0x0          # U coordinate at the (X1,Y1) vertex
+    ret.dr_dx = IRIS_FP_ONE # Scale factor of 1
+    ret.dr_dy = 0
+    ret.g1 = 0          # V coordinate at the (X1,Y1) vertex
+    ret.dg_dx = 0
+    ret.dg_dy = IRIS_FP_ONE # Scale factor of 1
+    ret.b1 = 0x7FFF     # Default brightness value at the (X1,Y1) vertex
+    ret.db_dx = 0
+    ret.db_dy = 0
+    ret.tex_stride = 32
+    ret.tex_addr = 0x20000
+    ret.next = 0
+
+    return ret
+
+
+fun main() -> Int
+
+    for i in 0..1023
+        VGA_PALETTE[i] = 0xFEDCBA
+    
+    val sprite_data = unsafe(0x20000 as Pointer<Char>)
+    for i in 0..1023
+        sprite_data[i] = 0x11
+
+    val scene = new GfxScene()
+    scene.addSprite(newSprite())
+    scene.show()
+
+    kprintf("Hello, World!\n")
+    while true
+        val dummy=1
+
