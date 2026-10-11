@@ -4,6 +4,7 @@
 *.hex
 *.labels
 *.vcd
+*.png
 a.out
 
 asm.trace
@@ -15,5 +16,6 @@ binutils/build/
 hardware/vga_output.txt
 fpga/
 
-
 software/os/IrisSprite.fpl
+software/xenon/out/
+software/xenon/__pycache__/

@@ -55,6 +55,13 @@ module sophie (
     inout               PS2_DAT2,
     inout               SDA,
     output              SCL,
+
+    output logic        sd_cs,
+    output logic        sd_sclk,
+    output logic        sd_mosi,
+    input  logic        sd_miso,
+
+
     output logic [9:0]  mouse_x,
     output logic [9:0]  mouse_y,
     input  logic [31:0] cpu_pc             // Current CPU PC (for capture on seven seg)
@@ -101,6 +108,41 @@ sophie_address_decoder  sophie_address_decoder_inst (
     .aux_iris_wdata(aux_iris_wdata)
   );
 
+// ================================================================
+//                  SDCARD interface
+// ================================================================
+logic        sdcard_busy;
+logic        sdcard_start_read;
+logic        sdcard_start_write;
+logic [8:0]  sdcard_sector;
+logic [8:0]  sdcard_byte_addr;
+logic [31:0] sdcard_wdata;
+logic [31:0] sdcard_rdata;
+logic        sdcard_read_strobe;
+logic        sdcard_write_strobe;
+
+sdcard  sdcard_inst (
+    .clock(clock),
+    .reset(reset),
+    .sdcard_busy(sdcard_busy),
+    .sdcard_start_read(sdcard_start_read),
+    .sdcard_start_write(sdcard_start_write),
+    .sdcard_sector(sdcard_sector),
+    .sdcard_byte_addr(sdcard_byte_addr),
+    .sdcard_wdata(sdcard_wdata),
+    .sdcard_rdata(sdcard_rdata),
+    .sdcard_read_strobe(sdcard_read_strobe),
+    .sdcard_write_strobe(sdcard_write_strobe),
+    .sd_cs(sd_cs),
+    .sd_sclk(sd_sclk),
+    .sd_mosi(sd_mosi),
+    .sd_miso(sd_miso)
+  );
+
+// ================================================================
+//                  HWREGS interface
+// ================================================================
+
 sophie_hwregs  sophie_hwregs_inst (
     .clock(clock),
     .reset(reset),
@@ -132,5 +174,6 @@ sophie_hwregs  sophie_hwregs_inst (
     .mouse_y(mouse_y),
     .cpu_pc(cpu_pc)
   );
+
 
 endmodule

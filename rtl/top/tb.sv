@@ -177,5 +177,4 @@ final begin
     $fclose(vga_file);
 end
 
-
 endmodule

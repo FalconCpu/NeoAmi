@@ -43,4 +43,23 @@ Possible later additions would be a DMA controller to allow peripherals to acces
 | E000002C  | I2C_OUT       | W    | I2C Data to send (24 bits). Reads 0=Ready, 1=Busy, 2=Error
 | E0000030  | SIMULATION    | R    | Reads as 1 in simulation, 0 in hardware
 | E0000034  | OVERFLOW      | R    | bit 0 = uart tx fifo overflow, bit 1 = uart rx fifo overflow, bit 2 = keyboard fifo overflow
+| E0000038  | SD_CARD_CTRL  | R/W  | SD card interface control and status register
+| E000003C  | SD_CARD_SECTOR| R    | SD card interface status flags
+| E0000800  | SD_CARD_RAM   | R/W  | SD card card RAM - 512 bytes
+| E0000A00  | 
+
+
+## SD Card
+
+The SD_CARD_CTRL register has the following fields:
+- bit 0: SD card ready (0 = ready, 1 = busy)
+- bit 1: Read in progress (0 = not in progress, 1 = in progress)
+- bit 2: Write in progress (0 = not in progress, 1 = in progress)
+
+To read from the SD card:
+- write the sector number to the SD_CARD_SECTOR register
+- write a 1 to the SD_CARD_CTRL register to initiate the read operation
+- poll the SD_CARD_CTRL register until it returns 0 (ready)
+- Read from the 
+
 

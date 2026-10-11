@@ -61,8 +61,9 @@ always_ff @(posedge clock) begin
         mantissa_sum = {larger_mantissa,5'b0} - smaller_mantissa_aligned;
 
     add_exponent <= larger_exponent;
-    if (mantissa_sum == 32'd0)
-        add_sign     <= 1'b0; // result is zero, sign is positive
+    //if (mantissa_sum == 32'd0)
+    if ({larger_mantissa,5'b0}==smaller_mantissa_aligned && larger_sign!=smaller_sign)
+         add_sign     <= 1'b0; // result is zero, sign is positive
     else
         add_sign     <= larger_sign;
 

@@ -20,6 +20,9 @@
 // E0000030  SIMULATION     R    Reads as 1 in simulation, 0 in hardware
 // E0000034  OVERFLOW       R    bit 0 = uart tx fifo overflow, bit 1 = uart rx fifo overflow, bit 2 = keyboard fifo overflow
 // E0000038  VGA_YPOS       R    Current Y position of the rasterizer. Reads negative values during the vertical blanking period. This is for debug only.
+// E000003C  SDCARD_CTRL    R/W  Control register for the SD card (bit 0 = start read, bit 1 = start write)
+// E0000040  SDCARD_SECTOR  R/W  Sector number for SD card read/write
+// E0001000  SDCARD_DATA    R/W  512 bytes of SD card data
 
 // verilator lint_off PINCONNECTEMPTY
 
@@ -35,6 +38,18 @@ module sophie_hwregs (
     input  logic [3:0]  aux_hwregs_strb,    // For a write, which bytes to write.
     input  logic [31:0] aux_hwregs_wdata,   // Data to write
     output logic [31:0] aux_hwregs_rdata,   // Data read from memory
+
+    // connections to the sdram controller
+    input  logic        sdcard_busy,
+	output logic        sdcard_start_read,
+    output logic        sdcard_start_write,
+	output logic [8:0]  sdcard_sector,
+	input  logic [8:0]  sdcard_byte_addr,
+    output logic [31:0] sdcard_wdata,
+    input  logic [31:0] sdcard_rdata,
+	input  logic        sdcard_read_strobe,
+	input  logic        sdcard_write_strobe,
+
 
     // Connections to the chip pins
     input  logic [9:0]  ypos,
@@ -100,6 +115,10 @@ integer fh;
 // end
 // synthesis translate_on
 
+// SDCARD memory
+logic [31:0] sdcard_mem[0:127];
+
+
 always_ff @(posedge clock) begin
     aux_hwregs_rdata <= 32'b0;
     i2c_start <= 1'b0;
@@ -111,6 +130,13 @@ always_ff @(posedge clock) begin
         timer <= timer + 1;
     end else
         milli_counter <= milli_counter + 1'b1;
+
+    // Handle SD card memory interface
+    sdcard_start_read <= 1'b0;
+    sdcard_start_write <= 1'b0;
+    if (sdcard_read_strobe)
+        sdcard_mem[sdcard_byte_addr[8:2]] <= sdcard_rdata;
+
 
     if (aux_hwregs_req && aux_hwregs_write) begin
         // Write to hardware registers
@@ -154,7 +180,7 @@ always_ff @(posedge clock) begin
 
     end else if (aux_hwregs_req && !aux_hwregs_write) begin
         // Read from hardware registers
-        case(aux_hwregs_addr)
+        casez(aux_hwregs_addr)
             16'h0000: aux_hwregs_rdata <= {8'h00, seven_seg}; 
             16'h0004: aux_hwregs_rdata <= {22'b0, LEDR};
             16'h0008: aux_hwregs_rdata <= {22'b0, SW};
@@ -181,6 +207,9 @@ always_ff @(posedge clock) begin
                       end
             16'h0034: aux_hwregs_rdata <= {29'b0, latched_fifo_overflow};
             16'h0038: aux_hwregs_rdata <= {{22{ypos[9]}}, ypos};
+            16'h003C: aux_hwregs_rdata <= {31'b0, sdcard_busy};
+            16'h0040: aux_hwregs_rdata <= {23'b0, sdcard_sector};
+            16'h1000: aux_hwregs_rdata <= sdcard_mem[aux_hwregs_addr[8:2]];
 
             default:  aux_hwregs_rdata <= 32'b0;
         endcase

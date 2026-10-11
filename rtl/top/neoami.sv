@@ -116,7 +116,7 @@ pll  pll_inst (
     .locked(locked)
   );
 always_ff @(posedge clock)
-	reset <= ~locked;
+	reset <= ~locked || !KEY[0];
 
 //=======================================================
 //  CPU
@@ -305,6 +305,10 @@ sophie  sophie_inst (
     .PS2_DAT2(PS2_DAT2),
     .SDA(FPGA_I2C_SDAT),
     .SCL(FPGA_I2C_SCLK),
+    .sd_cs(GPIO_0[28]),
+    .sd_sclk(GPIO_0[22]),
+    .sd_mosi(GPIO_0[26]),
+    .sd_miso(GPIO_0[20]),
     .mouse_x(mouse_x),
     .mouse_y(mouse_y),
     .cpu_pc(cpu_pc)
