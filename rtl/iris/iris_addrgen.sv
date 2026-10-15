@@ -26,7 +26,7 @@ module iris_addrgen(
     output logic [9:0]   readmem_x          // Pixel X coordinate
 );
 
-wire req_for_us = pixel_valid && pixel_flags[1:0]==2'd0;
+wire req_for_us = pixel_valid;
 wire not_stall = readmem_ready || readmem_req==1'b0 || reset;
 assign pixel_ready = not_stall && req_for_us;
 

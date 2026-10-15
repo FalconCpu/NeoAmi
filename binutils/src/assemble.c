@@ -6,6 +6,8 @@
 extern int line_number;
 extern int num_errors;
 
+int org_address = 0xFFFF0000;
+
 /**
  * Buffer to store the assembled machine code
  */
@@ -14,7 +16,40 @@ int* code_buffer = NULL;
 int code_size = 0;
 int code_capacity = 0;
 
+/**
+ * Combine bytes into a 32-bit word
+ */
+
+static int partialWord = 0;
+static int numBytes = 0;
+
+void emit(int instruction);
+
+static void emit_byte(int b) {
+    partialWord = partialWord | ((b & 0xff) << (numBytes * 8));
+    numBytes++;
+    if (numBytes == 4) {
+        numBytes = 0;
+        emit(partialWord);
+        partialWord = 0;
+    }
+}
+
+static void flush_bytes() {
+    if (numBytes > 0) {
+        emit(partialWord);
+        partialWord = 0;
+        numBytes = 0;
+    }
+}
+
 void emit(int instruction) {
+    if (numBytes > 0) {
+        numBytes = 0;
+        emit(partialWord);
+        partialWord = 0;
+    }
+
     if (code_size >= code_capacity) {
         code_capacity *= 2;
         resize_array(code_buffer, int, code_capacity);
@@ -84,30 +119,6 @@ int format_J(int k, int d, int n) {
     return (k << 26) | (i << 23) | (d << 18) | (a << 13) | (c << 5) | b;
 }
 
-/**
- * Combine bytes into a 32-bit word
- */
-
-static int partialWord = 0;
-static int numBytes = 0;
-
-static void emit_byte(int b) {
-    partialWord = partialWord | ((b & 0xff) << (numBytes * 8));
-    numBytes++;
-    if (numBytes == 4) {
-        emit(partialWord);
-        partialWord = 0;
-        numBytes = 0;
-    }
-}
-
-static void flush_bytes() {
-    if (numBytes > 0) {
-        emit(partialWord);
-        partialWord = 0;
-        numBytes = 0;
-    }
-}
 
 /** 
  * Check if token sequence matches a format string. 
@@ -161,6 +172,7 @@ void report_malformed(Token** line) {
  */
 
 void emit_load_immediate(int d, int n) {
+    printf("emitting %x\n", n);
     if (n >= -0xfff && n <= 0xfff) {
         emit(format_I(KIND_ALUI, 1, d, 0, n)); // ori $d,$0,#n
     } else {
@@ -176,6 +188,9 @@ void emit_load_immediate(int d, int n) {
  */
 
 void define_label(Token* label, int address) {
+    if (numBytes > 0)
+        flush_bytes();
+
     if (label->flags & FLAG_DEFINED) {
         error("Label redefined: %s", label->text);
     } else {
@@ -238,9 +253,9 @@ static void emit_bytes(Token**line) {
     while (1) {
         if (line[i]->kind == '#') {
             int value = line[i]->value;
-            if (value < 0 || value > 255)
-                error("Byte value out of range (0..255): %d", value);
-            emit_byte(value);
+            if (value < -128 || value > 255)
+                error("Byte value out of range (-128..255): %d", value);
+            emit_byte(value & 0xff);
         } else if (line[i]->kind == '"') {
             // Handle string literal
             String str = line[i]->text;
@@ -258,7 +273,6 @@ static void emit_bytes(Token**line) {
 
     if (line[i]!=0)
         error("Unexpected token after byte values: %s", line[i]->text);
-    flush_bytes();
 }
 
 static void emit_half_words(Token**line) {
@@ -428,7 +442,7 @@ void backpatch_labels() {
                 break;
 
             case 0:
-                code_buffer[ref->address/4] = ref->label->value; // Absolute address dcw instruction
+                code_buffer[ref->address/4] = org_address + ref->label->value; // Absolute address dcw instruction
                 break;
 
             default:

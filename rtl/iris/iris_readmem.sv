@@ -28,13 +28,13 @@ module iris_readmem(
     output  logic [23:0]  palette_z,          // Depth value of the pixel (passed through)
 
     // SDRAM interface - bursts of 4 words per transaction
-    input  logic         vga_sdram_ready,    // SDRAM is ready for a req_valid
-    output logic         vga_sdram_req,      // Request memory
-    output logic [25:0]  vga_sdram_addr,     // Address
-    output logic [7:0]   vga_sdram_tag,      // Tag to identify request
-    input  logic [1:0]   vga_sdram_rvalid,   // 00:No data, 01:First word, 10:Mid burst, 11:Last word
-    input  logic [31:0]  vga_sdram_rdata,    // Read data
-    input  logic [7:0]   vga_sdram_rtag      // Tag identifying which request this data is for
+    input  logic         readmem_sdram_ready,    // SDRAM is ready for a req_valid
+    output logic         readmem_sdram_req,      // Request memory
+    output logic [25:0]  readmem_sdram_addr,     // Address
+    output logic [5:0]   readmem_sdram_tag,      // Tag to identify request
+    input  logic [1:0]   readmem_sdram_rvalid,   // 00:No data, 01:First word, 10:Mid burst, 11:Last word
+    input  logic [31:0]  readmem_sdram_rdata,    // Read data
+    input  logic [5:0]   readmem_sdram_rtag      // Tag identifying which request this data is for
 );
 
 
@@ -136,7 +136,7 @@ logic send_sdram_request;
 logic [25:0] sdram_head_of_queue_addr;
 logic        sdram_queue_not_empty;
 
-wire [4:0]  out_mode = {p1_mode[4:2], p1_mode[7], 1'b0}; // Pass through cacheable bit, but set transparency bit to 0 since the palette stage will handle that based on the color index
+wire [4:0]  out_mode = {p1_mode[4:2], p1_mode[7], p1_mode[0]}; 
 
 always_comb begin
     sdram_head_of_queue_addr = sdram_queue_addr[sdram_queue_write_ptr-3'd1];
@@ -185,42 +185,42 @@ end
 // ===========================================================================
 
 logic [25:0] sdram_read_addr;  // Address of data to be received from SDRAM
-wire [2:0]  sdram_read_index = vga_sdram_rtag[2:0]; // Transactions index in queue
-wire [25:0] this_read_addr = vga_sdram_rvalid==2'b01 ? sdram_queue_addr[sdram_read_index] : sdram_read_addr;
+wire [2:0]  sdram_read_index = readmem_sdram_rtag[2:0]; // Transactions index in queue
+wire [25:0] this_read_addr = readmem_sdram_rvalid==2'b01 ? sdram_queue_addr[sdram_read_index] : sdram_read_addr;
 
 always_ff @(posedge clock) begin
 
     // Send requests to SDRAM
-    if (vga_sdram_req && !vga_sdram_ready) begin
+    if (readmem_sdram_req && !readmem_sdram_ready) begin
         // Waiting for SDRAM to accept request - hold values steady
 
     end else if (sdram_queue_not_empty) begin
-        vga_sdram_req  <= 1'b1;
-        vga_sdram_addr <= sdram_queue_addr[sdram_queue_read_ptr] & 26'h3FFFFC; // Align to start of cache line
-        vga_sdram_tag  <= {4'b0,sdram_queue_addr[sdram_queue_read_ptr][1], sdram_queue_read_ptr};
+        readmem_sdram_req  <= 1'b1;
+        readmem_sdram_addr <= sdram_queue_addr[sdram_queue_read_ptr] & 26'h3FFFFC; // Align to start of cache line
+        readmem_sdram_tag  <= {2'b0,sdram_queue_addr[sdram_queue_read_ptr][1], sdram_queue_read_ptr};
         sdram_queue_read_ptr <= sdram_queue_read_ptr + 3'd1;
         // synthesis translate_off
-        $fdisplay(log_file, "Time %t: SDRAM REQ addr=%06h tag=%h", $time, sdram_queue_addr[sdram_queue_read_ptr], {5'b0, sdram_queue_read_ptr});
+        $fdisplay(log_file, "Time %t: SDRAM REQ addr=%06h tag=%h", $time, sdram_queue_addr[sdram_queue_read_ptr], {2'b0, sdram_queue_read_ptr});
         // synthesis translate_on
     
     end else begin
-        vga_sdram_req <= 1'b0;
-        vga_sdram_addr <= 26'bx;
-        vga_sdram_tag <= 8'bx;
+        readmem_sdram_req <= 1'b0;
+        readmem_sdram_addr <= 26'bx;
+        readmem_sdram_tag <= 6'bx;
     end
 
     // Handle incoming data from SDRAM
-    if (vga_sdram_rvalid==2'd0) begin
+    if (readmem_sdram_rvalid==2'd0) begin
         // No data - do nothing
 
     end else begin
         // Received data from SDRAM - store in cache and mark as valid
-        sdram_data[{sdram_read_index, this_read_addr[3:2]}] <= vga_sdram_rdata;
+        sdram_data[{sdram_read_index, this_read_addr[3:2]}] <= readmem_sdram_rdata;
         sdram_data_valid[{sdram_read_index, this_read_addr[3:2]}] <= 1'b1;
-        if (vga_sdram_rtag[3]) begin
+        if (readmem_sdram_rtag[3]) begin
             // This transaction is for a cacheable address - update the cache
-            cache_ram[this_read_addr[12:2]] <= vga_sdram_rdata;
-            cache_tag_ram[this_read_addr[12:4]] <= {vga_sdram_rvalid==2'd3, this_read_addr[25:12]};
+            cache_ram[this_read_addr[12:2]] <= readmem_sdram_rdata;
+            cache_tag_ram[this_read_addr[12:4]] <= {readmem_sdram_rvalid==2'd3, this_read_addr[25:12]};
         end
         sdram_read_addr <= {this_read_addr[25:4],this_read_addr[3:2]+1'b1, 2'b00}; // Increment address for next word in burst
     end 
@@ -293,7 +293,7 @@ end
 
 
 
-wire unused = &{sdram_head_of_queue_addr[3:0], this_read_addr[1:0], fifo_read_value[10:8], vga_sdram_rtag[7:3],
+wire unused = &{sdram_head_of_queue_addr[3:0], this_read_addr[1:0], fifo_read_value[10:8], readmem_sdram_rtag[5:4],
             readmem_mode[15:5], p1_mode};
 
 endmodule

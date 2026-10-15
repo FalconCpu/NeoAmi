@@ -1,0 +1,196 @@
+# Buddy Allocator for User Memory Pages
+# Manages physical memory from 128KB to 64MB using a buddy system
+# Produces NAPOT regions perfect for MPU configuration
+
+# Memory layout:
+# 0x00000000 - 0x0001FFFF : Kernel reserved (128KB)
+# 0x00020000 - 0x03FFFFFF : User memory (63.875MB)
+#
+# Page IDs are addresses of the start + flags + log2(pageSize/4096)
+#
+#    Size(kB)       log2size
+#    4               0
+#    8               1
+#    16              2
+#    32              3
+#    64              4
+#    128             5
+#    256             6
+#    512             7
+#    1024            8
+#    2048            9
+#    4096           10
+#    8192           11
+#    16384          12
+#
+#    FLAGS:
+#    0x10   Readable
+#    0x20   Writable
+#    0x40   Executable
+#
+# So for example, a 16KB page at address 0x1234000 with read/write permissions would have:
+#    Page ID = 0x1234000 | 0x30 | 2 = 0x1234032
+
+const USER_MEM_START = 0x00200000      # 128KB
+const USER_MEM_END   = 0x04000000      # 64MB
+const MIN_PAGE_SIZE  = 4096            # 4KB minimum (MPU requirement)
+
+const PAGE_FLAG_R = 0x10
+const PAGE_FLAG_W = 0x20
+const PAGE_FLAG_X = 0x40
+const PAGE_FLAG_RW = PAGE_FLAG_R | PAGE_FLAG_W
+const PAGE_FLAG_RX = PAGE_FLAG_R | PAGE_FLAG_X
+const PAGE_ADDRESS_MASK = 0xFFFFF000  # Mask to get base address from page ID
+
+# Number of free lists: log2(16MB) - log2(4KB) + 1 = 24 - 12 + 1 = 13
+const NUM_FREE_LISTS = 13
+
+# Free list node: each free block has header with pointer to next free block
+class FreePageNode
+    var next: FreePageNode?
+
+val pageAllocFreeLists : InlineArray<FreePageNode?>(NUM_FREE_LISTS)
+var pageMemFree = 0  # Total free memory in bytes (for debugging)
+
+fun pageIdToAddress(pageId: Int) -> Int
+    return pageId & PAGE_ADDRESS_MASK
+
+# Initialize the buddy allocator
+fun initPageAllocator()
+    # Initialize all free lists to null
+    for i in 0 ..< NUM_FREE_LISTS
+        pageAllocFreeLists[i] = null
+    
+    # Create initial free blocks covering the entire user memory region
+    # Since there is a chunk taken out for the kernel, we start with a 128kB chunk at USER_MEM_START
+    # and add one block of each size, until we reach 16M, then 2 more 16M blocks to cover the rest of the space
+    for sz in 9..12    # 128KB to 16MB      # Should be 5
+        val blockAddr = MIN_PAGE_SIZE lsl sz
+        addFreePage(blockAddr + sz)
+    for i in 2..3      # Add two more 16MB blocks to cover the rest of the space
+        val blockAddr = 16*1024*1024 * i  # 16MB blocks with log2=12
+        addFreePage(blockAddr + 12)  # Size log2=12 for 16MB
+    kprintf("Page allocator initialized: %d MB user memory\n", (USER_MEM_END - USER_MEM_START) lsr 20)
+
+fun addFreePage(blockId : Int)
+    val log2Size = blockId & 0xF
+    val node = unsafe((blockId &  0xFFFFF000) as FreePageNode)
+    node.next = pageAllocFreeLists[log2Size]
+    pageAllocFreeLists[log2Size] = node
+    pageMemFree += MIN_PAGE_SIZE lsl log2Size
+    
+
+# Get buddy address for a block
+fun getBuddyAddress(blockId: Int) -> Int
+    val size = 12 lsl (blockId & 0x0f)
+    return blockId ^ size
+
+fun pageIDToAddress(pageId: Int) -> Pointer<Char>
+    return unsafe((pageId & 0xFFFFF000) as Pointer<Char>)
+
+fun getLogPageSize(sizeInBytes: Int) -> Int
+    var log2 = 0
+    var size = sizeInBytes
+    while size > MIN_PAGE_SIZE
+        size = size lsr 1
+        log2 = log2 + 1
+    return log2
+
+# Allocate a page of given log2Size (e.g. 1 for 8KB) 
+# Returns the page ID (address + flags)
+fun allocPage(sizeInBytes: Int) -> Int!
+    val sizeLog2 = getLogPageSize(sizeInBytes)
+    if sizeLog2 < 0 or sizeLog2 > 12
+        kprintf("ERROR: Invalid page size log2=%d (must be %d..%d)\n")
+        return Error.INVALID_ARGUMENT
+                
+    # If we have a free block of exactly the right size, use it
+    kprintf("Allocating page of size %d KB (log2=%d)\n", 4 lsl sizeLog2, sizeLog2)
+    val p = pageAllocFreeLists[sizeLog2]
+    if p != null
+        # kprintf("  Found perfect free block at %08x\n", unsafe(p as Int))
+        pageAllocFreeLists[sizeLog2] = p.next
+        return unsafe(p as Int) | sizeLog2  # Return address with log2 size in lower bits
+
+    # No exact match, try to split a larger block
+    var splitIndex = sizeLog2 + 1
+    while splitIndex <= 12
+        # kprintf("  No block of size %d KB, checking larger size %d KB (log2=%d)\n", 4 lsl sizeLog2, 4 lsl splitIndex, splitIndex)   
+        var node = pageAllocFreeLists[splitIndex]
+        if node!=null
+            # Found a larger block, split it down to the size we need
+            var currentLog2 = splitIndex
+            # kprintf("  Found larger block at %08x, splitting down\n", unsafe(node as Int))
+
+            # Remove the large block from current free list
+            pageAllocFreeLists[splitIndex] = node.next
+
+            # Split into buddies until we get down to the desired size, adding the buddies back to the free lists
+            val nodeAsInt = unsafe(node as Int) & 0xFFFFF000  # Get the base address of the block
+            while currentLog2 > sizeLog2
+                # kprintf("    Splitting block of size %d KB (log2=%d)\n", 4 lsl currentLog2, currentLog2)
+                currentLog2 = currentLog2 - 1
+                val buddyAddr = nodeAsInt + (MIN_PAGE_SIZE lsl currentLog2)
+                addFreePage(buddyAddr | currentLog2)
+            # kprintf("  Finished splitting, allocated block at %08x with size %d KB (log2=%d)\n", nodeAsInt, 4 lsl sizeLog2, sizeLog2)
+            return nodeAsInt | sizeLog2  # Return the allocated block with log2 size in lower bits
+        splitIndex += 1
+
+    kprintf("ERROR: Out of memory (requested size=%d KB)\n", (4 lsl sizeLog2))
+    return Error.OUT_OF_MEMORY
+    
+
+# Free a page (coalescing with buddy if possible)
+fun freePage(blockId: Int)
+    val sizeLog2 = blockId & 0x0F
+    val addr = blockId & 0xFFFFF000
+    if addr < USER_MEM_START or addr >= USER_MEM_END or (blockId&0xF8F)>12
+        kprintf("ERROR: Invalid page address %08x\n", addr)
+        abort(1)    
+    
+    # Try to coalesce with buddy
+    var currentAddr = addr
+    var currentLog2 = sizeLog2
+    
+    while currentLog2 < NUM_FREE_LISTS - 1
+        val buddyAddr = getBuddyAddress(currentAddr | currentLog2)  # Get buddy address for current block
+        
+        # Check if buddy is in the free list
+        var prev: FreePageNode? = null
+        var current = pageAllocFreeLists[currentLog2]
+        var foundBuddy = false
+        
+        while current != null
+            val currentNodeAddr = unsafe(current as Int)
+            if currentNodeAddr = buddyAddr
+                # Found the buddy! Remove it from free list
+                if prev = null
+                    pageAllocFreeLists[currentLog2] = current.next
+                else
+                    prev.next = current.next
+                foundBuddy = true
+                break
+            prev = current
+            current = current.next
+        
+        if not foundBuddy
+            # Buddy not free, can't coalesce further
+            break
+        
+        # Coalesce: merge with buddy and try next level
+        currentAddr = currentAddr & buddyAddr  # Get the lower address of the two buddies
+
+# Dump allocator state for debugging
+fun dumpPageAllocator()
+    kprintf("\nPage Allocator State:\n")
+    for i in 0 ..< NUM_FREE_LISTS
+        val sizeKB = 4 lsl i
+        
+        var count = 0
+        var node = pageAllocFreeLists[i]
+        while node != null
+            count = count + 1
+            node = node.next
+        
+        if count > 0
+            kprintf("  %4d KB: %d free blocks\n", sizeKB, count)

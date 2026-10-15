@@ -70,7 +70,7 @@ def build(hdr, gfx, blocks, layers):
     rgb_ids, rgb_tiles = {}, []
     block_rgb = {}
     for b in used:
-        t = np.ascontiguousarray(gfx[blocks[b]["offs"][0] // tilesize][..., ::-1])
+        t = np.ascontiguousarray(gfx[blocks[b]["offs"][0] // tilesize])
         key = t.tobytes()
         if key not in rgb_ids:
             rgb_ids[key] = len(rgb_tiles)
@@ -115,7 +115,7 @@ def verify(hdr, gfx, blocks, tiles, pal, tilemap, grids, out):
     for li, name in enumerate(LAYERS):
         g = grids[name]
         for b in np.unique(g[g > 0]):
-            orig = gfx[blocks[int(b)]["offs"][0] // tilesize][..., ::-1].astype(int)
+            orig = gfx[blocks[int(b)]["offs"][0] // tilesize].astype(int)
             n_cells = int((g == b).sum())
             ti = int(tilemap[li][g == b][0])
             t = tiles[ti]

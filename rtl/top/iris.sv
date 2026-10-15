@@ -29,6 +29,7 @@ module iris (
     input logic [15:0]     aux_iris_addr,
     input logic [31:0]     aux_iris_wdata,
     output logic [9:0]     ypos,
+    input  logic [25:0]    vga_obj_list,
 
     // SDRAM interface for VGA
     input  logic         vga_sdram_ready,    // SDRAM is ready for a req_valid
@@ -80,6 +81,12 @@ logic [7:0]  vga_r;
 logic [7:0]  vga_g;
 logic [7:0]  vga_b;
 
+logic objfetch_req;
+logic [11:0] objfetch_addr;
+logic [31:0] objfetch_wdata;
+logic        obj_finished;
+logic [8:0]  obj_finished_index;
+
 iris_objwalk  iris_objwalk_inst (
     .clock(clock),
     .reset(reset),
@@ -88,6 +95,11 @@ iris_objwalk  iris_objwalk_inst (
     .aux_iris_req(aux_iris_req && aux_iris_addr[15:14] == 2'b0),
     .aux_iris_addr(aux_iris_addr[13:2]),
     .aux_iris_wdata(aux_iris_wdata),
+    .objfetch_req(objfetch_req),
+    .objfetch_addr(objfetch_addr),
+    .objfetch_wdata(objfetch_wdata),
+    .obj_finished(obj_finished),
+    .obj_finished_index(obj_finished_index),
     .span_valid(span_valid),
     .span_ready(span_ready),
     .span_flags(span_flags),
@@ -244,7 +256,58 @@ iris_readmem  iris_readmem_inst (
     .palette_x(palette_x),
     .palette_bright(palette_bright),
     .palette_z(palette_z),
-    .vga_sdram_ready(vga_sdram_ready),
+    .readmem_sdram_ready(readmem_sdram_ready),
+    .readmem_sdram_req(readmem_sdram_req),
+    .readmem_sdram_addr(readmem_sdram_addr),
+    .readmem_sdram_tag(readmem_sdram_tag),
+    .readmem_sdram_rvalid(readmem_sdram_rvalid),
+    .readmem_sdram_rdata(readmem_sdram_rdata),
+    .readmem_sdram_rtag(readmem_sdram_rtag)
+  );
+
+// ============================================================
+//                SDRAM access arbitration
+// ============================================================
+
+logic         readmem_sdram_ready;
+logic         readmem_sdram_req;
+logic [25:0]  readmem_sdram_addr;
+logic [5:0]   readmem_sdram_tag;
+logic [1:0]   readmem_sdram_rvalid;
+logic [31:0]  readmem_sdram_rdata;
+logic [5:0]   readmem_sdram_rtag;
+
+iris_ram_access  iris_ram_access_inst (
+    .clock(clock),
+    .reset(reset),
+
+    .readmem_sdram_ready(readmem_sdram_ready),
+    .readmem_sdram_req(readmem_sdram_req),
+    .readmem_sdram_addr(readmem_sdram_addr),
+    .readmem_sdram_tag(readmem_sdram_tag),
+    .readmem_sdram_rvalid(readmem_sdram_rvalid),
+    .readmem_sdram_rdata(readmem_sdram_rdata),
+    .readmem_sdram_rtag(readmem_sdram_rtag),
+
+    // objfetch: currently unused
+    .objfetch_sdram_ready(),
+    .objfetch_sdram_req(1'b0),
+    .objfetch_sdram_addr(26'b0),
+    .objfetch_sdram_tag(6'b0),
+    .objfetch_sdram_rvalid(),
+    .objfetch_sdram_rdata(),
+    .objfetch_sdram_rtag(),
+
+    // copper: currently unused
+    .copper_sdram_ready(),
+    .copper_sdram_req(1'b0),
+    .copper_sdram_addr(26'b0),
+    .copper_sdram_tag(6'b0),
+    .copper_sdram_rvalid(),
+    .copper_sdram_rdata(),
+    .copper_sdram_rtag(),
+
+    .vga_sdram_ack(vga_sdram_ready),
     .vga_sdram_req(vga_sdram_req),
     .vga_sdram_addr(vga_sdram_addr),
     .vga_sdram_tag(vga_sdram_tag),

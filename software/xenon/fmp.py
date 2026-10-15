@@ -65,7 +65,7 @@ def render(hdr, gfx, blocks, layer, rows, key=None):
                 if off <= 0 and n > 0:
                     continue
                 t = gfx[off // tilesize]
-                rgb = t[..., ::-1]  # BGR -> RGB
+                rgb = t
                 dst = img[(y - r0) * bh:(y - r0 + 1) * bh, x * bw:(x + 1) * bw]
                 mask = ~np.all(rgb == (255, 0, 255), axis=2)  # magenta = transparent
                 dst[mask, :3] = rgb[mask]

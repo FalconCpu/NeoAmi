@@ -20,8 +20,9 @@
 // E0000030  SIMULATION     R    Reads as 1 in simulation, 0 in hardware
 // E0000034  OVERFLOW       R    bit 0 = uart tx fifo overflow, bit 1 = uart rx fifo overflow, bit 2 = keyboard fifo overflow
 // E0000038  VGA_YPOS       R    Current Y position of the rasterizer. Reads negative values during the vertical blanking period. This is for debug only.
-// E000003C  SDCARD_CTRL    R/W  Control register for the SD card (bit 0 = start read, bit 1 = start write)
-// E0000040  SDCARD_SECTOR  R/W  Sector number for SD card read/write
+// E000003C  VGA_OBJ_LIST   R/W  Base address of the object list for the VGA rasterizer
+// E0000040  SDCARD_CTRL    R/W  Control register for the SD card (bit 0 = start read, bit 1 = start write)
+// E0000044  SDCARD_SECTOR  R/W  Sector number for SD card read/write
 // E0001000  SDCARD_DATA    R/W  512 bytes of SD card data
 
 // verilator lint_off PINCONNECTEMPTY
@@ -72,6 +73,7 @@ module sophie_hwregs (
     output              SCL,
     output logic [9:0]  mouse_x,
     output logic [9:0]  mouse_y,
+    output logic [25:0] vga_obj_list,
     input  logic [31:0] cpu_pc             // Current CPU PC (for capture on seven seg)
 );
 
@@ -175,6 +177,9 @@ always_ff @(posedge clock) begin
             16'h0034: begin
                 latched_fifo_overflow <= aux_hwregs_wdata[2:0];
             end
+            16'h003C: begin
+                vga_obj_list <= aux_hwregs_wdata[25:0];
+            end
             default: begin end
         endcase
 
@@ -207,8 +212,9 @@ always_ff @(posedge clock) begin
                       end
             16'h0034: aux_hwregs_rdata <= {29'b0, latched_fifo_overflow};
             16'h0038: aux_hwregs_rdata <= {{22{ypos[9]}}, ypos};
-            16'h003C: aux_hwregs_rdata <= {31'b0, sdcard_busy};
-            16'h0040: aux_hwregs_rdata <= {23'b0, sdcard_sector};
+            16'h003C: aux_hwregs_rdata <= {6'b0, vga_obj_list};
+            16'h0040: aux_hwregs_rdata <= {31'b0, sdcard_busy};
+            16'h0044: aux_hwregs_rdata <= {23'b0, sdcard_sector};
             16'h1000: aux_hwregs_rdata <= sdcard_mem[aux_hwregs_addr[8:2]];
 
             default:  aux_hwregs_rdata <= 32'b0;
@@ -302,7 +308,7 @@ keyboard_if  keyboard_if_inst (
     .keyboard_strobe(keyboard_strobe)
   );
 
-wire key_read_strobe = aux_hwregs_req && !aux_hwregs_write && aux_hwregs_addr[15:0] == 16'h002C;
+wire key_read_strobe = aux_hwregs_req && !aux_hwregs_write && aux_hwregs_addr[15:0] == 16'h0024;
 
 byte_fifo  keyboard_rx_fifo (
     .clk(clock),

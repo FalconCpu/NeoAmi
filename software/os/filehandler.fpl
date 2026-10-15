@@ -1,0 +1,170 @@
+
+# ===================================================================
+# UART frame format:
+# 0xB0 0x02    ( 2 bytes - start of frame marker)
+# Command word ( 2 bytes)
+# Length       ( 4 bytes)
+# Data         (Length bytes)
+# Checksum     ( 4 bytes - sum of all bytes up to this point)
+# ===================================================================
+
+var checksum = 0
+
+const NETFS_CMD_OPEN   = 0x0101
+const NETFS_CMD_CLOSE  = 0x0102
+const NETFS_CMD_READ   = 0x0103
+const NETFS_CMD_WRITE  = 0x0104
+const NETFS_RESP_OK    = 0x0201
+const NETFS_RESP_ERROR = 0x0202
+
+fun uartSendByte(b: Int)
+    while hwregs.uart_tx < 2 # wait for space in FIFO
+        val dummy = 1       # TODO - consider yielding here if blocking is acceptable
+    hwregs.uart_tx = b & 0xFF
+    checksum += b & 0xFF
+
+fun uartSendWord(w: Int)
+    uartSendByte((w lsr 0) & 0xFF)
+    uartSendByte((w lsr 8) & 0xFF)
+    uartSendByte((w lsr 16) & 0xFF)
+    uartSendByte((w lsr 24) & 0xFF)
+
+fun uartSendFrame(command:Int, length:Int, data:Pointer<Char>)
+    checksum = 0
+    uartSendByte(0xB0)
+    uartSendByte(0x02)
+    uartSendByte(command & 0xFF)
+    uartSendByte((command lsr 8) & 0xFF)
+    uartSendWord(length)
+    for i in 0..<length
+        uartSendByte(data[i] as Int)
+    uartSendWord(checksum)
+
+fun uartSendFrame(command:Int, data1:Int, data2:Int)
+    checksum = 0
+    uartSendByte(0xB0)
+    uartSendByte(0x02)
+    uartSendByte(command & 0xFF)
+    uartSendByte((command lsr 8) & 0xFF)
+    uartSendWord(8)
+    uartSendWord(data1)
+    uartSendWord(data2)
+    uartSendWord(checksum)
+
+
+fun uartSendFrame(command:Int, word:Int, length:Int, data:Pointer<Char>)
+    checksum = 0
+    uartSendByte(0xB0)
+    uartSendByte(0x02)
+    uartSendByte(command & 0xFF)
+    uartSendByte((command lsr 8) & 0xFF)
+    uartSendWord(length+4)
+    uartSendWord(word)
+    for i in 0..<length
+        uartSendByte(data[i] as Int)
+    uartSendWord(checksum)
+
+fun uartSendFrame(command:Int, string:String)
+    checksum = 0
+    uartSendByte(0xB0)
+    uartSendByte(0x02)
+    uartSendByte(command & 0xFF)
+    uartSendByte((command lsr 8) & 0xFF)
+    uartSendWord(string.length)
+    for i in 0..<string.length
+        uartSendByte(string[i] as Int)
+    uartSendWord(checksum)
+
+
+fun uartReceiveByte() -> Int!
+    var count = 0
+    repeat
+        val data = hwregs.uart_rx
+        if data != -1
+            val ret = data & 0xFF
+            checksum += ret
+            return ret
+        count += 1
+        if count > 10000000
+            kprintf("uartReceiveByte: timeout\n")
+            return Error.TIMEOUT
+    until false
+
+fun uartReceiveCommand() -> Int!
+    # kprintf("uartReceiveCommand: waiting for command\n")
+    var cmd = 0
+    var state = 0
+    while true
+        val b = try uartReceiveByte()
+        if (state=0 and b=0xB0)
+            state = 1
+        else if (state=1 and b=0x02)
+            state = 2
+        else if (state=2)
+            cmd = b
+            state = 3
+        else if (state=3)
+            cmd = cmd | (b lsl 8)
+            return cmd
+        else
+            kprintf("uartReceiveCommand: invalid byte %x in state %d\n", b, state)
+            state = 0
+
+fun uartRecieveInt() -> Int!
+    var ret = 0
+    for i in 0..3
+        val b = try uartReceiveByte()
+        ret = ret | (b lsl (i*8))
+    return ret
+
+fun uartReceiveBlock(buffer:Pointer<Char>, length:Int) -> Error
+    for i in 0..<length
+        val b = try uartReceiveByte()
+        buffer[i] = unsafe(b as Char)
+    return Error.NONE
+
+
+# Loads a file from the host using the uart, and returns the memory PageID of the 
+# allocated buffer containing the file data, or an error code if the load fails. 
+fun allocatePageAndLoadFile(filename:String) -> Int!
+    kprintf("readFile: filename=%s\n", filename)
+    
+    uartSendFrame(NETFS_CMD_OPEN, filename)
+
+    val cmd = try uartReceiveCommand()
+    # kprintf("readFile: received command %x\n", cmd)
+    if cmd != NETFS_RESP_OK
+        kprintf("readFile: open failed, command=%x\n", cmd)
+        return Error.IO_ERROR
+
+    val length = try uartRecieveInt()
+    checksum = 0
+    if length < 0 or length > 64*1024*1024
+        kprintf("readFile: invalid file length %d\n", length)
+        return Error.IO_ERROR
+
+    val blockID = try allocPage(length)
+    val data = pageIDToAddress(blockID)
+
+    for i in 0..<length
+        val b = uartReceiveByte()
+        hwregs.seven_seg = i
+        if (b is Error)
+            freePage(blockID)
+            return b
+        data[i] = unsafe(b as Char)
+
+    val calcChecksum = checksum
+    kprintf("uartReceiveFrame: received %d bytes, checksum=%x\n", length, calcChecksum)
+    val recvChecksum = uartRecieveInt()
+    if recvChecksum is Error
+        freePage(blockID)
+        return recvChecksum
+
+    # kprintf("uartReceiveFrame: received checksum %x\n", recvChecksum)
+    if recvChecksum != calcChecksum
+        kprintf("uartReceiveFrame: checksum error, expected %x got %x\n", recvChecksum, calcChecksum)
+        freePage(blockID)
+        return Error.IO_ERROR
+
+    return blockID

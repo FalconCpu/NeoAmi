@@ -1,0 +1,12 @@
+{
+  "images": [
+    {
+      "name": "backdrop",
+      "source": "galaxy2.bmp",
+      "width": 640,
+      "height": 480,
+      "data": "backdrop.bin",
+      "palette": "backdrop_palette.bin"
+    }
+  ]
+}

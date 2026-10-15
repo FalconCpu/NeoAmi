@@ -261,6 +261,8 @@ logic [31:0]     aux_gemma_rdata;
 
 logic [9:0] mouse_x;
 logic [9:0] mouse_y;
+logic [25:0] vga_obj_list;
+
 
 sophie  sophie_inst (
     .clock(clock),
@@ -311,7 +313,8 @@ sophie  sophie_inst (
     .sd_miso(GPIO_0[20]),
     .mouse_x(mouse_x),
     .mouse_y(mouse_y),
-    .cpu_pc(cpu_pc)
+    .cpu_pc(cpu_pc),
+    .vga_obj_list(vga_obj_list)
   );
 
 // =======================================================
@@ -330,6 +333,7 @@ sophie  sophie_inst (
     .VGA_SYNC_N(VGA_SYNC_N),
     .VGA_VS(VGA_VS),
     .ypos(ypos),
+    .vga_obj_list(vga_obj_list),
     .aux_iris_req(aux_iris_req),
     .aux_iris_addr(aux_iris_addr),
     .aux_iris_wdata(aux_iris_wdata),

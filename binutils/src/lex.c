@@ -466,6 +466,7 @@ static void skip_whitespace_and_comments() {
         return *(int*)&d; // Reinterpret the float bits as an int
     }
 
+    String original = str;
     int minus = 0;
     if (*str == '-') {
         minus = 1;
@@ -488,7 +489,7 @@ static void skip_whitespace_and_comments() {
         }
     } else {
         // Decimal
-        value = atoi(str);
+        return atoi(original);
     }
     return minus ? -value : value;
 }

@@ -29,6 +29,7 @@ module sophie (
     output logic [15:0] aux_iris_addr,       // Address for the read/write operation
     output logic [31:0] aux_iris_wdata,      // Data to be written to the Iris memory
     input  logic [9:0]  ypos,                // Current Y position of the rasterizer (for debug)
+    output logic [25:0] vga_obj_list,
 
     // Gemma bus (read/write)
     output logic        aux_gemma_req,       // Request to read/write the Gemma memory
@@ -172,7 +173,8 @@ sophie_hwregs  sophie_hwregs_inst (
     .SCL(SCL),
     .mouse_x(mouse_x),
     .mouse_y(mouse_y),
-    .cpu_pc(cpu_pc)
+    .cpu_pc(cpu_pc),
+    .vga_obj_list(vga_obj_list)
   );
 
 

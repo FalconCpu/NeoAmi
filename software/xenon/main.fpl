@@ -1,56 +1,162 @@
 
-
-const IRIS_FP_ONE = 4096      # Fixed-point representation of 1.0 in Iris FP format
-
-fun newSprite() -> IrisSprite
-    # for a rectangular sprite, the slope fields can be set to 0
-    val ret = new IrisSprite()
-    ret.flags   = 0|16     # Mode 0 = 8 bit indexed color
-    ret.clip_x1 = 0
-    ret.clip_x2 = 640
-    ret.ytop = 10
-    ret.ybot = 20
-    ret.x1 = 100*16     # Coordinates of the sprite's top-left vertex (in Q12.4)
-    ret.y1 = 10*16    
-    ret.x2 = 120*16     # Coordinates of the sprite's top-right vertex (in Q12.4)
-    ret.y2 = 10*16
-    ret.dx1_dy = 0    # Slopes are all zero
-    ret.dx2_dy = 0
-    ret.dx3_dy = 0
-    ret.z1 = 0
-    ret.dz_dx = 0
-    ret.dz_dy = 0
-    ret.reserved = 0
-    ret.r1 = 0x0          # U coordinate at the (X1,Y1) vertex
-    ret.dr_dx = IRIS_FP_ONE # Scale factor of 1
-    ret.dr_dy = 0
-    ret.g1 = 0          # V coordinate at the (X1,Y1) vertex
-    ret.dg_dx = 0
-    ret.dg_dy = IRIS_FP_ONE # Scale factor of 1
-    ret.b1 = 0x7FFF     # Default brightness value at the (X1,Y1) vertex
-    ret.db_dx = 0
-    ret.db_dy = 0
-    ret.tex_stride = 32
-    ret.tex_addr = 0x20000
-    ret.next = 0
-
-    return ret
+# Globals for the data pointers
+var spriteDataPtr = 0
+var backdropDataPtr = 0
+var tilesDataPtr = 0
+var tileMap : Pointer<Short>
 
 
-fun main() -> Int
+fun delay(count: Int)
+    for i in 0..count
+        val dummy = 1
 
-    for i in 0..1023
-        VGA_PALETTE[i] = 0xFEDCBA
+fun waitVsync()
+    while hwregs.vga_pos < 0
+        delay(1000)
+    while hwregs.vga_pos > 0
+        delay(1000)
+
+struct Image(dataPtr: Int, width: Int, height: Int)
+
+const spriteImages = const Array<Image> [
+    Image(0, 64, 64)] 
+
+
+fun loadGraphicsData()
+    val spritePalette = allocatePageAndLoadFile("export/sprites_palette.bin")
+    if spritePalette is Error then abort 1
+
+    val spritePalettePtr = unsafe(pageIdToAddress(spritePalette) as Pointer<Int>)
+    for i in 0..255
+        VGA_PALETTE[i] = spritePalettePtr[i]
     
-    val sprite_data = unsafe(0x20000 as Pointer<Char>)
-    for i in 0..1023
-        sprite_data[i] = 0x11
+    val spriteData = allocatePageAndLoadFile("export/sprites.bin")
+    if spriteData is Error then abort 1
+    spriteDataPtr = pageIdToAddress(spriteData)
+
+    val backdropPalette = allocatePageAndLoadFile("export/backdrop_ham_palette.bin")
+    if backdropPalette is Error then abort 1
+    val backdropPalettePtr = unsafe(pageIdToAddress(backdropPalette) as Pointer<Int>)
+    for i in 0..255
+        VGA_PALETTE[i+256] = backdropPalettePtr[i]
+
+    val backdropData = allocatePageAndLoadFile("export/backdrop_ham.bin")
+    if backdropData is Error then abort 1
+    backdropDataPtr = pageIdToAddress(backdropData)
+
+    val tilesPalette = allocatePageAndLoadFile("export/palette.bin")
+    if tilesPalette is Error then abort 1
+    val tilesPalettePtr = unsafe(pageIdToAddress(tilesPalette) as Pointer<Int>)
+    for i in 0..255
+        VGA_PALETTE[i+512] = tilesPalettePtr[i]
+
+    val tilesData = allocatePageAndLoadFile("export/tiles.bin")
+    if tilesData is Error then abort 1
+    tilesDataPtr = pageIdToAddress(tilesData)
+
+    val tileMapData = allocatePageAndLoadFile("export/tilemap.bin")
+    if tileMapData is Error then abort 1
+    tileMap = unsafe(pageIdToAddress(tileMapData) as Pointer<Short>)
+
+
+fun main() -> Int!
+
+    loadGraphicsData()
+
+    # for row in 0..400
+    #     kprintf("Row %d: ", row)
+    #     for col in 0..39
+    #         val tileIndex = tileMap[row * 40 + col]
+    #         kprintf("%d ", tileIndex)
+    #     kprintf("\n")
+
 
     val scene = new GfxScene()
-    scene.addSprite(newSprite())
-    scene.show()
 
-    kprintf("Hello, World!\n")
+    val backdrop = new IrisSprite()
+    backdrop.initialize()
+    scene.addSprite(backdrop)
+    backdrop.setBitmap(backdropDataPtr, 640, 1)
+    backdrop.flags = (32 | 16 | 4 | 1) as Short
+    backdrop.setSizeAndPos(0, 0, 640, 480)
+    backdrop.setZ(1)
+
+    val startRow = 980
+    for row in 0..14
+        for col in 0..19
+            val tileIndex = tileMap[(startRow + row) * 20 + col] as Int
+            if tileIndex != 0
+                val tileX = col * 32
+                val tileY = row * 32
+                val tile = new IrisSprite()
+                tile.initialize()
+                scene.addSprite(tile)
+                tile.setBitmap(tilesDataPtr + tileIndex * 32*32, 32, 2)
+                tile.setSizeAndPos(tileX, tileY, 32, 32)
+                tile.setZ(20)
+                kprintf("Placed tile at row %d, col %d with index %d\n", startRow + row, col, tileIndex)
+
+
+
+
+    val sprite = new IrisSprite()
+    sprite.initialize()
+    scene.addSprite(sprite)
+    sprite.setZ(40)
+    
+    val keyboard = new Keyboard()
+
+    var xpos = 320
+    var ypos = 200
+    var velocityX = 0
+    var velocityY = 0
+
     while true
-        val dummy=1
+        waitVsync()
+        val key = keyboard.getKey()
+
+        # Update the sprite's velocity based on keyboard input
+        if keyboard.keyDown[KEY_SCANCODE_LEFT] and velocityX > -18
+            velocityX = velocityX - 2
+        if keyboard.keyDown[KEY_SCANCODE_RIGHT] and velocityX < 26
+            velocityX = velocityX + 2
+        if keyboard.keyDown[KEY_SCANCODE_UP] and velocityY > -18
+            velocityY = velocityY - 2
+        if keyboard.keyDown[KEY_SCANCODE_DOWN] and velocityY < 18
+            velocityY = velocityY + 2
+
+        # Apply friction to the sprite's velocity
+        if velocityX > 0
+            velocityX = velocityX - 1
+        if velocityX < 0
+            velocityX = velocityX + 1
+        if velocityY > 0
+            velocityY = velocityY - 1
+        if velocityY < 0
+            velocityY = velocityY + 1
+
+        # Update the sprite's position based on its velocity
+        xpos = xpos + velocityX/8
+        ypos = ypos + velocityY/8
+
+        # Ensure the sprite stays within the screen bounds
+        if xpos < 0
+            xpos = 0
+        if xpos > 640 - 64
+            xpos = 640 - 64
+        if ypos < 0
+            ypos = 0
+        if ypos > 480 - 64
+            ypos = 480 - 64
+
+        # Choose the sprite's bitmap based on its state
+        var bitmapIndex = 3 + velocityX/8
+        if bitmapIndex < 0
+            bitmapIndex = 0
+        if bitmapIndex > 6
+            bitmapIndex = 6
+
+        sprite.setBitmap(spriteDataPtr + bitmapIndex * 64*64, 64, 0)
+        sprite.setSizeAndPos(xpos, ypos, 64, 64)
+        scene.show()
 

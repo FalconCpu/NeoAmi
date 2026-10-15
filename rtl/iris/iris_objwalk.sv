@@ -56,6 +56,17 @@ module iris_objwalk (
     input logic [11:0]     aux_iris_addr,
     input logic [31:0]     aux_iris_wdata,
 
+    // Object Fetch interface. NOTE: there is no interlock between the object fetch
+    // and the Aux interface. It is software's responsibility to ensure that it does not
+    // access the object memory while the objfetch module is active.
+    input logic            objfetch_req,
+    input logic [11:0]     objfetch_addr,
+    input logic [31:0]     objfetch_wdata,
+
+    // Signal when an object has completed
+    output logic           obj_finished,   
+    output logic [7:0]     obj_finished_index,
+
     // Object list interface
     output logic        span_valid,
     input  logic        span_ready,
@@ -91,6 +102,9 @@ logic [23:0] next_span_b;
 logic [23:0] next_span_dbdx;
 logic [25:0] next_span_texaddr;
 logic [15:0] next_span_texstride;
+logic        next_obj_final_row, obj_final_row;
+logic        next_obj_finished;
+logic [7:0]  next_obj_finished_index;
 
 
 // ===============================================================
@@ -248,6 +262,9 @@ always_comb begin
     next_span_dbdx = span_dbdx;
     next_span_texaddr = span_texaddr;
     next_span_texstride = span_texstride;
+    next_obj_finished = 1'b0;
+    next_obj_finished_index = 8'hx;
+    next_obj_final_row = obj_final_row;
     tmp = 16'hx;
 
     next_state = (state==4'hF) ? 4'hF : state+1'b1;
@@ -261,6 +278,7 @@ always_comb begin
         if (ypos >= ram0_clip_y1 && ypos < ram0_clip_y2) begin
             // The object is active on this scanline, extract the fields and output them
             next_span_flags = ram0_flags[15:0];
+            next_obj_final_row = ypos == ram0_clip_y2 - 1;
 
             // Calulate left edge of this scanline
             next_dy1 = {2'b0,ypos,12'hFFF} - ram0_y1;
@@ -404,6 +422,10 @@ always_comb begin
                 next_state = `STATE_END; // Finished processing all objects, wait for the next line
             else
                 next_state = 4'h0; // Continue processing the next object
+            if (obj_final_row) begin
+                next_obj_finished = 1'b1;
+                next_obj_finished_index = obj_index[8:1];
+            end
         end else
             next_state = 4'h9; // Stay in this state until the span is accepted
     end
@@ -458,6 +480,9 @@ always_ff @(posedge clock) begin
     span_dbdx <= next_span_dbdx;
     span_texaddr <= next_span_texaddr;
     span_texstride <= next_span_texstride;
+    obj_finished <= next_obj_finished;
+    obj_finished_index <= next_obj_finished_index;
+    obj_final_row <= next_obj_final_row;
 end
 
 
@@ -465,11 +490,16 @@ end
 //                       Object Memory
 // ===============================================================
 
+wire [31:0] wdata = objfetch_req ? objfetch_wdata : aux_iris_wdata;
+wire [11:0] wraddress = objfetch_req ? objfetch_addr : aux_iris_addr[11:0];
+wire wren = objfetch_req || aux_iris_req;
+
+
 iris_obj_mem  iris_obj_mem_inst (
     .clock(clock),
-    .data(aux_iris_wdata),
-    .wraddress(aux_iris_addr[11:0]),
-    .wren(aux_iris_req),
+    .data(wdata),
+    .wraddress(wraddress),
+    .wren(wren),
     .rdaddress(next_obj_index),
     .q(obj_data)
   );
