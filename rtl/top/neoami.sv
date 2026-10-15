@@ -195,6 +195,14 @@ logic [1:0]  gemma_sdram_rvalid;
 logic [7:0]  gemma_sdram_rtag;
 logic [31:0] gemma_sdram_rdata;
 
+logic         audio_sdram_req;
+logic         audio_sdram_ready;
+logic [25:0]  audio_sdram_address;
+logic         audio_sdram_rvalid;
+logic [25:0]  audio_sdram_raddress;
+logic [31:0]  audio_sdram_rdata;
+logic         audio_sdram_complete;
+
 
 
   sdram  sdram_inst (
@@ -232,6 +240,13 @@ logic [31:0] gemma_sdram_rdata;
     .gemma_sdram_rvalid(gemma_sdram_rvalid),
     .gemma_sdram_rtag(gemma_sdram_rtag),
     .gemma_sdram_rdata(gemma_sdram_rdata),
+    .audio_sdram_req(audio_sdram_req),
+    .audio_sdram_ready(audio_sdram_ready),
+    .audio_sdram_address(audio_sdram_address),
+    .audio_sdram_rvalid(audio_sdram_rvalid),
+    .audio_sdram_raddress(audio_sdram_raddress),
+    .audio_sdram_rdata(audio_sdram_rdata),
+    .audio_sdram_complete(audio_sdram_complete),
     .DRAM_ADDR(DRAM_ADDR),
     .DRAM_BA(DRAM_BA),
     .DRAM_CAS_N(DRAM_CAS_N),
@@ -311,6 +326,17 @@ sophie  sophie_inst (
     .sd_sclk(GPIO_0[22]),
     .sd_mosi(GPIO_0[26]),
     .sd_miso(GPIO_0[20]),
+    .AUD_XCK(AUD_XCK),
+    .AUD_BCLK(AUD_BCLK),
+    .AUD_DACLRCK(AUD_DACLRCK),
+    .AUD_DACDAT(AUD_DACDAT),
+    .audio_sdram_req(audio_sdram_req),
+    .audio_sdram_ready(audio_sdram_ready),
+    .audio_sdram_address(audio_sdram_address),
+    .audio_sdram_rvalid(audio_sdram_rvalid),
+    .audio_sdram_raddress(audio_sdram_raddress),
+    .audio_sdram_rdata(audio_sdram_rdata),
+    .audio_sdram_complete(audio_sdram_complete),
     .mouse_x(mouse_x),
     .mouse_y(mouse_y),
     .cpu_pc(cpu_pc),

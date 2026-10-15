@@ -33,10 +33,11 @@ module sdram_controller(
     input  logic [25:0]  sdram_addr,
     input  logic [127:0] sdram_wdata,       // Data to write
     input  logic [15:0]  sdram_wstrb,       // Byte mask for write data
-    input  logic [9:0]   sdram_tag,         // Tag to include in read response
+    input  logic [10:0]  sdram_tag,         // Tag to include in read response
     output logic [1:0]   sdram_rvalid,      // 00=no data, 01=first beat, 10=middle beats, 11=final beat
     output logic [31:0]  sdram_rdata,
-    output logic [9:0]   sdram_rtag,        // Tag from read data
+    output logic [10:0]  sdram_rtag,        // Tag from read data
+    output logic [25:0]  sdram_raddress,    // Address of the word in sdram_rdata
 
     // Connection to the SDRAM chip
     output logic [12:0]   DRAM_ADDR,
@@ -68,11 +69,14 @@ logic        load_mode;
 logic        freeze;
 logic        sdram_idle;
 logic [3:0]  burst_counter, next_burst_counter;
-logic [9:0]  read_tag, next_read_tag;
+logic [10:0] read_tag, next_read_tag;
 logic        bus_write, next_bus_write;
 logic [31:0] read_data;
 logic [2:0]  read_counter, next_read_counter;
-logic [9:0]  next_sdram_rtag;
+logic [10:0] next_sdram_rtag;
+logic [25:0] read_addr, next_read_addr;
+logic [25:0] rdata_base, next_rdata_base;
+logic [1:0]  rdata_beat;
 
 
 localparam [2:0] CMD_NOP       = 3'b111;
@@ -98,6 +102,8 @@ always_comb begin
     next_write_data = {16'bx, write_data[127:16]};
     next_write_strobe = {2'b00, write_strobe[15:2]};
     next_read_tag = read_tag;
+    next_read_addr = read_addr;
+    next_rdata_base = rdata_base;
     next_bus_write = bus_write;
     next_read_counter = (read_counter > 0) ? read_counter - 1'b1 : 3'd0;
     next_sdram_rtag = sdram_rtag;
@@ -111,6 +117,7 @@ always_comb begin
         cmd  = CMD_READ;
         addr = {3'b0, sdram_addr[10:2], 1'b0};
         next_read_tag = sdram_tag;
+        next_read_addr = sdram_addr;
         sdram_ack = 1'b1;
         next_bus_write = 1'b0;
         next_burst_counter = 4'd8;
@@ -154,6 +161,7 @@ always_comb begin
     if (burst_counter==4'd5 && bus_write==1'b0) begin
         next_read_counter = 3'd7;
         next_sdram_rtag = read_tag;
+        next_rdata_base = read_addr;
     end
 
     // Reset handling
@@ -170,6 +178,11 @@ always_comb begin
     // Drive the sdram_rvalid and sdram_rdata signals based on the read counter. 
     sdram_rvalid = 2'b00;
     sdram_rdata = 32'hx;
+
+    // Beats wrap around within the 16-byte block, starting at the requested word
+    rdata_beat = 2'((3'd7 - read_counter) >> 1);
+    sdram_raddress = {rdata_base[25:4], rdata_base[3:2] + rdata_beat, 2'b00};
+
     if (read_counter==3'd7) begin
         sdram_rvalid = 2'b01;
         sdram_rdata = read_data[31:0];
@@ -189,6 +202,8 @@ always_ff @(posedge clock) begin
     burst_counter <= next_burst_counter;
     read_counter <= next_read_counter;
     read_tag <= next_read_tag;
+    read_addr <= next_read_addr;
+    rdata_base <= next_rdata_base;
     bus_write <= next_bus_write;
     read_data <= {DRAM_DQ, read_data[31:16]};
     sdram_rtag <= next_sdram_rtag;
@@ -274,4 +289,3 @@ sdram_bank # (.BANK_ID(2'd3) ) sdram_bank_inst_3 (
   );
 
 endmodule
-

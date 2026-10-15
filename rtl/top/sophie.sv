@@ -62,6 +62,20 @@ module sophie (
     output logic        sd_mosi,
     input  logic        sd_miso,
 
+    // Audio codec
+    output logic        AUD_XCK,
+    output logic        AUD_BCLK,
+    output logic        AUD_DACLRCK,
+    output logic        AUD_DACDAT,
+
+    // Audio SDRAM read interface
+    output logic        audio_sdram_req,
+    input  logic        audio_sdram_ready,
+    output logic [25:0] audio_sdram_address,
+    input  logic        audio_sdram_rvalid,
+    input  logic [25:0] audio_sdram_raddress,
+    input  logic [31:0] audio_sdram_rdata,
+    input  logic        audio_sdram_complete,
 
     output logic [9:0]  mouse_x,
     output logic [9:0]  mouse_y,
@@ -74,7 +88,10 @@ logic [15:0] aux_hwregs_addr;
 logic [31:0] aux_hwregs_wdata;
 logic [3:0]  aux_hwregs_strb;
 logic [31:0] aux_hwregs_rdata;
+logic [31:0] audio_hwregs_rdata;
+logic [31:0] combined_hwregs_rdata;
 
+assign combined_hwregs_rdata = aux_hwregs_rdata | audio_hwregs_rdata;
 
 sophie_address_decoder  sophie_address_decoder_inst (
     .clock(clock),
@@ -93,7 +110,7 @@ sophie_address_decoder  sophie_address_decoder_inst (
     .aux_hwregs_addr(aux_hwregs_addr),
     .aux_hwregs_wdata(aux_hwregs_wdata),
     .aux_hwregs_strb(aux_hwregs_strb),
-    .aux_hwregs_rdata(aux_hwregs_rdata),
+    .aux_hwregs_rdata(combined_hwregs_rdata),
     .aux_irom_req(aux_irom_req),
     .aux_irom_write(aux_irom_write),
     .aux_irom_addr(aux_irom_addr),
@@ -107,6 +124,27 @@ sophie_address_decoder  sophie_address_decoder_inst (
     .aux_iris_req(aux_iris_req),
     .aux_iris_addr(aux_iris_addr),
     .aux_iris_wdata(aux_iris_wdata)
+  );
+
+audio audio_inst (
+    .clock(clock),
+    .reset(reset),
+    .hwregs_request(aux_hwregs_req),
+    .hwregs_write(aux_hwregs_write),
+    .hwregs_addr(aux_hwregs_addr),
+    .hwregs_wdata(aux_hwregs_wdata),
+    .hwregs_rdata(audio_hwregs_rdata),
+    .AUD_XCK(AUD_XCK),
+    .AUD_BCLK(AUD_BCLK),
+    .AUD_DACLRCK(AUD_DACLRCK),
+    .AUD_DACDAT(AUD_DACDAT),
+    .sdram_request(audio_sdram_req),
+    .sdram_ready(audio_sdram_ready),
+    .sdram_address(audio_sdram_address),
+    .sdram_rvalid(audio_sdram_rvalid),
+    .sdram_raddress(audio_sdram_raddress),
+    .sdram_rdata(audio_sdram_rdata),
+    .sdram_complete(audio_sdram_complete)
   );
 
 // ================================================================

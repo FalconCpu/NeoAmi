@@ -6,7 +6,7 @@ Simpler peripherals (such as UART) are implemented directly in the SOPHIE block,
 
 SOPHIE does not control access to the main SDRAM - that is handled by a separate dedicated SDRAM controller. 
 
-Possible later additions would be a DMA controller to allow peripherals to access memory directly without going through the CPU, and a "Copper" co-processor to allow sequencing of operations on the peripherals without CPU intervention. Also tbd whether audio will be implemented as a separate peripheral or integrated into SOPHIE.
+Possible later additions would be a DMA controller to allow peripherals to access memory directly without going through the CPU, and a "Copper" co-processor to allow sequencing of operations on the peripherals without CPU intervention.
 
 
 ## Address Map
@@ -46,7 +46,12 @@ Possible later additions would be a DMA controller to allow peripherals to acces
 | E0000038  | SD_CARD_CTRL  | R/W  | SD card interface control and status register
 | E000003C  | SD_CARD_SECTOR| R    | SD card interface status flags
 | E0000800  | SD_CARD_RAM   | R/W  | SD card card RAM - 512 bytes
-| E0000A00  | 
+| E0000200  | AUDIO_ADDRESS | R/W  | Start address for audio channel 0; channel registers repeat every 0x20 bytes
+| E0000204  | AUDIO_LENGTH  | R/W  | Sample length; writing starts playback
+| E0000208  | AUDIO_VOLUME  | R/W  | Right volume in bits 23:16, left volume in bits 7:0
+| E000020C  | AUDIO_PITCH   | R/W  | Playback pitch; 0x10000 is the nominal rate
+| E0000210  | AUDIO_LOOP_ADDRESS | R/W | Loop start address
+| E0000214  | AUDIO_LOOP_LENGTH  | R/W | Loop length; zero disables looping
 
 
 ## SD Card
@@ -61,5 +66,4 @@ To read from the SD card:
 - write a 1 to the SD_CARD_CTRL register to initiate the read operation
 - poll the SD_CARD_CTRL register until it returns 0 (ready)
 - Read from the 
-
 

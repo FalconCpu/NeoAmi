@@ -46,6 +46,15 @@ module sdram (
     output logic [7:0]   gemma_sdram_rtag,
     output logic [31:0]  gemma_sdram_rdata,
 
+    // Connection to audio (read only)
+    input  logic         audio_sdram_req,
+    output logic         audio_sdram_ready,
+    input  logic [25:0]  audio_sdram_address,
+    output logic         audio_sdram_rvalid,
+    output logic [25:0]  audio_sdram_raddress,
+    output logic [31:0]  audio_sdram_rdata,
+    output logic         audio_sdram_complete,
+
 
     // Connection to the SDRAM chip
     output logic [12:0]   DRAM_ADDR,
@@ -66,10 +75,11 @@ logic         sdram_write;
 logic [25:0]  sdram_addr;
 logic [127:0] sdram_wdata;
 logic [15:0]  sdram_wstrb;
-logic [9:0]   sdram_tag;
+logic [10:0]  sdram_tag;
 logic [1:0]   sdram_rvalid;
 logic [31:0]  sdram_rdata;
-logic [9:0]   sdram_rtag;
+logic [10:0]  sdram_rtag;
+logic [25:0]  sdram_raddress;
 
 sdram_arbiter  sdram_arbiter_inst (
     .clock(clock),
@@ -106,6 +116,13 @@ sdram_arbiter  sdram_arbiter_inst (
     .gemma_sdram_rvalid(gemma_sdram_rvalid),
     .gemma_sdram_rtag(gemma_sdram_rtag),
     .gemma_sdram_rdata(gemma_sdram_rdata),
+    .audio_sdram_req(audio_sdram_req),
+    .audio_sdram_ready(audio_sdram_ready),
+    .audio_sdram_address(audio_sdram_address),
+    .audio_sdram_rvalid(audio_sdram_rvalid),
+    .audio_sdram_raddress(audio_sdram_raddress),
+    .audio_sdram_rdata(audio_sdram_rdata),
+    .audio_sdram_complete(audio_sdram_complete),
     .sdram_req(sdram_req),
     .sdram_ack(sdram_ack),
     .sdram_write(sdram_write),
@@ -115,7 +132,8 @@ sdram_arbiter  sdram_arbiter_inst (
     .sdram_tag(sdram_tag),
     .sdram_rvalid(sdram_rvalid),
     .sdram_rdata(sdram_rdata),
-    .sdram_rtag(sdram_rtag)
+    .sdram_rtag(sdram_rtag),
+    .sdram_raddress(sdram_raddress)
   );
 
 sdram_controller  sdram_controller_inst (
@@ -131,6 +149,7 @@ sdram_controller  sdram_controller_inst (
     .sdram_rvalid(sdram_rvalid),
     .sdram_rdata(sdram_rdata),
     .sdram_rtag(sdram_rtag),
+    .sdram_raddress(sdram_raddress),
     .DRAM_ADDR(DRAM_ADDR),
     .DRAM_BA(DRAM_BA),
     .DRAM_CAS_N(DRAM_CAS_N),

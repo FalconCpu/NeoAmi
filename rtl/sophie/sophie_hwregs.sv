@@ -24,6 +24,7 @@
 // E0000040  SDCARD_CTRL    R/W  Control register for the SD card (bit 0 = start read, bit 1 = start write)
 // E0000044  SDCARD_SECTOR  R/W  Sector number for SD card read/write
 // E0001000  SDCARD_DATA    R/W  512 bytes of SD card data
+// E0000200-02F4 AUDIO      R/W  Eight PCM channel register groups (0x20-byte stride)
 
 // verilator lint_off PINCONNECTEMPTY
 

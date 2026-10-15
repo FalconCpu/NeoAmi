@@ -24,9 +24,10 @@ module audio_readmem(
     input  logic         sdram_complete  // Burst complete
 );
 
-// Hold a buffer of 64 bytes (16 words)
-logic [31:0] ram[0:15][0:7]; // 16 words of 4 bytes
+// The SDRAM controller returns four 32-bit words per read burst.
+logic [31:0] ram[0:3][0:7];
 logic [25:0] ram_tag[0:7]; // Address of current buffer
+logic        ram_valid[0:7];
 logic        next_mem_valid;
 logic [1:0]  addr_lab, next_addr_lab;
 logic        next_sdram_request;  // Request memory
@@ -63,13 +64,14 @@ always_comb begin
 
     // Process the incoming request
     if (mem_request) begin
-        if (mem_address[25:6] == ram_tag[current_channel][25:6]) begin
+        if (ram_valid[current_channel] &&
+            mem_address[25:4] == ram_tag[current_channel][25:4]) begin
             // Hit in cache
             next_addr_lab = mem_address[1:0];
             next_mem_valid = 1;
         end else if (transaction_in_progress==0) begin
             // Miss - request new data from SDRAM
-            next_sdram_address = {mem_address[25:6], 6'b0};
+            next_sdram_address = {mem_address[25:4], 4'b0};
             next_sdram_request = 1;
             next_transaction_in_progress = 1;
         end
@@ -97,14 +99,18 @@ always_ff @(posedge clock) begin
     transaction_in_progress <= next_transaction_in_progress;
     if (sdram_rvalid)    // Store incoming data from SDRAM into RAM
         // verilator lint_off BLKSEQ
-        ram[sdram_raddress[5:2]][current_channel] = sdram_rdata;
-    if (sdram_complete)  // Completed the burst read
-        ram_tag[current_channel] <= {sdram_raddress[25:6],6'b0};
-    mem_read_data <= ram[mem_address[5:2]][current_channel];
+        ram[sdram_raddress[3:2]][current_channel] = sdram_rdata;
+    if (sdram_complete) begin
+        ram_tag[current_channel] <= {sdram_raddress[25:4],4'b0};
+        ram_valid[current_channel] <= 1'b1;
+    end
+    mem_read_data <= ram[mem_address[3:2]][current_channel];
 
     if (reset)
-        for (i=0; i<8; i=i+1)
+        for (i=0; i<8; i=i+1) begin
             ram_tag[i] <= 0;
+            ram_valid[i] <= 1'b0;
+        end
 end
 
 wire unused_ok = &{ 1'b0, mem_address[0], sdram_raddress[1:0]};
