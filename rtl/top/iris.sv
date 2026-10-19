@@ -81,11 +81,15 @@ logic [7:0]  vga_r;
 logic [7:0]  vga_g;
 logic [7:0]  vga_b;
 
-logic objfetch_req;
+logic        objfetch_wren;
 logic [11:0] objfetch_addr;
 logic [31:0] objfetch_wdata;
 logic        obj_finished;
-logic [8:0]  obj_finished_index;
+logic [7:0]  obj_finished_index;
+
+// =================================================================
+//                OBJECT WALKER
+// =================================================================
 
 iris_objwalk  iris_objwalk_inst (
     .clock(clock),
@@ -95,7 +99,7 @@ iris_objwalk  iris_objwalk_inst (
     .aux_iris_req(aux_iris_req && aux_iris_addr[15:14] == 2'b0),
     .aux_iris_addr(aux_iris_addr[13:2]),
     .aux_iris_wdata(aux_iris_wdata),
-    .objfetch_req(objfetch_req),
+    .objfetch_wren(objfetch_wren),
     .objfetch_addr(objfetch_addr),
     .objfetch_wdata(objfetch_wdata),
     .obj_finished(obj_finished),
@@ -277,6 +281,15 @@ logic [1:0]   readmem_sdram_rvalid;
 logic [31:0]  readmem_sdram_rdata;
 logic [5:0]   readmem_sdram_rtag;
 
+logic         objfetch_sdram_req;
+logic         objfetch_sdram_ack;
+logic [25:0]  objfetch_sdram_addr;
+logic [5:0]   objfetch_sdram_tag;
+logic [1:0]   objfetch_sdram_rvalid;
+logic [31:0]  objfetch_sdram_rdata;
+logic [5:0]   objfetch_sdram_rtag;
+
+
 iris_ram_access  iris_ram_access_inst (
     .clock(clock),
     .reset(reset),
@@ -290,13 +303,13 @@ iris_ram_access  iris_ram_access_inst (
     .readmem_sdram_rtag(readmem_sdram_rtag),
 
     // objfetch: currently unused
-    .objfetch_sdram_ready(),
-    .objfetch_sdram_req(1'b0),
-    .objfetch_sdram_addr(26'b0),
-    .objfetch_sdram_tag(6'b0),
-    .objfetch_sdram_rvalid(),
-    .objfetch_sdram_rdata(),
-    .objfetch_sdram_rtag(),
+    .objfetch_sdram_ready(objfetch_sdram_ack),
+    .objfetch_sdram_req(objfetch_sdram_req),
+    .objfetch_sdram_addr(objfetch_sdram_addr),
+    .objfetch_sdram_tag(objfetch_sdram_tag),
+    .objfetch_sdram_rvalid(objfetch_sdram_rvalid),
+    .objfetch_sdram_rdata(objfetch_sdram_rdata),
+    .objfetch_sdram_rtag(objfetch_sdram_rtag),
 
     // copper: currently unused
     .copper_sdram_ready(),
@@ -466,6 +479,32 @@ always @(posedge clock) begin
     VGA_HS <= !hsync;
     VGA_VS <= !vsync;
 end
+
+// ============================================================
+//                OBJECT FETCH UNIT
+// ============================================================
+
+iris_objfetch  iris_objfetch_inst (
+    .clock(clock),
+    .reset(reset),
+    .ypos(ypos),
+    .start_of_line(start_of_line),
+    .obj_finished(obj_finished),
+    .obj_finished_index(obj_finished_index),
+    .objfetch_wren(objfetch_wren),
+    .objfetch_addr(objfetch_addr),
+    .objfetch_wdata(objfetch_wdata),
+    .vga_obj_list(vga_obj_list),
+    .objfetch_sdram_req(objfetch_sdram_req),
+    .objfetch_sdram_ack(objfetch_sdram_ack),
+    .objfetch_sdram_addr(objfetch_sdram_addr),
+    .objfetch_sdram_tag(objfetch_sdram_tag),
+    .objfetch_sdram_rvalid(objfetch_sdram_rvalid),
+    .objfetch_sdram_rdata(objfetch_sdram_rdata),
+    .objfetch_sdram_rtag(objfetch_sdram_rtag)
+  );
+
+
 
 wire unused = &{pixel_z[3:0], aux_iris_addr[1:0]};
 

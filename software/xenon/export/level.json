@@ -1,14 +1,14 @@
 {
   "tile_width": 32,
   "tile_height": 32,
-  "num_tiles": 757,
+  "num_tiles": 790,
   "map_width": 20,
   "map_height": 1024,
   "layers": [
     "BODY",
     "LYR1"
   ],
-  "num_spawns": 247,
+  "num_spawns": 2,
   "spawn_names": {
     "1": "Shield pickup",
     "2": "Speed pickup",

@@ -2,11 +2,11 @@
 // Audio Register Map
 // where X is 0..7 for 8 audio channels
 // 0xE0000200     AUDIO_ADDRESS        start address of sample
-// 0xE0000204     AUDIO_LENGTH         length of sample. Writing to this register initiates playback from the start address
-// 0xE0000208     AUDIO_VOLUME         (right in high 16 bits, left in low 16 bits)
-// 0xE000020C     AUDIO_PITCH          sample rate. 0x10000=48kHz, 0x8000=24kHz, 0x4000=12kHz etc
-// 0xE0000210     AUDIO_LOOP_ADDRESS   address to loop back to 
-// 0xE0000214     AUDIO_LOOP_LENGTH    length of loop section in samples (0 = no loop)
+// 0xE0000204     AUDIO_VOLUME         (right in high 16 bits, left in low 16 bits)
+// 0xE000020C     AUDIO_FREQUENCY      sample rate. 0x10000=48kHz, 0x8000=24kHz, 0x4000=12kHz etc
+// 0xE0000210     AUDIO_END_ADDR       end address of sample
+// 0xE0000214     AUDIO_LOOP_ADDR      address to loop back to
+// 0xE0000218     AUDIO_OUT            output sample (read-only)
 // The above registers repeat *8
 
 
@@ -22,326 +22,169 @@ module audio (
     output logic [31:0] hwregs_rdata,       // Data read
 
     // I2S interface to audio codec
-    output logic       AUD_XCK,      // MCLK
-    output logic       AUD_BCLK,     // BCLK
-    output logic       AUD_DACLRCK,  // LRCLK
-    output logic       AUD_DACDAT,   // DACDAT
+    output logic        AUD_XCK,            // MCLK
+    output logic        AUD_BCLK,           // BCLK
+    output logic        AUD_DACLRCK,        // LRCLK
+    output logic        AUD_DACDAT,         // DACDAT
 
     // SDRAM interface (externally wired to always read bursts)
     output logic         sdram_request,  // Request memory
-    input  logic         sdram_ready,    // SDRAM is ready for a request
+    input  logic         sdram_ack,      // SDRAM is ready for a request
     output logic [25:0]  sdram_address,  // Address
-    input  logic         sdram_rvalid,   // Read data valid
-    input  logic [25:0]  sdram_raddress, // Address of read data
+    output  logic [7:0]   sdram_tag,      // Tag for the request
+    input  logic [1:0]   sdram_rvalid,   // Read data valid
     input  logic [31:0]  sdram_rdata,    // Read data
-    input  logic         sdram_complete  // Burst complete
-
+    input  logic [7:0]   sdram_rtag      // Tag for the read data
 );
 
-// memory-mapped registers
-logic [25:0]  reg_address[0:7];
-logic [25:0]  reg_length[0:7];
-logic [7:0]   reg_volume_left[0:7];   // Volume control (0-256)
-logic [7:0]   reg_volume_right[0:7];  // Volume control (0-256)
-logic [25:0]  reg_loop_address[0:7]; // Address to loop back to
-logic [25:0]  reg_loop_length[0:7];  // Length of loop section in samples
-logic [16:0]  reg_pitch[0:7];         // Pitch control
-logic [25:0]  reg_write_addr;         // Address for writeback
-logic [25:0]  reg_write_length;        // count of the number of words still to write
+// ================================================================
+//         Sample accumulators       
+// ================================================================
+// Keep a running sum of the audio samples for left and right channels
+// 
+// The accumulators are 19 bits wide to provide 3 bits of headroom beyond the 16-bit audio samples
+// This allows for accumulation without immediate risk of overflow.
+// The sample_strobe signal indicates when a new sample is available and should be accumulated.
 
+logic signed [18:0] sample_left;       // Left audio sample - 16 bit of sample + 3 bits of headroom
+logic signed [18:0] sample_right;      // Right audio sample - 16 bit of sample + 3 bits of headroom
 logic        sample_strobe;
+logic signed [15:0] sample_data;       
+logic        sample_data_valid_left;
+logic        sample_data_valid_right;
 
-logic signed [17:0] sample_left, next_sample_left;      // Includes 2 extra bits for overflow
-logic signed [17:0] sample_right, next_sample_right;
+
+logic [15:0] sample_left_saturated;  // Left audio sample after saturation to 16 bits
+logic [15:0] sample_right_saturated; // Right audio sample after saturation to 16 bits
+
+always_ff @(posedge clock) begin
+    if (reset || sample_strobe) begin
+        sample_left <= 19'b0;
+        sample_right <= 19'b0;
+    end else begin
+        if (sample_data_valid_left)
+            sample_left <= sample_left + {3'b0, sample_data};
+        if (sample_data_valid_right)
+            sample_right <= sample_right + {3'b0, sample_data};
+    end
+
+    // Saturate the samples to 16 bits
+    sample_left_saturated <= (sample_left > 19'sh0FFFF) ? 16'h7FFF :
+                             (sample_left < 19'sh00000) ? 16'h0000 :
+                              sample_left[15:0];
+    sample_right_saturated <= (sample_right > 19'sh0FFFF) ? 16'h7FFF :
+                              (sample_right < 19'sh00000) ? 16'h0000 :
+                              sample_right[15:0];
+
+end
+
+// =================================================================
+//                          Registers
+// =================================================================
+// Handle MMIO read and write accesses to the audio registers
+
+logic [31:0] regs[0:63];    // 8 registers per channel * 8 channels
+logic [31:0] rdata;
+logic        rdata_valid;
+
+assign hwregs_rdata = rdata_valid ? rdata : 32'b0;
+
+// verilator lint_off BLKSEQ
+always_ff @(posedge clock) begin
+    rdata_valid <= hwregs_request && !hwregs_write && hwregs_addr[15:8]==8'h2;
+    if (hwregs_request && hwregs_write && hwregs_addr[15:8]==8'h2)
+        regs[hwregs_addr[7:2]] = hwregs_wdata;
+    rdata <= regs[hwregs_addr[7:2]];
+end
+
+// =================================================================
+//                    Local access to registers
+// =================================================================
+
+logic [5:0]   reg_addr;
+logic [31:0]  reg_wdata;
+logic         reg_wren;
+logic [31:0]  reg_rdata;
+
+always_ff @(posedge clock) begin
+    if (reg_wren)
+        regs[reg_addr] = reg_wdata;
+    reg_rdata <= regs[reg_addr];
+end
+
+
+// =================================================================
+//                    Waveform Cache
+// =================================================================
+// Store 32 bytes of waveform data for each channel
+// This is written to by the sdram read logic
+
+logic [31:0] waveform_cache[0:63];  // 8 channels, 32 bytes each
+logic [26:0] waveform_cache_tag[0:15];  // 1 bit valid, 26 bit address
+logic [25:0] sdram_raddr;
+logic [5:0]  sdram_read_index;
+
+always_ff @(posedge clock) begin
+    if (sdram_rvalid!=2'b0) begin
+        waveform_cache[sdram_read_index] <= sdram_rdata;
+        waveform_cache_tag[sdram_read_index[5:2]] <= {sdram_rvalid==2'b11, sdram_raddr[25:0]};   // Set valid bit when line is complete
+        sdram_read_index <= sdram_read_index + 1;
+    end
+end
+
+
+
+
+
+
+
+
+// =================================================================
+//                    Multiplier
+// =================================================================
+
+logic signed [15:0]  mult_a;
+logic signed [15:0]  mult_b;
+logic signed [31:0]  mult_result;
+
+always_ff @(posedge clock) begin
+    mult_result <= mult_a * mult_b;
+end
+
+
+// =================================================================
+//                    State Machine
+// =================================================================
 
 logic [3:0]  state, next_state;
-logic [17:0] phase_acc[0:7], next_phase_acc[0:7];
-
-// Multiplier signals
-logic        [15:0] mult_a;
-logic        [7:0]  mult_b;
-logic        [23:0] mult_result;
-
-// Audio memory read interface
-logic         mem_request, next_mem_request;   // A transaction is ready to be processed
-logic [25:0]  mem_address, next_mem_address;   // Address to read
-logic         mem_valid;                       // Memory read has completed
-logic [15:0]  mem_data;                        // Data read#
-
-// Current position in audio stream
-logic [25:0]  current_address[0:7], next_current_address[0:7];
-logic [25:0]  words_remaining[0:7], next_words_remaining[0:7];
-logic signed [15:0]  current_sample[0:7], next_current_sample[0:7];
-logic signed [15:0]  prev_sample[0:7], next_prev_sample[0:7];
-
-logic [15:0]  interpolated_sample, next_interpolated_sample;
-logic [2:0]   current_channel, next_current_channel;
-logic [7:0]   start_voice, next_start_voice;
-
-logic [1:0]   phase_msb;
-
-localparam START=4'h0,
-           INC_PHASE =4'h1,
-           FETCH_SAMPLE=4'h2,
-           WAIT_SAMPLE=4'h3,
-           INTERPOLATE_1 = 4'h4, 
-           INTERPOLATE_2 = 4'h5,
-           INTERPOLATED = 4'h6,
-           MUL_LEFT=4'h7, 
-           MUL_RIGHT=4'h8, 
-           COMPLETE =4'h9,
-           NEXT_VOICE=4'ha,
-           DONE=4'hf;
-
-// clamp to signed 16-bit range
-localparam signed [17:0] MAX_16 = 18'sd32767;
-localparam signed [17:0] MIN_16 = -18'sd32768;
-
 
 always_comb begin
-    integer i;
     next_state = state;
-    next_sample_left = sample_left;
-    next_sample_right = sample_right;
-    mult_a = 16'h0;
-    mult_b = 8'h0;
-    next_mem_request = 1'b0;
-    next_mem_address = mem_address;
-
-    for (i=0; i<8; i=i+1) begin
-        next_current_address[i] = current_address[i];
-        next_words_remaining[i] = words_remaining[i];
-        next_current_sample[i] = current_sample[i];
-        next_prev_sample[i] = prev_sample[i];
-        next_phase_acc[i] = phase_acc[i];
-    end
-    next_interpolated_sample = interpolated_sample;
-    next_current_channel = current_channel;
-    next_start_voice = start_voice;
-    phase_msb = phase_acc[current_channel][17:16];  // Top two bits of phase accumulator
-
-    case (state)
-        START: begin  // Start calculating the next sample
-            next_sample_left = 18'h0;
-            next_sample_right = 18'h0;
-            next_current_channel = 0;
-            next_state = INC_PHASE;
-        end
-
-        INC_PHASE: begin  // Increment phase accumulator
-            next_phase_acc[current_channel] = phase_acc[current_channel] + reg_pitch[current_channel];
-            // Look for new data to play
-            if (start_voice[current_channel]) begin
-                next_start_voice[current_channel] = 1'b0;
-                next_words_remaining[current_channel] = reg_length[current_channel];
-                next_current_address[current_channel] = reg_address[current_channel];
-                next_phase_acc[current_channel] = 18'h10000;
-                next_prev_sample[current_channel] = 16'h0;
-                next_current_sample[current_channel] = 16'h0;
-            end else if (words_remaining[current_channel]==0 && next_current_address[current_channel]!=0) begin
-                // we were playing a sample but reached the end. Jump to the loop point
-                next_words_remaining[current_channel] = reg_loop_length[current_channel];
-                next_current_address[current_channel] = reg_loop_address[current_channel];
-            end
-
-            if (next_words_remaining[current_channel]==0) begin
-                next_state = NEXT_VOICE; // No more data to play
-            end else begin
-                next_state = FETCH_SAMPLE;
-            end
-        end
-
-        FETCH_SAMPLE: begin  // Request the next sample from memory
-            if (phase_msb!=2'b0) begin
-                next_phase_acc[current_channel] = phase_acc[current_channel] - 18'h10000;  // Clear top bits
-                next_mem_request = 1'b1;
-                next_mem_address = current_address[current_channel];
-                next_words_remaining[current_channel] = words_remaining[current_channel] - 1'b1;
-                next_current_address[current_channel] = current_address[current_channel] + 1'b1; // Advance to the next sample
-                next_prev_sample[current_channel] = current_sample[current_channel];
-                next_state = WAIT_SAMPLE;
-            end else 
-                next_state = INTERPOLATE_1; // No sample needed this cycle
-        end
-
-        WAIT_SAMPLE: begin  // Wait for the sample to arrive
-            next_mem_request = !mem_valid; // Keep request high until valid
-            if (mem_valid) begin
-                next_current_sample[current_channel] = mem_data;
-                if (phase_msb==2'b00)
-                    next_state = INTERPOLATE_1;
-                else
-                    next_state = FETCH_SAMPLE; // We need to skip a sample
-            end else begin
-                next_state = WAIT_SAMPLE; // Stay here until sample arrives
-            end
-        end
-
-        INTERPOLATE_1: begin  // First stage of linear interpolation
-            mult_a = prev_sample[current_channel];
-            mult_b = ~phase_acc[current_channel][15:8]; // 1 - fraction
-            next_state = INTERPOLATE_2;
-        end
-
-        INTERPOLATE_2: begin  // Second stage of linear interpolation
-            next_interpolated_sample = mult_result[23:8];
-            mult_a = current_sample[current_channel];
-            mult_b = phase_acc[current_channel][15:8]; // fraction
-            next_state = INTERPOLATED;
-        end
-
-        INTERPOLATED: begin  // Finish interpolation
-            next_interpolated_sample = interpolated_sample + (mult_result[23:8]);
-            next_state = MUL_LEFT;
-        end
-
-        MUL_LEFT: begin   // Multiply left channel sample by left volume
-            mult_a = interpolated_sample;
-            mult_b = reg_volume_left[current_channel];
-            next_state = MUL_RIGHT;
-        end
-
-        MUL_RIGHT: begin   // Add to left channel sample, multiply right channel sample by right volume
-            next_sample_left = sample_left + {mult_result[23],mult_result[23],mult_result[23:8]}; // Sign-extend
-            mult_a = interpolated_sample;
-            mult_b = reg_volume_right[current_channel];
-            next_state = COMPLETE;
-        end
-
-        COMPLETE: begin  // Add to right channel sample
-            next_sample_right = sample_right + {mult_result[23],mult_result[23],mult_result[23:8]}; // Sign-extend            
-            next_state = NEXT_VOICE;
-        end
-
-        NEXT_VOICE: begin
-            if (current_channel==7)
-                next_state = DONE;
-            else begin
-                next_current_channel = current_channel + 1'b1;
-                next_state = INC_PHASE;
-            end
-        end
-
-        DONE: begin  // All channels processed - wait for I2S to consume samples
-            // Saturate outputs to 16 bits
-            if (next_sample_left > MAX_16)
-                next_sample_left = MAX_16;
-            else if (next_sample_left < MIN_16)
-                next_sample_left = MIN_16;
-            if (next_sample_right > MAX_16)
-                next_sample_right = MAX_16;
-            else if (next_sample_right < MIN_16)
-                next_sample_right = MIN_16;
-        end
-
-
-
-        default: begin
-            // Do nothing
-        end
-    endcase
-
-    // If reset or we have just consumed a sample, go back to state 0
-    if (sample_strobe)
-        next_state = START;
-
-    if (reset) begin
-        next_state = START;
-        next_sample_left = 18'h0;
-        next_sample_right = 18'h0;
-        next_mem_request = 1'b0;
-        next_mem_address = 26'h0;
-        for (i=0; i<8; i=i+1) begin
-            next_current_address[i] = 26'h0;
-            next_words_remaining[i] = 26'h0;
-            next_current_sample[i] = 16'h0;
-            next_prev_sample[i] = 16'h0;
-            next_phase_acc[i] = 18'h0;
-        end
-        next_current_channel = 3'h0;
-    end
+    mult_a = 16'hx;
+    mult_b = 16'hx;
+    reg_addr = 6'hx;
+    reg_wdata = 32'hx;
+    reg_wren = 1'b0;
 end
 
 
 always_ff @(posedge clock) begin
-    integer i;
-    hwregs_rdata <= 32'h0000_0000;
-    sample_left <= next_sample_left;
-    sample_right <= next_sample_right;
     state <= next_state;
-    mult_result <= {{8{mult_a[15]}},mult_a} * {1'b0,mult_b};
-    mem_request <= next_mem_request;
-    mem_address <= next_mem_address;
-
-    for (i=0; i<8; i=i+1) begin
-        current_address[i] <= next_current_address[i];
-        words_remaining[i] <= next_words_remaining[i];
-        current_sample[i] <= next_current_sample[i];
-        phase_acc[i] <= next_phase_acc[i];
-       prev_sample[i] <= next_prev_sample[i];
-    end
-    interpolated_sample <= next_interpolated_sample;
-    current_channel <= next_current_channel;
-    start_voice <= next_start_voice;
-
-    // Handle register writes
-    if (hwregs_request && hwregs_write) begin
-        casez (hwregs_addr)
-            16'b0000_0010_???0_0000: reg_address[hwregs_addr[7:5]] <= hwregs_wdata[25:0];      // AUDIO_ADDRESS register
-            16'b0000_0010_???0_0100: begin
-                reg_length[hwregs_addr[7:5]] <= hwregs_wdata[25:0];       // AUDIO_LENGTH register    
-                start_voice[hwregs_addr[7:5]] <= 1'b1;  // Start playing the sound from the beginning
-            end
-            16'b0000_0010_???0_1000: begin
-                reg_volume_left[hwregs_addr[7:5]]  <= hwregs_wdata[7:0];        // AUDIO_VOLUME_LEFT register
-                reg_volume_right[hwregs_addr[7:5]] <= hwregs_wdata[23:16];      // AUDIO_VOLUME_RIGHT register
-            end
-            16'b0000_0010_???0_1100: reg_pitch[hwregs_addr[7:5]] <= hwregs_wdata[16:0];        // AUDIO_PITCH register
-            16'b0000_0010_???1_0000: reg_loop_address[hwregs_addr[7:5]] <= hwregs_wdata[25:0]; // AUDIO_LOOP_ADDRESS register
-            16'b0000_0010_???1_0100: reg_loop_length[hwregs_addr[7:5]] <= hwregs_wdata[25:0];  // AUDIO_LOOP_LENGTH register
-            16'b0000_0010_1111_1000: reg_write_addr <= hwregs_wdata[25:0];
-            16'b0000_0010_1111_1100: reg_write_length <= hwregs_wdata[25:0];
-            default: begin  // Ignore writes to other addresses
-            end
-        endcase
-    end
-
-    // Handle register reads
-    if (hwregs_request && !hwregs_write) begin
-        casez (hwregs_addr)
-            16'b0000_0010_???0_0000: hwregs_rdata <= {6'b0, reg_address[hwregs_addr[7:5]]};      // AUDIO_ADDRESS register
-            16'b0000_0010_???0_0100: hwregs_rdata <= {6'b0, reg_length[hwregs_addr[7:5]]};       // AUDIO_LENGTH register    
-            16'b0000_0010_???0_1000: hwregs_rdata <= {8'b0,reg_volume_right[hwregs_addr[7:5]],8'b0,reg_volume_left[hwregs_addr[7:5]]}; // AUDIO_VOLUME_LEFT register
-            16'b0000_0010_???0_1100: hwregs_rdata <=  {15'b0, reg_pitch[hwregs_addr[7:5]]};        // AUDIO_PITCH register
-            16'b0000_0010_???1_0000: hwregs_rdata <= {6'b0, reg_loop_address[hwregs_addr[7:5]]}; // AUDIO_LOOP_ADDRESS register
-            16'b0000_0010_???1_0100: hwregs_rdata <= {6'b0, reg_loop_length[hwregs_addr[7:5]]};
-            16'b0000_0010_1111_1000: hwregs_rdata <= {6'b0, reg_write_addr};
-            16'b0000_0010_1111_1100: hwregs_rdata <= {6'b0, reg_write_length};
-            default: begin  // Ignore reads from other addresses
-                hwregs_rdata <= 32'h0000_0000;
-            end
-        endcase
-    end
-
-    if (reset) begin
-        for (i=0; i<8; i=i+1) begin
-            reg_address[i] <= 26'h0;
-            reg_length[i] <= 26'h0;
-            reg_volume_left[i] <= 8'hFF;
-            reg_volume_right[i] <= 8'hFF;
-            reg_pitch[i] <= 17'h10000; // Normal pitch
-        end
-        reg_write_length <= 0;
-        start_voice <= 0;
-    end
 end
 
-// I2S output instance
+
+
+
+
+// =================================================================
+//                          I2S Output
+// =================================================================
+
 i2s_output  i2s_output_inst (
     .clock(clock),
     .reset(reset),
-    .sample_left(sample_left[15:0]),
-    .sample_right(sample_right[15:0]),
+    .sample_left(sample_left_saturated),
+    .sample_right(sample_right_saturated),
     .sample_strobe(sample_strobe),      // Driven high for one clock when samples have been consumed
     .AUD_MCLK(AUD_XCK),
     .AUD_BCLK(AUD_BCLK),
@@ -349,23 +192,6 @@ i2s_output  i2s_output_inst (
     .AUD_DACDAT(AUD_DACDAT)
   );
 
-audio_readmem  audio_readmem_inst (
-    .clock(clock),
-    .reset(reset),
-    .current_channel(current_channel),
-    .mem_request(mem_request),
-    .mem_address(mem_address),
-    .mem_valid(mem_valid),
-    .mem_data(mem_data),
-    .sdram_request(sdram_request),
-    .sdram_ready(sdram_ready),
-    .sdram_address(sdram_address),
-    .sdram_rvalid(sdram_rvalid),
-    .sdram_raddress(sdram_raddress),
-    .sdram_rdata(sdram_rdata),
-    .sdram_complete(sdram_complete)
-  );
-
-wire unused_ok = &{ 1'b0, hwregs_wdata[31:24], mult_result[7:0]};
+wire unused = &{hwregs_addr[1:0]};
 
 endmodule

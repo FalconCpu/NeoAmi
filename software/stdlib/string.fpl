@@ -1,0 +1,6 @@
+
+fun makeString(data:Pointer<Char>, length: Int) -> String
+    val result = new Array<Char>(length)
+    for i in 0..length-1
+        result[i] = data[i]
+    return unsafe(result as String)

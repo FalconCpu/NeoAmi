@@ -1,0 +1,20 @@
+
+class Pod(xpos: Int, ypos: Int) : Actor(xpos, ypos)
+    var velocityX = 0
+    var velocityY = 5
+    var t = 0
+
+    override fun update()
+        x += velocityX
+        y += velocityY
+        if y > 480
+            active = false
+            return
+
+        val imageIndex = (t/8) % 24
+
+        val sprite = scene.newSprite()
+        sprite.setBitmap(x, y, spriteManifest[SPRITE_POD + imageIndex], spriteDataPtr)
+        sprite.setZ(32)
+
+        scene.addObject(sprite)

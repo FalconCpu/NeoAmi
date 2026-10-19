@@ -51,12 +51,12 @@ module sdram_arbiter(
 
     // Connection to audio (read only)
     input  logic         audio_sdram_req,
-    output logic         audio_sdram_ready,
+    output logic         audio_sdram_ack,
     input  logic [25:0]  audio_sdram_address,
-    output logic         audio_sdram_rvalid,
-    output logic [25:0]  audio_sdram_raddress,
+    input  logic [7:0]   audio_sdram_tag,
+    output logic [1:0]   audio_sdram_rvalid,
     output logic [31:0]  audio_sdram_rdata,
-    output logic         audio_sdram_complete,
+    output logic [7:0]   audio_sdram_rtag,
 
 
     // Connection to the SDRAM controller
@@ -69,8 +69,7 @@ module sdram_arbiter(
     output logic [10:0]  sdram_tag,
     input  logic [1:0]   sdram_rvalid,
     input  logic [31:0]  sdram_rdata,
-    input  logic [10:0]  sdram_rtag,
-    input  logic [25:0]  sdram_raddress
+    input  logic [10:0]  sdram_rtag
 );
 
 logic         next_sdram_req;
@@ -101,7 +100,7 @@ always_comb begin
     icache_sdram_ack = 1'b0;
     gemma_sdram_ack = 1'b0;
     vga_sdram_ack = 1'b0;
-    audio_sdram_ready = 1'b0;
+    audio_sdram_ack = 1'b0;
 
     // If the SDRAM is ready then shift the new request through, otherwise hold it in the queue
     if (sdram_ack) begin
@@ -154,13 +153,13 @@ always_comb begin
         new_sdram_tag = {3'b010, vga_sdram_tag[7:0]};
 
     end else if (audio_sdram_req) begin
-        audio_sdram_ready = 1'b1;
+        audio_sdram_ack = 1'b1;
         new_sdram_req = 1'b1;
         new_sdram_write = 1'b0;
         new_sdram_addr = audio_sdram_address;
         new_sdram_wdata = 128'bx;
         new_sdram_wmask = 16'bx;
-        new_sdram_tag = {3'b100, 8'b0};
+        new_sdram_tag = {3'b100, audio_sdram_tag[7:0]};
 
     end else if (dcache_sdramw_req) begin
         // Accept request from dcache
@@ -251,10 +250,9 @@ always_comb begin
     gemma_sdram_rvalid = 2'b0;
     gemma_sdram_rdata = 32'bx;
     gemma_sdram_rtag = 8'bx;
-    audio_sdram_rvalid = 1'b0;
-    audio_sdram_raddress = sdram_raddress;
+    audio_sdram_rvalid = 2'b0;
     audio_sdram_rdata = 32'bx;
-    audio_sdram_complete = 1'b0;
+    audio_sdram_rtag = 8'bx;
 
     if (sdram_rtag[10:8] == 3'b000) begin
         // Response for icache
@@ -275,9 +273,9 @@ always_comb begin
         gemma_sdram_rdata = sdram_rdata;
         gemma_sdram_rtag = sdram_rtag[7:0];
     end else if (sdram_rtag[10:8] == 3'b100) begin
-        audio_sdram_rvalid = |sdram_rvalid;
+        audio_sdram_rvalid = sdram_rvalid;
         audio_sdram_rdata = sdram_rdata;
-        audio_sdram_complete = sdram_rvalid == 2'b11;
+        audio_sdram_rtag = sdram_rtag[7:0];
     end
 end
 

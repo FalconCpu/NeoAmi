@@ -11,5 +11,12 @@
 ../os/fileHandler.fpl
 ../os/keyboard.fpl
 ../os/kernel_main.fpl
-
+sprite_manifest.fpl
 main.fpl
+actors.fpl
+Bullet.fpl
+pod.fpl
+drone.fpl
+rusher.fpl
+pickup.fpl
+asteroid.fpl

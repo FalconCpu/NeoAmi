@@ -17,13 +17,18 @@
 #                        Kernel Memory Allocator
 # ####################################################################
 
-const HEAP_START = 0x01000
+const HEAP_START = 0x01008
 const HEAP_END   = 0x1F000      # Allocate 120kB for the kernel heap
 extern fun memcpy(dest:Int, src:Int, size:Int)
 
 
 # FreeMemBlock
-# Blocks are always a multiple of 16 bytes in size - this means the lower 4 bits are always 0
+# Blocks are always a multiple of 16 bytes in size
+# And have an 8 byte header. 
+# The blocks are always aligned to 8 bytes off from a multiple of 16 - 
+# hence the data portion of the block is always 16-byte aligned
+# 
+# The lower 3 bits of the size field are always 0
 # hence we can repurpose them to indicate the block status
 # 0 = free
 # 1 = allocated for an object

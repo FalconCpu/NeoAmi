@@ -1,0 +1,42 @@
+
+class Actor(var x:Int, var y:Int)
+    var active = true
+
+    virtual fun update()
+        # Default update logic for an actor
+        if not active
+            return
+
+class ActorList() 
+    var length = 0
+    var array = new Array<Actor>(8)
+
+    fun add(item: Actor)
+        if length >= array.length
+            var oldArray = array
+            array = new Array<Actor>(array.length * 2)
+            for i in 0..<oldArray.length
+                array[i] = oldArray[i]
+            free oldArray
+        array[length] = item
+        length+=1
+
+    fun get(index: Int) -> Actor
+        return array[index]
+
+    fun set(index:Int, item: Actor)
+        array[index] = item
+
+    fun removeInactive()
+        var i = 0
+        var j = 0
+        while i < length
+            array[i] = array[j]
+            j += 1
+            if array[i].active
+                i += 1
+            else
+                length -= 1
+
+
+

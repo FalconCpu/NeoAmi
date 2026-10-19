@@ -17,8 +17,12 @@ enum Error(description:String) [
     DOUBLE_FREE         ("Memory Double Free Detected"),
     
     # Misc errors
-    TIMEOUT              ("Operation Timed Out"),
-    INVALID_ARGUMENT     ("Invalid Argument"),
-    NOT_IMPLEMENTED      ("Not Implemented"),
+    TIMEOUT             ("Operation Timed Out"),
+    INVALID_ARGUMENT    ("Invalid Argument"),
+    NOT_IMPLEMENTED     ("Not Implemented"),
     UNKNOWN             ("Unknown Error"),
-    IO_ERROR            ("I/O Error")   ]
+    IO_ERROR            ("I/O Error"),
+    FILE_NOT_FOUND      ("File Not Found"),
+    IS_A_DIRECTORY      ("Is a Directory"),
+    NOT_A_DIRECTORY     ("Not a Directory"),
+    BAD_SECTOR          ("Bad Sector")  ]

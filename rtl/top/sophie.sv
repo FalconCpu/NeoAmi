@@ -57,10 +57,10 @@ module sophie (
     inout               SDA,
     output              SCL,
 
-    output logic        sd_cs,
-    output logic        sd_sclk,
-    output logic        sd_mosi,
-    input  logic        sd_miso,
+    output logic        SD_CS,
+    output logic        SD_SCLK,
+    output logic        SD_MOSI,
+    input  logic        SD_MISO,
 
     // Audio codec
     output logic        AUD_XCK,
@@ -70,12 +70,12 @@ module sophie (
 
     // Audio SDRAM read interface
     output logic        audio_sdram_req,
-    input  logic        audio_sdram_ready,
+    input  logic        audio_sdram_ack,
     output logic [25:0] audio_sdram_address,
-    input  logic        audio_sdram_rvalid,
-    input  logic [25:0] audio_sdram_raddress,
+    output logic [7:0]  audio_sdram_tag,
+    input  logic [1:0]  audio_sdram_rvalid,
     input  logic [31:0] audio_sdram_rdata,
-    input  logic        audio_sdram_complete,
+    input  logic [7:0]  audio_sdram_rtag,
 
     output logic [9:0]  mouse_x,
     output logic [9:0]  mouse_y,
@@ -92,6 +92,10 @@ logic [31:0] audio_hwregs_rdata;
 logic [31:0] combined_hwregs_rdata;
 
 assign combined_hwregs_rdata = aux_hwregs_rdata | audio_hwregs_rdata;
+
+// ================================================================
+//                  ADDRESS DECODER
+// ================================================================
 
 sophie_address_decoder  sophie_address_decoder_inst (
     .clock(clock),
@@ -126,6 +130,10 @@ sophie_address_decoder  sophie_address_decoder_inst (
     .aux_iris_wdata(aux_iris_wdata)
   );
 
+// ================================================================
+//                  AUDIO interface
+// ================================================================
+
 audio audio_inst (
     .clock(clock),
     .reset(reset),
@@ -139,43 +147,12 @@ audio audio_inst (
     .AUD_DACLRCK(AUD_DACLRCK),
     .AUD_DACDAT(AUD_DACDAT),
     .sdram_request(audio_sdram_req),
-    .sdram_ready(audio_sdram_ready),
+    .sdram_ack(audio_sdram_ack),
     .sdram_address(audio_sdram_address),
+    .sdram_tag(audio_sdram_tag),
     .sdram_rvalid(audio_sdram_rvalid),
-    .sdram_raddress(audio_sdram_raddress),
-    .sdram_rdata(audio_sdram_rdata),
-    .sdram_complete(audio_sdram_complete)
-  );
-
-// ================================================================
-//                  SDCARD interface
-// ================================================================
-logic        sdcard_busy;
-logic        sdcard_start_read;
-logic        sdcard_start_write;
-logic [8:0]  sdcard_sector;
-logic [8:0]  sdcard_byte_addr;
-logic [31:0] sdcard_wdata;
-logic [31:0] sdcard_rdata;
-logic        sdcard_read_strobe;
-logic        sdcard_write_strobe;
-
-sdcard  sdcard_inst (
-    .clock(clock),
-    .reset(reset),
-    .sdcard_busy(sdcard_busy),
-    .sdcard_start_read(sdcard_start_read),
-    .sdcard_start_write(sdcard_start_write),
-    .sdcard_sector(sdcard_sector),
-    .sdcard_byte_addr(sdcard_byte_addr),
-    .sdcard_wdata(sdcard_wdata),
-    .sdcard_rdata(sdcard_rdata),
-    .sdcard_read_strobe(sdcard_read_strobe),
-    .sdcard_write_strobe(sdcard_write_strobe),
-    .sd_cs(sd_cs),
-    .sd_sclk(sd_sclk),
-    .sd_mosi(sd_mosi),
-    .sd_miso(sd_miso)
+    .sdram_rtag(audio_sdram_rtag),
+    .sdram_rdata(audio_sdram_rdata)
   );
 
 // ================================================================
@@ -209,11 +186,14 @@ sophie_hwregs  sophie_hwregs_inst (
     .PS2_DAT2(PS2_DAT2),
     .SDA(SDA),
     .SCL(SCL),
+    .SD_CS(SD_CS),
+    .SD_SCLK(SD_SCLK),
+    .SD_MOSI(SD_MOSI),
+    .SD_MISO(SD_MISO),
     .mouse_x(mouse_x),
     .mouse_y(mouse_y),
     .cpu_pc(cpu_pc),
     .vga_obj_list(vga_obj_list)
   );
-
 
 endmodule

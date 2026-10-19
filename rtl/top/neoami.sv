@@ -196,12 +196,12 @@ logic [7:0]  gemma_sdram_rtag;
 logic [31:0] gemma_sdram_rdata;
 
 logic         audio_sdram_req;
-logic         audio_sdram_ready;
+logic         audio_sdram_ack;
 logic [25:0]  audio_sdram_address;
-logic         audio_sdram_rvalid;
-logic [25:0]  audio_sdram_raddress;
+logic [1:0]   audio_sdram_rvalid;
 logic [31:0]  audio_sdram_rdata;
-logic         audio_sdram_complete;
+logic [7:0]   audio_sdram_tag;
+logic [7:0]   audio_sdram_rtag;
 
 
 
@@ -241,12 +241,12 @@ logic         audio_sdram_complete;
     .gemma_sdram_rtag(gemma_sdram_rtag),
     .gemma_sdram_rdata(gemma_sdram_rdata),
     .audio_sdram_req(audio_sdram_req),
-    .audio_sdram_ready(audio_sdram_ready),
+    .audio_sdram_ack(audio_sdram_ack),
+    .audio_sdram_tag(audio_sdram_tag),
     .audio_sdram_address(audio_sdram_address),
     .audio_sdram_rvalid(audio_sdram_rvalid),
-    .audio_sdram_raddress(audio_sdram_raddress),
+    .audio_sdram_rtag(audio_sdram_rtag),
     .audio_sdram_rdata(audio_sdram_rdata),
-    .audio_sdram_complete(audio_sdram_complete),
     .DRAM_ADDR(DRAM_ADDR),
     .DRAM_BA(DRAM_BA),
     .DRAM_CAS_N(DRAM_CAS_N),
@@ -322,21 +322,21 @@ sophie  sophie_inst (
     .PS2_DAT2(PS2_DAT2),
     .SDA(FPGA_I2C_SDAT),
     .SCL(FPGA_I2C_SCLK),
-    .sd_cs(GPIO_0[28]),
-    .sd_sclk(GPIO_0[22]),
-    .sd_mosi(GPIO_0[26]),
-    .sd_miso(GPIO_0[20]),
+    .SD_CS(GPIO_0[28]),
+    .SD_SCLK(GPIO_0[22]),
+    .SD_MOSI(GPIO_0[26]),
+    .SD_MISO(GPIO_0[20]),
     .AUD_XCK(AUD_XCK),
     .AUD_BCLK(AUD_BCLK),
     .AUD_DACLRCK(AUD_DACLRCK),
     .AUD_DACDAT(AUD_DACDAT),
     .audio_sdram_req(audio_sdram_req),
-    .audio_sdram_ready(audio_sdram_ready),
+    .audio_sdram_ack(audio_sdram_ack),
+    .audio_sdram_tag(audio_sdram_tag),
     .audio_sdram_address(audio_sdram_address),
     .audio_sdram_rvalid(audio_sdram_rvalid),
-    .audio_sdram_raddress(audio_sdram_raddress),
     .audio_sdram_rdata(audio_sdram_rdata),
-    .audio_sdram_complete(audio_sdram_complete),
+    .audio_sdram_rtag(audio_sdram_rtag),
     .mouse_x(mouse_x),
     .mouse_y(mouse_y),
     .cpu_pc(cpu_pc),

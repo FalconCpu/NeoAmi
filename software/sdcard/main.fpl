@@ -1,0 +1,85 @@
+
+
+fun freeDirList(list: List<DirectoryEntry>)
+    for entry in list
+        free entry
+    free list
+
+class DirectoryEntry(val name: String, val attr: Int, val first_cluster: Int, val file_size: Int)
+    fun free()
+        free(name)
+
+fun print(dirEntry: DirectoryEntry)
+    if dirEntry.attr & 0x10 != 0
+        kprintf("Directory ")
+    else
+        kprintf("%8d  ", dirEntry.file_size)
+    kprintf("%s\n", dirEntry.name)
+
+
+fun main()
+    kprintf("Kernel Main\n")
+
+    hwAudio0.start_address = 0x123400
+    hwAudio1.end_address = 0x12700
+    hwAudio2.start_address = 0x128000
+    hwAudio2.end_address = 0x12B000
+    kprintf("Audio0 start address: 0x%x\n", hwAudio0.start_address)
+    kprintf("Audio1 end address: 0x%x\n", hwAudio1.end_address)
+    kprintf("Audio2 start address: 0x%x\n", hwAudio2.start_address)
+    kprintf("Audio2 end address: 0x%x\n", hwAudio2.end_address)
+
+    val fs = new FileSystem()
+    val init_result = fs.initialize()
+    if  init_result!=Error.NONE
+        kprintf("Failed to initialize FAT32 file system: %s\n", init_result.description)
+        abort(0)
+    kprintf("FAT32 file system initialized successfully\n")
+
+    val root_entries = fs.listDirectory(0,"")
+    if root_entries is Error
+        kprintf("Failed to list root directory: %s \n", root_entries.description)
+        abort(0)
+
+    kprintf("List Root directory entries:\n")
+    for entry in root_entries
+        print(entry)
+    freeDirList(root_entries)
+
+    val sw_dir = fs.listDirectory(0, "software/xenon")
+    if sw_dir is Error
+        kprintf("Failed to list SOFTWARE sub-directory: %s\n", sw_dir.description)
+        abort(0)
+    kprintf("List SOFTWARE sub-directory entries:\n")
+    for entry in sw_dir
+        print(entry)
+    freeDirList(sw_dir)
+
+
+    val file = fs.openFile(0, "software/xenon/symbol-map.json")
+    if file is Error
+        kprintf("Failed to open file: %s\n", file.description)
+        abort(0)
+    kprintf("File opened successfully\n")
+# 
+    val fileSize = file.file_size
+    val page = allocPage(fileSize)
+    if page is Error then abort Error.OUT_OF_MEMORY
+    val buffer = pageIDToAddress(page)
+
+    val bytes_read = file.read(buffer, file.file_size)
+    if bytes_read is Error
+        kprintf("Failed to read file: %s\n", bytes_read.description)
+        abort(0)
+    kprintf("Read %d bytes from file\n", bytes_read)
+    kprintf("File contents:\n")
+    for i in 0..bytes_read-1
+        kprintf("%c", buffer[i])
+        for j in 0..1000
+            val dummy=1
+    kprintf("\n")
+    free file
+
+
+
+

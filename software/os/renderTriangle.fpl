@@ -1,6 +1,8 @@
 extern fun bzero(dest:Int, n:Int)
 
 var first = true
+const COLLISION_THRESHOLD_Z = 4
+const COLLISION_THRESHOLD = 4
 
 class GfxVertex(
     var x:Float,
@@ -11,13 +13,17 @@ class GfxVertex(
     var b:Float)
 
 class GfxScene
-    val objects = new List<IrisSprite>()
     var clipX1 = 0
     var clipX2 = 640
     var clipY1 = 0
     var clipY2 = 480
     var currentTexture : Array<Char>  = unsafe(0 as Array<Char>)
     var currentTexStride = 0
+
+    val spriteRow : InlineArray<IrisSprite?>(480)
+
+
+    var freeList : IrisSprite? = null
 
     fun floatToFixed12_4(value:Float) -> Short
         return (value * 16.0) as Short
@@ -87,7 +93,7 @@ class GfxScene
 
         # Create GfxObject
         val dest = new IrisSprite()
-        objects.add(dest)
+        addObject(dest)
         # kprintf("number of objects in scene: %d\n", objects.length)
 
         var slope_13 = (v3.x - v1.x) / (v3.y - v1.y)
@@ -188,25 +194,90 @@ class GfxScene
         # kprintf("Object Z: %08x\n", dest.data[GFXOBJ_Z] & 0xFFF | ((dest.data[GFXOBJ_Z+1] & 0xFF) lsl 16))
         return true
 
-    fun addSprite(sprite:IrisSprite)
-        objects.add(sprite)
+    fun init()
+        for i in 0..479
+            spriteRow[i] = null
+
+    fun addObject(obj:IrisSprite)
+        var row = obj.ytop as Int
+        if row >= 0 and row < 480
+            obj.next = spriteRow[row]
+            spriteRow[row] = obj
+
+    fun listAppend(list:IrisSprite, obj:IrisSprite?)
+        var ptr = list
+        while ptr.next != null
+            ptr = ptr.next
+        ptr.next = obj
 
     fun show()
-        val x = if objects.length < 255 then objects.length else 255
-        for i in 0..<x
-            val gobj = objects.get(i)
-            memcpy(VGA_OBJ_MEMORY+64*i, unsafe(gobj as Int), 64)
-        bzero(VGA_OBJ_MEMORY+64*objects.length, 64*(255-objects.length))
+        # kprintf("Starting to show sprites\n")
+        var list : IrisSprite? = null
+        for i in 479..>=0
+            val s = spriteRow[i]
+            if s != null
+                # kprintf("Appending sprite at row %d %x %x\n", i, s, list)
+                listAppend(s,list)
+                list = s
+                spriteRow[i] = null
 
-    fun dump()
-        for i in 0..<objects.length
-            val gobj = objects.get(i)
-            gobj.dump()
+        var old_list = hwregs.vga_obj_list
+        hwregs.vga_obj_list = list
 
-    fun clear()
-        for obj in objects
-            free obj
-        objects.clear()
+        # free the old list
+        if (freeList != null)
+            listAppend(freeList, old_list)
+        else
+            freeList = old_list
+
+    fun abs(value:Int) -> Int
+        if value < 0 then return -value
+        return value
+
+
+
+    fun newSprite() -> IrisSprite
+        hwregs.seven_seg = 9
+        if freeList != null
+            hwregs.seven_seg = 20
+            val ret = freeList
+            freeList = freeList.next
+            hwregs.seven_seg = 21
+            ret.next = null
+            hwregs.seven_seg = 10
+            return ret
+        else
+            hwregs.seven_seg = 12
+            val ret = new IrisSprite()
+            ret.initialize()
+            hwregs.seven_seg = 11
+            return ret
+
+    # Check if the given IrisSprite object collides with any other objects in the scene.
+    # Measure the distance between the centers of the sprite and if that is less than COLLISION_THRESHOLD
+    # and the depth difference is less than COLLISION_THRESHOLD_Z
+    fun checkCollision(obj:IrisSprite,  threshold:Int) -> IrisSprite?
+        var ystart = obj.ytop as Int - 32       # Biggest objects are 32 pixels tall
+        if ystart < 0 then ystart = 0
+        val yend = if obj.ybot<480S then obj.ybot as Int else 479
+        for i in ystart..yend
+            var s = spriteRow[i]
+            while s != null
+                # Account for the fixed-point representation of the X-coordinates
+                val x1 = (s.x1 + s.x2) / 32     # Average X-coordinate of the sprite, accounting for fixed-point representation
+                val w1 = (s.x2 - s.x1) / 16     # Width of the sprite
+                val y1 = (s.ytop + s.ybot) / 2  # Average Y-coordinate of the sprite, accounting for fixed-point representation
+                val x2 = (obj.x1 + obj.x2) / 32     # Average X-coordinate of the object, accounting for fixed-point representation
+                val w2 = (obj.x2 - obj.x1) / 16     # Width of the object
+                val y2 = (obj.ytop + obj.ybot) / 2  # Average Y-coordinate of the object, accounting for fixed-point representation
+                
+                val d = abs(x1 - x2) + abs(y1 - y2) # Manhattan distance between the centers of the sprite and the object
+                val td = (w1 + w2) / 2              # Total distance threshold for collision based on sprite and object dimensions
+                
+                if d < td - threshold and abs(s.z1 - obj.z1) < COLLISION_THRESHOLD_Z
+                    return s
+                s = s.next
+        return null
 
 
 fun setupGemma()

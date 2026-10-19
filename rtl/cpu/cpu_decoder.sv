@@ -286,6 +286,7 @@ always_comb begin
         p2_is_fpu = 1'b0;
         p2_is_idx = 1'b0;
         p2_wren = 1'b0;
+        p2_latent = 1'b0;
     end
 
     if (p2_wren && p2_latent)

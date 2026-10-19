@@ -30,11 +30,15 @@ wire req_for_us = pixel_valid;
 wire not_stall = readmem_ready || readmem_req==1'b0 || reset;
 assign pixel_ready = not_stall && req_for_us;
 
+wire signed [11:0] v = pixel_v[23:12];
+wire signed [15:0] strise_s = pixel_stride;
+wire signed [25:0] vv = strise_s * v;
+
 always_ff @(posedge clock) begin
     if (not_stall) begin
         readmem_req <= req_for_us;
         readmem_mode <= pixel_flags;
-        readmem_addr <= pixel_addr + {14'b0,pixel_u[23:12]} + (pixel_stride * pixel_v[23:12]);
+        readmem_addr <= pixel_addr + {14'b0,pixel_u[23:12]} + vv;
         readmem_z <= pixel_z;
         readmem_x <= pixel_x;
         readmem_bright <= pixel_bright[20:12];

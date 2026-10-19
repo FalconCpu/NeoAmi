@@ -1,0 +1,13 @@
+../os/boot.f32
+../os/hwregs.fpl
+../os/errors.fpl
+../os/memory.fpl
+../os/page_alloc.fpl
+../os/kprintf.fpl
+../os/kernel_main.fpl
+../stdlib/list.fpl
+../stdlib/string.fpl
+SdcardDevice.fpl
+FileSystem.fpl
+Fat32FileSystem.fpl
+main.fpl

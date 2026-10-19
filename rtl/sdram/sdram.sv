@@ -48,12 +48,12 @@ module sdram (
 
     // Connection to audio (read only)
     input  logic         audio_sdram_req,
-    output logic         audio_sdram_ready,
+    output logic         audio_sdram_ack,
     input  logic [25:0]  audio_sdram_address,
-    output logic         audio_sdram_rvalid,
-    output logic [25:0]  audio_sdram_raddress,
+    input  logic [7:0]   audio_sdram_tag,
+    output logic [1:0]   audio_sdram_rvalid,
     output logic [31:0]  audio_sdram_rdata,
-    output logic         audio_sdram_complete,
+    output logic [7:0]   audio_sdram_rtag,
 
 
     // Connection to the SDRAM chip
@@ -79,7 +79,6 @@ logic [10:0]  sdram_tag;
 logic [1:0]   sdram_rvalid;
 logic [31:0]  sdram_rdata;
 logic [10:0]  sdram_rtag;
-logic [25:0]  sdram_raddress;
 
 sdram_arbiter  sdram_arbiter_inst (
     .clock(clock),
@@ -117,12 +116,12 @@ sdram_arbiter  sdram_arbiter_inst (
     .gemma_sdram_rtag(gemma_sdram_rtag),
     .gemma_sdram_rdata(gemma_sdram_rdata),
     .audio_sdram_req(audio_sdram_req),
-    .audio_sdram_ready(audio_sdram_ready),
+    .audio_sdram_ack(audio_sdram_ack),
     .audio_sdram_address(audio_sdram_address),
+    .audio_sdram_tag(audio_sdram_tag),
     .audio_sdram_rvalid(audio_sdram_rvalid),
-    .audio_sdram_raddress(audio_sdram_raddress),
     .audio_sdram_rdata(audio_sdram_rdata),
-    .audio_sdram_complete(audio_sdram_complete),
+    .audio_sdram_rtag(audio_sdram_rtag),
     .sdram_req(sdram_req),
     .sdram_ack(sdram_ack),
     .sdram_write(sdram_write),
@@ -132,8 +131,7 @@ sdram_arbiter  sdram_arbiter_inst (
     .sdram_tag(sdram_tag),
     .sdram_rvalid(sdram_rvalid),
     .sdram_rdata(sdram_rdata),
-    .sdram_rtag(sdram_rtag),
-    .sdram_raddress(sdram_raddress)
+    .sdram_rtag(sdram_rtag)
   );
 
 sdram_controller  sdram_controller_inst (
@@ -149,7 +147,6 @@ sdram_controller  sdram_controller_inst (
     .sdram_rvalid(sdram_rvalid),
     .sdram_rdata(sdram_rdata),
     .sdram_rtag(sdram_rtag),
-    .sdram_raddress(sdram_raddress),
     .DRAM_ADDR(DRAM_ADDR),
     .DRAM_BA(DRAM_BA),
     .DRAM_CAS_N(DRAM_CAS_N),

@@ -21,9 +21,11 @@
 // E0000034  OVERFLOW       R    bit 0 = uart tx fifo overflow, bit 1 = uart rx fifo overflow, bit 2 = keyboard fifo overflow
 // E0000038  VGA_YPOS       R    Current Y position of the rasterizer. Reads negative values during the vertical blanking period. This is for debug only.
 // E000003C  VGA_OBJ_LIST   R/W  Base address of the object list for the VGA rasterizer
-// E0000040  SDCARD_CTRL    R/W  Control register for the SD card (bit 0 = start read, bit 1 = start write)
-// E0000044  SDCARD_SECTOR  R/W  Sector number for SD card read/write
-// E0001000  SDCARD_DATA    R/W  512 bytes of SD card data
+// E0000040  SD_CARD_CTRL   W    0: Assert CS for SD card, 1: Deassert CS
+//                               1: Fast clock speed
+// E0000044  SD_CARD_CMD_HI   W  Upper 16 bits of the SD card command
+// E0000048  SD_CARD_CMD_LO R/W  Lower 32 bits of the SD card command - reads as -1 once the command has been accepted
+// E000004C  SD_CARD_RX       R  Data received from the SD card over SPI - reads as -1 if no data is available
 // E0000200-02F4 AUDIO      R/W  Eight PCM channel register groups (0x20-byte stride)
 
 // verilator lint_off PINCONNECTEMPTY
@@ -40,18 +42,6 @@ module sophie_hwregs (
     input  logic [3:0]  aux_hwregs_strb,    // For a write, which bytes to write.
     input  logic [31:0] aux_hwregs_wdata,   // Data to write
     output logic [31:0] aux_hwregs_rdata,   // Data read from memory
-
-    // connections to the sdram controller
-    input  logic        sdcard_busy,
-	output logic        sdcard_start_read,
-    output logic        sdcard_start_write,
-	output logic [8:0]  sdcard_sector,
-	input  logic [8:0]  sdcard_byte_addr,
-    output logic [31:0] sdcard_wdata,
-    input  logic [31:0] sdcard_rdata,
-	input  logic        sdcard_read_strobe,
-	input  logic        sdcard_write_strobe,
-
 
     // Connections to the chip pins
     input  logic [9:0]  ypos,
@@ -72,6 +62,11 @@ module sophie_hwregs (
     inout               PS2_DAT2,
     inout               SDA,
     output              SCL,
+    output              SD_CS,
+    output              SD_SCLK,
+    output              SD_MOSI,
+    input               SD_MISO,
+
     output logic [9:0]  mouse_x,
     output logic [9:0]  mouse_y,
     output logic [25:0] vga_obj_list,
@@ -104,22 +99,13 @@ logic [23:0] captured_pc;
 logic        prev_key0;
 logic [2:0]  fifo_overflow, latched_fifo_overflow;
 
-// synthesis translate_off
-logic [7:0] uart_input[0:65535];
-integer uart_input_len;
-integer uart_input_index;
-integer fh;
-// initial begin
-//     fh = $fopen("uart_log.bin","rb");
-//     uart_input_len = $fread(uart_input, fh);
-//     $fclose(fh);
-//     fh =  $fopen("rtl_uart.log", "wb");
-//     uart_input_index = 0;
-// end
-// synthesis translate_on
-
-// SDCARD memory
-logic [31:0] sdcard_mem[0:127];
+logic        sdcard_enable;
+logic        sdcard_clk_fast;
+logic [47:0] sdcard_cmd;
+logic        sdcard_cmd_ack;
+logic        sdcard_rx_valid;
+logic [7:0]  sdcard_rx;
+logic [31:0] sdcard_rx_data;
 
 
 always_ff @(posedge clock) begin
@@ -134,12 +120,8 @@ always_ff @(posedge clock) begin
     end else
         milli_counter <= milli_counter + 1'b1;
 
-    // Handle SD card memory interface
-    sdcard_start_read <= 1'b0;
-    sdcard_start_write <= 1'b0;
-    if (sdcard_read_strobe)
-        sdcard_mem[sdcard_byte_addr[8:2]] <= sdcard_rdata;
-
+    if (sdcard_cmd_ack || reset)
+        sdcard_cmd <= 48'hFFFFFFFFFFFF;
 
     if (aux_hwregs_req && aux_hwregs_write) begin
         // Write to hardware registers
@@ -161,7 +143,6 @@ always_ff @(posedge clock) begin
                 // Writes to the UART TX are handled by the FIFO
                 // synthesis translate_off
                 $write("%c", aux_hwregs_wdata[7:0]);
-                $fwrite(fh, "%c", aux_hwregs_wdata[7:0]);
                 // synthesis translate_on
             end 
             16'h0028: begin
@@ -181,6 +162,20 @@ always_ff @(posedge clock) begin
             16'h003C: begin
                 vga_obj_list <= aux_hwregs_wdata[25:0];
             end
+            16'h0040: begin
+                sdcard_enable <= aux_hwregs_wdata[0];
+                sdcard_clk_fast <= aux_hwregs_wdata[1];
+            end
+            16'h0044: begin
+                if (aux_hwregs_strb[1]) sdcard_cmd[47:40] <= aux_hwregs_wdata[15:8];
+                if (aux_hwregs_strb[0]) sdcard_cmd[39:32] <= aux_hwregs_wdata[7:0];
+            end
+            16'h0048: begin
+                if (aux_hwregs_strb[3]) sdcard_cmd[31:24] <= aux_hwregs_wdata[31:24];
+                if (aux_hwregs_strb[2]) sdcard_cmd[23:16] <= aux_hwregs_wdata[23:16];
+                if (aux_hwregs_strb[1]) sdcard_cmd[15:8] <= aux_hwregs_wdata[15:8];
+                if (aux_hwregs_strb[0]) sdcard_cmd[7:0] <= aux_hwregs_wdata[7:0];
+            end
             default: begin end
         endcase
 
@@ -194,10 +189,6 @@ always_ff @(posedge clock) begin
             16'h0010: aux_hwregs_rdata <= {20'b0, fifo_tx_slots_free};
             16'h0014: begin
                 aux_hwregs_rdata <= fifo_rx_not_empty ? {24'b0, fifo_rx_data} : 32'hffffffff;
-                // synthesis translate_off
-                aux_hwregs_rdata <= (uart_input_index < uart_input_len) ? {24'b0, uart_input[uart_input_index]} : 32'hffffffff;
-                uart_input_index <= uart_input_index + 1;
-                // synthesis translate_on
             end
             16'h0018: aux_hwregs_rdata <= {22'b0, mouse_x};
             16'h001C: aux_hwregs_rdata <= {22'b0, mouse_y};
@@ -214,19 +205,26 @@ always_ff @(posedge clock) begin
             16'h0034: aux_hwregs_rdata <= {29'b0, latched_fifo_overflow};
             16'h0038: aux_hwregs_rdata <= {{22{ypos[9]}}, ypos};
             16'h003C: aux_hwregs_rdata <= {6'b0, vga_obj_list};
-            16'h0040: aux_hwregs_rdata <= {31'b0, sdcard_busy};
-            16'h0044: aux_hwregs_rdata <= {23'b0, sdcard_sector};
-            16'h1000: aux_hwregs_rdata <= sdcard_mem[aux_hwregs_addr[8:2]];
-
+            16'h0040: aux_hwregs_rdata <= {30'b0, sdcard_clk_fast, sdcard_enable};
+            16'h0048: aux_hwregs_rdata <= sdcard_cmd[31:0];
+            16'h004C: begin 
+                        aux_hwregs_rdata <= sdcard_rx_data;
+                        sdcard_rx_data <= 32'hFFFFFFFF;
+                      end
             default:  aux_hwregs_rdata <= 32'b0;
         endcase
     end
+
+    // latch the sdcard_rx_data
+    if (sdcard_rx_valid)
+        sdcard_rx_data <= {24'b0, sdcard_rx};
 
     if (reset) begin
         seven_seg <= 24'h000000;
         LEDR <= 10'b0;
         timer <= 0;
         latched_fifo_overflow <= 3'b0;
+        sdcard_enable <= 1'b0;
     end
 end
 
@@ -332,6 +330,22 @@ i2c_master  i2c_master_inst (
     .data_in(i2c_data),
     .busy(i2c_busy),
     .ack_error(i2c_ack_error)
+  );
+
+
+spi_master  spi_master_inst (
+    .clock(clock),
+    .reset(reset),
+    .sdcard_enable(sdcard_enable),
+    .sdcard_clk_fast(sdcard_clk_fast),
+    .sdcard_cmd(sdcard_cmd),
+    .sdcard_cmd_ack(sdcard_cmd_ack),
+    .sdcard_rx_valid(sdcard_rx_valid),
+    .sdcard_rx(sdcard_rx),
+    .SD_CS(SD_CS),
+    .SD_SCLK(SD_SCLK),
+    .SD_MOSI(SD_MOSI),
+    .SD_MISO(SD_MISO)
   );
 
 wire unused = &{cpu_pc[31:24]};

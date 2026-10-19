@@ -172,7 +172,6 @@ void report_malformed(Token** line) {
  */
 
 void emit_load_immediate(int d, int n) {
-    printf("emitting %x\n", n);
     if (n >= -0xfff && n <= 0xfff) {
         emit(format_I(KIND_ALUI, 1, d, 0, n)); // ori $d,$0,#n
     } else {

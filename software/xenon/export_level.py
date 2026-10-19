@@ -23,7 +23,8 @@ from PIL import Image
 import fmp
 
 LAYERS = ("BODY", "LYR1")
-MARKER_FIRST, MARKER_LAST = 1, 40  # editor placeholder blocks (spawn markers)
+# MARKER_FIRST, MARKER_LAST = 1, 40  # editor placeholder blocks (spawn markers)
+MARKER_FIRST, MARKER_LAST = 1, 1  # editor placeholder blocks (spawn markers)
 MAGENTA = (255, 0, 255)
 
 SPAWN_NAMES = {
@@ -53,13 +54,13 @@ def build(hdr, gfx, blocks, layers):
         grids[name] = raw // bss
     for name in LAYERS:
         g = grids[name]
-        marker = (g >= MARKER_FIRST) & (g <= MARKER_LAST)
-        if name != "LYR1":
-            assert not marker.any(), f"markers unexpectedly present in {name}"
-            continue
-        for y, x in zip(*np.nonzero(marker)):
-            spawns.append((int(y), int(x), int(g[y, x])))
-        g[marker] = 0
+        # marker = (g >= MARKER_FIRST) & (g <= MARKER_LAST)
+        # if name != "LYR1":
+        #     assert not marker.any(), f"markers unexpectedly present in {name}"
+        #     continue
+        # for y, x in zip(*np.nonzero(marker)):
+        #     spawns.append((int(y), int(x), int(g[y, x])))
+        # g[marker] = 0
     spawns.sort(key=lambda s: (-s[0], s[1]))
 
     used = sorted({int(b) for g in grids.values() for b in np.unique(g) if b})

@@ -1,0 +1,99 @@
+# Simple testcase to excercise the object fetch logic
+
+SOPHIE_BASE         = 0xE0000000
+SOPHIE_VGA_OBJ_LIST = 0x003C
+
+
+# Create a first object in memory
+ld $1, 0x1000
+
+ld $2, 0x10
+stw $2, $1[0]
+ld $2, 0x11
+stw $2, $1[4]
+ld $2, 0x12
+stw $2, $1[8]
+ld $2, 0x13
+stw $2, $1[12]
+ld $2, 0x14
+stw $2, $1[16]
+ld $2, 0x15
+stw $2, $1[20]
+ld $2, 0x16
+stw $2, $1[24]
+ld $2, 0x17
+stw $2, $1[28]
+ld $2, 0x18
+stw $2, $1[32]
+ld $2, 0x19
+stw $2, $1[36]
+ld $2, 0x1A
+stw $2, $1[40]
+ld $2, 0x1B
+stw $2, $1[44]
+ld $2, 0x1C
+stw $2, $1[48]
+ld $2, 0x1D
+stw $2, $1[52]
+ld $2, 0x1E
+stw $2, $1[56]
+ld $2, 0x2000       # next object field
+stw $2, $1[60]
+
+# create a second object in memory
+ld $1, 0x2000
+
+ld $2, 0x20
+stw $2, $1[0]
+ld $2, 0x21
+stw $2, $1[4]
+ld $2, 0x22
+stw $2, $1[8]
+ld $2, 0x23
+stw $2, $1[12]
+ld $2, 0x24
+stw $2, $1[16]
+ld $2, 0x25
+stw $2, $1[20]
+ld $2, 0x26
+stw $2, $1[24]
+ld $2, 0x27
+stw $2, $1[28]
+ld $2, 0x28
+stw $2, $1[32]
+ld $2, 0x29
+stw $2, $1[36]
+ld $2, 0x2A
+stw $2, $1[40]
+ld $2, 0x2B
+stw $2, $1[44]
+ld $2, 0x2C
+stw $2, $1[48]
+ld $2, 0x2D
+stw $2, $1[52]
+ld $2, 0x2E
+stw $2, $1[56]
+ld $2, 0x0        # next object field = 0
+stw $2, $1[60]
+
+stw $2, $1[64]
+
+
+
+# Store the first object pointer in the VGA object list
+ld $1, 0x1000
+ld $2, SOPHIE_BASE
+stw $1, $2[SOPHIE_VGA_OBJ_LIST]
+
+
+# Wait for the object fetch to complete
+ld $1, 40000
+
+wait:
+sub $1, $1, 1
+bne $1, 0, wait
+
+ld $30,0
+ret
+
+

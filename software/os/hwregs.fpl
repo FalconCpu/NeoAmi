@@ -15,9 +15,34 @@ class HwRegs
     var simulation     : Int  # Reads as 1 in simulation, 0 in hardware
     var overflow       : Int  # Overflow flag for fifos
     var vga_pos        : Int  # Current VGA row (Y) being drawn
+    var vga_obj_list   : IrisSprite?  # Base address of the object list for the VGA rasterizer
+    var sd_card_ctrl   : Int  # 0: Assert CS for SD card, 1: Deassert CS
+    var sd_card_cmd_hi : Int  # Upper 16 bits of the SD card command
+    var sd_card_cmd_lo : Int  # Lower 32 bits of the SD card command - reads as -1 once the command has been accepted
+    var sd_card_rx     : Int  # Data received from the SD card over SPI - reads as -1 if no data is available
 
 const hwregs = unsafe(0xE0000000 as HwRegs)
 
+
+class HwAudio
+    var start_address  : Int    # The base address of the audio buffer in main memory
+    var end_address    : Int    # The end address of the audio buffer
+    var loop_address   : Int    # The loop start address of the audio
+    var volume         : Int    # The volume level for the audio output. [15:0]=Left channel, [31:16]=Right channel
+                                # Default volume=0x0100 for each channel
+    var frequency      : Int    # sample rate. 0x10000=48kHz, 0x8000=24kHz, 0x4000=12kHz etc
+    var sample_out     : Int    # The current audio sample output
+    var reserved1      : Int    # Reserved for future use
+    var reserved2      : Int    # Reserved for future use
+
+const hwAudio0 = unsafe(0xE0000200 as HwAudio)
+const hwAudio1 = unsafe(0xE0000220 as HwAudio)
+const hwAudio2 = unsafe(0xE0000240 as HwAudio)
+const hwAudio3 = unsafe(0xE0000260 as HwAudio)
+const hwAudio4 = unsafe(0xE0000280 as HwAudio)
+const hwAudio5 = unsafe(0xE00002A0 as HwAudio)
+const hwAudio6 = unsafe(0xE00002C0 as HwAudio)
+const hwAudio7 = unsafe(0xE00002E0 as HwAudio)
 
 class HwGemma
     var start          : Int  # One bit per processing unit. Writing a 1 to a bit starts the corresponding processing unit.

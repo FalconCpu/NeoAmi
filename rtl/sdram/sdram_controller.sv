@@ -37,7 +37,6 @@ module sdram_controller(
     output logic [1:0]   sdram_rvalid,      // 00=no data, 01=first beat, 10=middle beats, 11=final beat
     output logic [31:0]  sdram_rdata,
     output logic [10:0]  sdram_rtag,        // Tag from read data
-    output logic [25:0]  sdram_raddress,    // Address of the word in sdram_rdata
 
     // Connection to the SDRAM chip
     output logic [12:0]   DRAM_ADDR,
@@ -76,7 +75,6 @@ logic [2:0]  read_counter, next_read_counter;
 logic [10:0] next_sdram_rtag;
 logic [25:0] read_addr, next_read_addr;
 logic [25:0] rdata_base, next_rdata_base;
-logic [1:0]  rdata_beat;
 
 
 localparam [2:0] CMD_NOP       = 3'b111;
@@ -178,10 +176,6 @@ always_comb begin
     // Drive the sdram_rvalid and sdram_rdata signals based on the read counter. 
     sdram_rvalid = 2'b00;
     sdram_rdata = 32'hx;
-
-    // Beats wrap around within the 16-byte block, starting at the requested word
-    rdata_beat = 2'((3'd7 - read_counter) >> 1);
-    sdram_raddress = {rdata_base[25:4], rdata_base[3:2] + rdata_beat, 2'b00};
 
     if (read_counter==3'd7) begin
         sdram_rvalid = 2'b01;

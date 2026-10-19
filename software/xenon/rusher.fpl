@@ -1,0 +1,24 @@
+
+class Rusher(xpos: Int, ypos: Int, val dx:Int, val dy:Int) : Actor(xpos, ypos)
+    var t = 0
+
+    override fun update()
+        x += dx
+        y += dy
+        t += 1
+
+        if (y > 480 and dy>0) or (y < -32 and dy<0) or (x > 640 and dx>0) or (x < -32 and dx<0)
+            active = false
+            return
+
+        if y>-32
+            val imageIndex = (t/8) % 24
+            val sprite = scene.newSprite()
+            sprite.setBitmap(x, y, spriteManifest[SPRITE_RUSHER + imageIndex], spriteDataPtr)
+
+            if dy<0
+                # flip sprite vertically
+                sprite.dg_dy = IRIS_FP_MINUS_ONE
+
+            sprite.setZ(32)
+            scene.addObject(sprite)

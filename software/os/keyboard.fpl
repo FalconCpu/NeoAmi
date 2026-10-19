@@ -35,6 +35,7 @@ const KEY_SCANCODE_A = 0x1C
 const KEY_SCANCODE_B = 0x32
 const KEY_SCANCODE_D = 0x23
 const KEY_SCANCODE_R = 0x2D
+const KEY_SCANCODE_V = 0x2A
 
 # lookup table of Scan codes to ASCII
 # One row per scan code

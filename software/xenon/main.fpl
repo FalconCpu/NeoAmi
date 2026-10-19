@@ -4,22 +4,23 @@ var spriteDataPtr = 0
 var backdropDataPtr = 0
 var tilesDataPtr = 0
 var tileMap : Pointer<Short>
+var actorList : ActorList
 
+var scene : GfxScene
+var keyboard : Keyboard
 
 fun delay(count: Int)
     for i in 0..count
         val dummy = 1
 
 fun waitVsync()
-    while hwregs.vga_pos < 0
+    # hwregs.seven_seg = hwregs.vga_pos
+    # kprintf("\n")
+    # kprintf("VGA position: %d\n", hwregs.vga_pos)
+    while hwregs.vga_pos <=0
         delay(1000)
     while hwregs.vga_pos > 0
         delay(1000)
-
-struct Image(dataPtr: Int, width: Int, height: Int)
-
-const spriteImages = const Array<Image> [
-    Image(0, 64, 64)] 
 
 
 fun loadGraphicsData()
@@ -29,10 +30,6 @@ fun loadGraphicsData()
     val spritePalettePtr = unsafe(pageIdToAddress(spritePalette) as Pointer<Int>)
     for i in 0..255
         VGA_PALETTE[i] = spritePalettePtr[i]
-    
-    val spriteData = allocatePageAndLoadFile("export/sprites.bin")
-    if spriteData is Error then abort 1
-    spriteDataPtr = pageIdToAddress(spriteData)
 
     val backdropPalette = allocatePageAndLoadFile("export/backdrop_ham_palette.bin")
     if backdropPalette is Error then abort 1
@@ -40,9 +37,18 @@ fun loadGraphicsData()
     for i in 0..255
         VGA_PALETTE[i+256] = backdropPalettePtr[i]
 
+    val tilesData = allocatePageAndLoadFile("export/tiles.bin")
+    if tilesData is Error then abort 1
+    tilesDataPtr = pageIdToAddress(tilesData)
+    kprintf("Loaded tiles data at %x\n", tilesDataPtr)
+
     val backdropData = allocatePageAndLoadFile("export/backdrop_ham.bin")
     if backdropData is Error then abort 1
     backdropDataPtr = pageIdToAddress(backdropData)
+
+    val spriteData = allocatePageAndLoadFile("export/sprites.bin")
+    if spriteData is Error then abort 1
+    spriteDataPtr = pageIdToAddress(spriteData)
 
     val tilesPalette = allocatePageAndLoadFile("export/palette.bin")
     if tilesPalette is Error then abort 1
@@ -50,80 +56,154 @@ fun loadGraphicsData()
     for i in 0..255
         VGA_PALETTE[i+512] = tilesPalettePtr[i]
 
-    val tilesData = allocatePageAndLoadFile("export/tiles.bin")
-    if tilesData is Error then abort 1
-    tilesDataPtr = pageIdToAddress(tilesData)
 
     val tileMapData = allocatePageAndLoadFile("export/tilemap.bin")
     if tileMapData is Error then abort 1
     tileMap = unsafe(pageIdToAddress(tileMapData) as Pointer<Short>)
 
+fun spawnObject(tileIndex: Int, col: Int)
+    when(tileIndex)
+        1 -> 
+            val pickup = new pickup(col, PickupType.SPEED)
+            actorList.add(pickup)
 
-fun main() -> Int!
+        2 -> 
+            val pickup = new pickup(col, PickupType.WEAPON)
+            actorList.add(pickup)
 
-    loadGraphicsData()
+        5 -> 
+            val pickup = new pickup(col, PickupType.CLONE)
+            actorList.add(pickup)
 
-    # for row in 0..400
-    #     kprintf("Row %d: ", row)
-    #     for col in 0..39
-    #         val tileIndex = tileMap[row * 40 + col]
-    #         kprintf("%d ", tileIndex)
-    #     kprintf("\n")
+        11 -> 
+            val asteroid = new Asteroid(col, AsteroidType.SMALL)
+            actorList.add(asteroid)
+
+        12 -> 
+            val asteroid = new Asteroid(col, AsteroidType.MEDIUM)
+            actorList.add(asteroid)
+
+        13 -> 
+            val asteroid = new Asteroid(col, AsteroidType.BIG)
+            actorList.add(asteroid)
+
+        14 -> 
+            val asteroid = new Asteroid(col, AsteroidType.SMALL)
+            actorList.add(asteroid)
+
+        15 -> 
+            val asteroid = new Asteroid(col, AsteroidType.MEDIUM)
+            actorList.add(asteroid)
+
+        16 -> 
+            val asteroid = new Asteroid(col, AsteroidType.BIG)
+            actorList.add(asteroid)
+
+        17 -> 
+            val asteroid = new Asteroid(col, AsteroidType.SMALL_HD)
+            actorList.add(asteroid)
+
+        18 -> 
+            val asteroid = new Asteroid(col, AsteroidType.MEDIUM_HD)
+            actorList.add(asteroid)
+
+        19 -> 
+            val asteroid = new Asteroid(col, AsteroidType.BIG_HD)
+            actorList.add(asteroid)
 
 
-    val scene = new GfxScene()
+        20 -> 
+            val rusher = new Rusher(col, -32, 0, 2)
+            actorList.add(rusher)
 
-    val backdrop = new IrisSprite()
-    backdrop.initialize()
-    scene.addSprite(backdrop)
-    backdrop.setBitmap(backdropDataPtr, 640, 1)
-    backdrop.flags = (32 | 16 | 4 | 1) as Short
-    backdrop.setSizeAndPos(0, 0, 640, 480)
-    backdrop.setZ(1)
+        28 -> 
+            val rusher = new Rusher(col, 480, 0, -2)
+            actorList.add(rusher)
 
-    val startRow = 980
-    for row in 0..14
+        23 -> 
+            for i in 0..5
+                val drone = new Drone(col, -48 * i, i*12)
+                actorList.add(drone)
+
+        else ->
+            kprintf("Spawning object %d at col %d\n", tileIndex, col)
+
+
+fun drawBackground(time:Int)
+    val backdropSprite = scene.newSprite()
+    backdropSprite.setBitmap(backdropDataPtr, 640, 1)
+    backdropSprite.flags = (32 | 16 | 4 | 1) as Short
+    backdropSprite.setSizeAndPos(0, 0, 640, 480)
+    backdropSprite.setZ(1)
+    scene.addObject(backdropSprite)
+
+    val t = if time < 39200 then time else 39200
+
+    # First parallax layer
+    val startRow = 1024 - t/128
+    val scrollOffset = (t/4) & 31
+
+    # Second parallax layer
+    val startRow2 = 1024 - t/64
+    val scrollOffset2 = (t/2) & 31
+
+    hwregs.seven_seg = 1
+
+    for row in -1..14
         for col in 0..19
             val tileIndex = tileMap[(startRow + row) * 20 + col] as Int
             if tileIndex != 0
                 val tileX = col * 32
-                val tileY = row * 32
-                val tile = new IrisSprite()
-                tile.initialize()
-                scene.addSprite(tile)
-                tile.setBitmap(tilesDataPtr + tileIndex * 32*32, 32, 2)
-                tile.setSizeAndPos(tileX, tileY, 32, 32)
-                tile.setZ(20)
-                kprintf("Placed tile at row %d, col %d with index %d\n", startRow + row, col, tileIndex)
+                val tileY = row * 32 + scrollOffset
+                val tileSprite = scene.newSprite()
+                tileSprite.setBitmap(tilesDataPtr + tileIndex * 32*32, 32, 2)
+                tileSprite.setSizeAndPos(tileX, tileY, 32, 32)
+                tileSprite.setZ(8)
+                scene.addObject(tileSprite)
+
+            val tileIndex2 = tileMap[1024*20 + (startRow2 + row) * 20 + col] as Int
+            if tileIndex2 != 0
+                val tileX = col * 32
+                val tileY = row * 32 + scrollOffset2
+                val tileSprite = scene.newSprite()
+                tileSprite.setBitmap(tilesDataPtr + tileIndex2 * 32*32, 32, 2)
+                tileSprite.setSizeAndPos(tileX, tileY, 32, 32)
+                tileSprite.setZ(32)
+                if tileIndex2 < 40
+                    tileSprite.setZ(12)
+                scene.addObject(tileSprite)
+
+            if tileIndex2>0 and tileIndex2<=50 and t&63=0 and row=-1
+                spawnObject(tileIndex2,  col*32)
+
+    hwregs.seven_seg = 2
 
 
-
-
-    val sprite = new IrisSprite()
-    sprite.initialize()
-    scene.addSprite(sprite)
-    sprite.setZ(40)
-    
-    val keyboard = new Keyboard()
-
+class Player
     var xpos = 320
     var ypos = 200
     var velocityX = 0
     var velocityY = 0
+    var depth = 0
+    var hit = false
+    var fireCooldown = 0
 
-    while true
-        waitVsync()
+    fun update()
         val key = keyboard.getKey()
+        # kprintf(" ") # (%d, %d)", xpos, ypos)
 
         # Update the sprite's velocity based on keyboard input
-        if keyboard.keyDown[KEY_SCANCODE_LEFT] and velocityX > -18
+        if keyboard.keyDown[KEY_SCANCODE_LEFT] and velocityX > -26
             velocityX = velocityX - 2
         if keyboard.keyDown[KEY_SCANCODE_RIGHT] and velocityX < 26
             velocityX = velocityX + 2
-        if keyboard.keyDown[KEY_SCANCODE_UP] and velocityY > -18
+        if keyboard.keyDown[KEY_SCANCODE_UP] and velocityY > -26
             velocityY = velocityY - 2
-        if keyboard.keyDown[KEY_SCANCODE_DOWN] and velocityY < 18
+        if keyboard.keyDown[KEY_SCANCODE_DOWN] and velocityY < 26
             velocityY = velocityY + 2
+        if keyboard.keyDown[KEY_SCANCODE_V] and depth < 24
+            depth = depth + 2
+        val fire = keyboard.keyDown[KEY_SCANCODE_SPACE] and fireCooldown = 0
 
         # Apply friction to the sprite's velocity
         if velocityX > 0
@@ -134,12 +214,23 @@ fun main() -> Int!
             velocityY = velocityY - 1
         if velocityY < 0
             velocityY = velocityY + 1
+        if depth > 0
+            depth = depth - 1
+        if fireCooldown > 0
+            fireCooldown = fireCooldown - 1
+
+        # Update all bullets
+        if fire
+            val bullet = new Bullet(xpos + 24, ypos-16)
+            actorList.add(bullet)
+            fireCooldown = 18
 
         # Update the sprite's position based on its velocity
-        xpos = xpos + velocityX/8
-        ypos = ypos + velocityY/8
+        xpos += velocityX/8
+        ypos += velocityY/8
 
         # Ensure the sprite stays within the screen bounds
+        # kprintf("(%d, %d)", xpos, ypos)
         if xpos < 0
             xpos = 0
         if xpos > 640 - 64
@@ -155,8 +246,68 @@ fun main() -> Int!
             bitmapIndex = 0
         if bitmapIndex > 6
             bitmapIndex = 6
+        if depth > 0
+            bitmapIndex = 14+depth/4
 
-        sprite.setBitmap(spriteDataPtr + bitmapIndex * 64*64, 64, 0)
-        sprite.setSizeAndPos(xpos, ypos, 64, 64)
+        if xpos < 10 
+            hwregs.ledr = 1
+
+        val sprite = scene.newSprite()
+        sprite.setBitmap(xpos, ypos, spriteManifest[bitmapIndex], spriteDataPtr)
+        sprite.setZ(33-depth)
+
+        val collision = scene.checkCollision(sprite, 6)
+        sprite.b1 = if collision != null then 0x1FFFS else 0x1000S
+
+        scene.addObject(sprite)
+
+        # Add engine exhaust effect if moving up
+        if velocityY < 0
+            val exhaust = scene.newSprite()
+            val index = if velocityY&1=0 then SPRITE_SHIP_ENGINE else SPRITE_SHIP_ENGINE+1
+            exhaust.setBitmap(xpos+24, ypos+64, spriteManifest[index], spriteDataPtr)
+            exhaust.setZ(33-depth)
+            exhaust.b1 = (1000 - velocityY * 70) as Short
+            scene.addObject(exhaust)
+
+
+
+
+
+
+
+fun main() -> Int!
+
+    scene = new GfxScene()
+    scene.init()
+    keyboard = new Keyboard()
+    loadGraphicsData()
+    actorList = new ActorList()
+
+    val player = new Player()
+    var time = 0x1600
+    # var time = 1200
+
+    hwregs.ledr = 0
+    kprintf("Keyboard: %x\n", keyboard)
+    kprintf("Player : %x\n", player)
+
+    while true
+        drawBackground(time)
+        for actor in actorList
+            actor.update()
+        actorList.removeInactive()
+        player.update()
+
+
+        hwregs.seven_seg = time
+        waitVsync()
         scene.show()
+        time = time + 1
+        # kprintf("Time: %d  ", time)
+
+        # if time>=18010
+        #     kprintf("Reached time 18010\n")
+        #     for i in 0..50
+        #         waitVsync()
 

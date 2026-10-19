@@ -1,0 +1,32 @@
+
+enum PickupType [SPEED, SHIELD, CLOAK, WEAPON, CLONE]
+
+class pickup(xpos: Int, val kind:PickupType) : Actor(xpos, -32)
+    var t = 0
+
+    override fun update()
+        if t%2=0
+            y += 1
+        t += 1
+
+        if y > 480
+            active = false
+            return
+
+        if y>-32
+            val imageIndex = (t/8) % 8
+            val imageBase : Int
+            when kind
+                PickupType.SPEED  -> imageBase = SPRITE_SPEED_PICKUP
+                PickupType.SHIELD -> imageBase = SPRITE_SHIELD_PICKUP
+                PickupType.CLOAK -> imageBase = SPRITE_CLOAK_PICKUP
+                PickupType.WEAPON -> imageBase = SPRITE_WEAPON_PICKUP
+                PickupType.CLONE  -> imageBase = SPRITE_CLONE_PICKUP
+                else -> imageBase = 0
+
+
+            val sprite = scene.newSprite()
+            sprite.setBitmap(x, y, spriteManifest[imageBase + imageIndex], spriteDataPtr)
+
+            sprite.setZ(32)
+            scene.addObject(sprite)

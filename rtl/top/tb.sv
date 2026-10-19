@@ -100,6 +100,7 @@ module tb;
     .GPIO_1(GPIO_1)
   );
 
+assign GPIO_0[20] = 1'b0;   // Fake MOSI data
 
 micron_sdram  micron_sdram_inst (
     .Clk(DRAM_CLK),
@@ -128,7 +129,7 @@ initial begin
     // $dumpvars(0, tb);
     $dumpvars(2, tb);
     $dumpvars(0, tb.neoami_inst.iris_inst);
-    // $dumpvars(0, tb.neoami_inst.cpu_inst);
+    // $dumpvars(0, tb.neoami_inst.sophie_inst);
     // Initialize inputs
 
     #2500000;

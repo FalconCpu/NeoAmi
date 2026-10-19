@@ -151,6 +151,7 @@ always_ff @(posedge clock) begin
     prev_dcache_queue1 <= dcache_queue1;
     prev_dcache_queue2 <= dcache_queue2;
     memif_fault <= next_memif_fault;
+
     // synthesis translate_off
     if (next_memif_fault)
         $display("ERROR %t: DCACHE queue overflow", $time);

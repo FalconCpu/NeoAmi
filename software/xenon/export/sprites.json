@@ -27,6 +27,521 @@
         "cloaked",
         "dive"
       ]
+    },
+    {
+      "frame_width": 16,
+      "frame_height": 32,
+      "columns": 2,
+      "rows": 1,
+      "name": "ShipEngine",
+      "source": "Burner1.bmp",
+      "type": "Engine",
+      "num_frames": 2,
+      "frame_size": 512,
+      "offset": 86016,
+      "hotspot": [
+        8,
+        0
+      ],
+      "animation_rate": 4.0,
+      "properties": {
+        "KillBonus": 0
+      }
+    },
+    {
+      "frame_width": 16,
+      "frame_height": 16,
+      "columns": 2,
+      "rows": 3,
+      "name": "Missile",
+      "source": "missile.bmp",
+      "type": "Bullet",
+      "num_frames": 6,
+      "frame_size": 256,
+      "offset": 87040,
+      "hotspot": [
+        8,
+        8
+      ],
+      "animation_rate": 0.0,
+      "properties": {
+        "KillBonus": 0,
+        "EnergyGrade0": 1,
+        "EnergyGrade1": 2,
+        "EnergyGrade2": 3,
+        "SpeedGrade0": 10.0,
+        "SpeedGrade1": 10.0,
+        "SpeedGrade2": 10.0
+      }
+    },
+    {
+      "frame_width": 96,
+      "frame_height": 96,
+      "columns": 6,
+      "rows": 4,
+      "name": "Pod",
+      "source": "pod.bmp",
+      "type": "Alien",
+      "num_frames": 24,
+      "frame_size": 9216,
+      "offset": 88576,
+      "hotspot": [
+        48,
+        48
+      ],
+      "animation_rate": 8.0,
+      "properties": {
+        "InitialShield": 10,
+        "KillBonus": 20000
+      }
+    },
+    {
+      "frame_width": 32,
+      "frame_height": 32,
+      "columns": 8,
+      "rows": 2,
+      "name": "Drone",
+      "source": "drone.bmp",
+      "type": "Alien",
+      "num_frames": 16,
+      "frame_size": 1024,
+      "offset": 309760,
+      "hotspot": [
+        16,
+        16
+      ],
+      "animation_rate": 16.0,
+      "properties": {
+        "InitialShield": 1,
+        "KillBonus": 0
+      }
+    },
+    {
+      "frame_width": 64,
+      "frame_height": 32,
+      "columns": 4,
+      "rows": 6,
+      "name": "Rusher",
+      "source": "rusher.bmp",
+      "type": "Alien",
+      "num_frames": 24,
+      "frame_size": 2048,
+      "offset": 326144,
+      "hotspot": [
+        32,
+        16
+      ],
+      "animation_rate": 16.0,
+      "properties": {
+        "InitialShield": 5,
+        "KillBonus": 10000
+      }
+    },
+    {
+      "frame_width": 32,
+      "frame_height": 32,
+      "columns": 4,
+      "rows": 2,
+      "name": "SpeedPickup",
+      "source": "PUSpeed.bmp",
+      "type": "Pickup",
+      "num_frames": 8,
+      "frame_size": 1024,
+      "offset": 375296,
+      "hotspot": [
+        16,
+        16
+      ],
+      "animation_rate": 8.0,
+      "properties": {
+        "KillBonus": 500
+      }
+    },
+    {
+      "frame_width": 32,
+      "frame_height": 32,
+      "columns": 4,
+      "rows": 2,
+      "name": "ShieldPickup",
+      "source": "PUShield.bmp",
+      "type": "Pickup",
+      "num_frames": 8,
+      "frame_size": 1024,
+      "offset": 383488,
+      "hotspot": [
+        16,
+        16
+      ],
+      "animation_rate": 8.0,
+      "properties": {
+        "KillBonus": 500
+      }
+    },
+    {
+      "frame_width": 32,
+      "frame_height": 32,
+      "columns": 4,
+      "rows": 2,
+      "name": "WeaponPickup",
+      "source": "PUWeapon.bmp",
+      "type": "Pickup",
+      "num_frames": 8,
+      "frame_size": 1024,
+      "offset": 391680,
+      "hotspot": [
+        16,
+        16
+      ],
+      "animation_rate": 8.0,
+      "properties": {
+        "KillBonus": 500
+      }
+    },
+    {
+      "frame_width": 32,
+      "frame_height": 32,
+      "columns": 4,
+      "rows": 2,
+      "name": "CloakPickup",
+      "source": "PUInvuln.bmp",
+      "type": "Pickup",
+      "num_frames": 8,
+      "frame_size": 1024,
+      "offset": 399872,
+      "hotspot": [
+        16,
+        16
+      ],
+      "animation_rate": 8.0,
+      "properties": {
+        "KillBonus": 500
+      }
+    },
+    {
+      "frame_width": 32,
+      "frame_height": 32,
+      "columns": 4,
+      "rows": 2,
+      "name": "DivePickup",
+      "source": "PUDive.bmp",
+      "type": "Pickup",
+      "num_frames": 8,
+      "frame_size": 1024,
+      "offset": 408064,
+      "hotspot": [
+        16,
+        16
+      ],
+      "animation_rate": 8.0,
+      "properties": {
+        "KillBonus": 500
+      }
+    },
+    {
+      "frame_width": 32,
+      "frame_height": 32,
+      "columns": 4,
+      "rows": 2,
+      "name": "ScorePickup",
+      "source": "PUScore.bmp",
+      "type": "Pickup",
+      "num_frames": 8,
+      "frame_size": 1024,
+      "offset": 416256,
+      "hotspot": [
+        16,
+        16
+      ],
+      "animation_rate": 8.0,
+      "properties": {
+        "KillBonus": 50000
+      }
+    },
+    {
+      "frame_width": 32,
+      "frame_height": 32,
+      "columns": 4,
+      "rows": 5,
+      "name": "ClonePickup",
+      "source": "Clone.bmp",
+      "type": "Pickup",
+      "num_frames": 20,
+      "frame_size": 1024,
+      "offset": 424448,
+      "hotspot": [
+        16,
+        16
+      ],
+      "animation_rate": 8.0,
+      "properties": {
+        "KillBonus": 500
+      }
+    },
+    {
+      "frame_width": 32,
+      "frame_height": 64,
+      "columns": 4,
+      "rows": 3,
+      "name": "WingtipPickup",
+      "source": "Wingtip.bmp",
+      "type": "Pickup",
+      "num_frames": 12,
+      "frame_size": 2048,
+      "offset": 444928,
+      "hotspot": [
+        16,
+        32
+      ],
+      "animation_rate": 8.0,
+      "properties": {
+        "KillBonus": 500
+      }
+    },
+    {
+      "frame_width": 32,
+      "frame_height": 32,
+      "columns": 4,
+      "rows": 2,
+      "name": "MissilePickup",
+      "source": "PUMissil.bmp",
+      "type": "Pickup",
+      "num_frames": 8,
+      "frame_size": 1024,
+      "offset": 469504,
+      "hotspot": [
+        16,
+        16
+      ],
+      "animation_rate": 8.0,
+      "properties": {
+        "KillBonus": 500
+      }
+    },
+    {
+      "frame_width": 32,
+      "frame_height": 32,
+      "columns": 4,
+      "rows": 2,
+      "name": "LaserPickup",
+      "source": "PULaser.bmp",
+      "type": "Pickup",
+      "num_frames": 8,
+      "frame_size": 1024,
+      "offset": 477696,
+      "hotspot": [
+        16,
+        16
+      ],
+      "animation_rate": 8.0,
+      "properties": {
+        "KillBonus": 500
+      }
+    },
+    {
+      "frame_width": 32,
+      "frame_height": 32,
+      "columns": 1,
+      "rows": 1,
+      "name": "LifePickup",
+      "source": "PULife.bmp",
+      "type": "Pickup",
+      "num_frames": 1,
+      "frame_size": 1024,
+      "offset": 485888,
+      "hotspot": [
+        16,
+        16
+      ],
+      "animation_rate": 8.0,
+      "properties": {
+        "KillBonus": 500
+      }
+    },
+    {
+      "frame_width": 32,
+      "frame_height": 32,
+      "columns": 8,
+      "rows": 2,
+      "name": "SmallStandardAsteroid",
+      "source": "SAster32.bmp",
+      "type": "Alien",
+      "num_frames": 16,
+      "frame_size": 1024,
+      "offset": 486912,
+      "hotspot": [
+        16,
+        16
+      ],
+      "animation_rate": 16.0,
+      "properties": {
+        "InitialShield": 1,
+        "KillBonus": 5000
+      }
+    },
+    {
+      "frame_width": 64,
+      "frame_height": 64,
+      "columns": 8,
+      "rows": 3,
+      "name": "MediumStandardAsteroid",
+      "source": "SAster64.bmp",
+      "type": "Alien",
+      "num_frames": 24,
+      "frame_size": 4096,
+      "offset": 503296,
+      "hotspot": [
+        32,
+        32
+      ],
+      "animation_rate": 12.0,
+      "properties": {
+        "InitialShield": 2,
+        "KillBonus": 10000
+      }
+    },
+    {
+      "frame_width": 96,
+      "frame_height": 96,
+      "columns": 5,
+      "rows": 5,
+      "name": "BigStandardAsteroid",
+      "source": "SAster96.bmp",
+      "type": "Alien",
+      "num_frames": 25,
+      "frame_size": 9216,
+      "offset": 601600,
+      "hotspot": [
+        48,
+        48
+      ],
+      "animation_rate": 8.0,
+      "properties": {
+        "InitialShield": 3,
+        "KillBonus": 15000
+      }
+    },
+    {
+      "frame_width": 32,
+      "frame_height": 32,
+      "columns": 8,
+      "rows": 2,
+      "name": "SmallHighDensityAsteroid",
+      "source": "GAster32.bmp",
+      "type": "Alien",
+      "num_frames": 16,
+      "frame_size": 1024,
+      "offset": 832000,
+      "hotspot": [
+        16,
+        16
+      ],
+      "animation_rate": 16.0,
+      "properties": {
+        "InitialShield": 2,
+        "KillBonus": 10000
+      }
+    },
+    {
+      "frame_width": 64,
+      "frame_height": 64,
+      "columns": 8,
+      "rows": 3,
+      "name": "MediumHighDensityAsteroid",
+      "source": "GAster64.bmp",
+      "type": "Alien",
+      "num_frames": 24,
+      "frame_size": 4096,
+      "offset": 848384,
+      "hotspot": [
+        32,
+        32
+      ],
+      "animation_rate": 12.0,
+      "properties": {
+        "InitialShield": 4,
+        "KillBonus": 15000
+      }
+    },
+    {
+      "frame_width": 96,
+      "frame_height": 96,
+      "columns": 5,
+      "rows": 5,
+      "name": "BigHighDensityAsteroid",
+      "source": "GAster96.bmp",
+      "type": "Alien",
+      "num_frames": 25,
+      "frame_size": 9216,
+      "offset": 946688,
+      "hotspot": [
+        48,
+        48
+      ],
+      "animation_rate": 8.0,
+      "properties": {
+        "InitialShield": 4,
+        "KillBonus": 25000
+      }
+    },
+    {
+      "frame_width": 32,
+      "frame_height": 32,
+      "columns": 8,
+      "rows": 2,
+      "name": "SmallIndestuctibleAsteroid",
+      "source": "MAster32.bmp",
+      "type": "Alien",
+      "num_frames": 16,
+      "frame_size": 1024,
+      "offset": 1177088,
+      "hotspot": [
+        16,
+        16
+      ],
+      "animation_rate": 16.0,
+      "properties": {
+        "KillBonus": 0
+      }
+    },
+    {
+      "frame_width": 64,
+      "frame_height": 64,
+      "columns": 8,
+      "rows": 3,
+      "name": "MediumIndestuctibleAsteroid",
+      "source": "MAster64.bmp",
+      "type": "Alien",
+      "num_frames": 24,
+      "frame_size": 4096,
+      "offset": 1193472,
+      "hotspot": [
+        32,
+        32
+      ],
+      "animation_rate": 12.0,
+      "properties": {
+        "KillBonus": 0
+      }
+    },
+    {
+      "frame_width": 96,
+      "frame_height": 96,
+      "columns": 5,
+      "rows": 5,
+      "name": "BigIndestuctibleAsteroid",
+      "source": "MAster96.bmp",
+      "type": "Alien",
+      "num_frames": 25,
+      "frame_size": 9216,
+      "offset": 1291776,
+      "hotspot": [
+        48,
+        48
+      ],
+      "animation_rate": 8.0,
+      "properties": {
+        "KillBonus": 0
+      }
     }
   ]
 }

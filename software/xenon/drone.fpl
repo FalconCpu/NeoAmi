@@ -1,0 +1,23 @@
+
+
+const drone_dx = const Array<Int>[-3, -2, -1, 0, 1, 2, 3, 2, 1, 0, -1, -2]
+
+class Drone(xpos: Int, ypos: Int, var t:Int) : Actor(xpos, ypos)
+
+    override fun update()
+        val dx = drone_dx[(t/8) % 12]
+        x += dx
+        y += 1
+        t += 1
+
+
+
+        if y > 480
+            active = false
+            return
+        if y>-32
+            val imageIndex = (t/8) % 16
+            val sprite = scene.newSprite()
+            sprite.setBitmap(x, y, spriteManifest[SPRITE_DRONE + imageIndex], spriteDataPtr)
+            sprite.setZ(32)
+            scene.addObject(sprite)

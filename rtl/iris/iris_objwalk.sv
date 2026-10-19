@@ -59,7 +59,7 @@ module iris_objwalk (
     // Object Fetch interface. NOTE: there is no interlock between the object fetch
     // and the Aux interface. It is software's responsibility to ensure that it does not
     // access the object memory while the objfetch module is active.
-    input logic            objfetch_req,
+    input logic            objfetch_wren,
     input logic [11:0]     objfetch_addr,
     input logic [31:0]     objfetch_wdata,
 
@@ -162,37 +162,6 @@ wire [23:0] ram1_db_dx = fp16_to_s12_12(obj_data[127:112]);
 wire [23:0] ram1_db_dy = fp16_to_s12_12(obj_data[143:128]);
 wire [15:0] ram1_tex_stride = obj_data[159:144];
 wire [25:0] ram1_tex_addr = obj_data[185:160];
-
-//   |   15:0       | FLAGS      | U16    |
-//   |   31:16      | CLIP_X1    | U16    |
-//   |   47:32      | CLIP_X2    | U16    |
-//   |   63:48      | CLIP_Y1    | U16    |
-//   |   79:64      | CLIP_Y2    | U16    |
-//   |   95:80      | X1         | S12.4  |
-//   |  111:96      | Y1         | S12.4  |
-//   |  127:112     | X2         | S12.4  |
-//   |  143:128     | Y2         | S12.4  |
-//   |  159:144     | DX1/DY     | FP16   |
-//   |  175:160     | DX2/DY     | FP16   |
-//   |  191:176     | DX3/DY     | FP16   |
-//   |  207:192     | Z1         | S12.4  |
-//   |  223:208     | DZ/DX      | FP16   |
-//   |  239:224     | DZ/DY      | FP16   |
-//   |  255:240     | R1         | U12.5  |
-//   |   15:0       | DR/DX      | FP16   |
-//   |   31:16      | DR/DY      | FP16   |
-//   |   47:32      | G1         | U12.5  |
-//   |   63:48      | DG/DX      | FP16   |
-//   |   79:64      | DG/DY      | FP16   |
-//   |   95:80      | B1         | U12.5  |
-//   |  111:96      | DB/DX      | FP16   |
-//   |  127:112     | DB/DY      | FP16   |
-//   |  143:128     | TEX_STRIDE | U16    |
-//   |  175:144     | TEX_ADDR   | U32    |
-//   |  223:176     | reserved   | U48    |
-//   |  255:224     | NEXT       | U32    |
-
-
 
 
 
@@ -490,9 +459,9 @@ end
 //                       Object Memory
 // ===============================================================
 
-wire [31:0] wdata = objfetch_req ? objfetch_wdata : aux_iris_wdata;
-wire [11:0] wraddress = objfetch_req ? objfetch_addr : aux_iris_addr[11:0];
-wire wren = objfetch_req || aux_iris_req;
+wire [31:0] wdata = objfetch_wren ? objfetch_wdata : aux_iris_wdata;
+wire [11:0] wraddress = objfetch_wren ? objfetch_addr : aux_iris_addr[11:0];
+wire wren = objfetch_wren || aux_iris_req;
 
 
 iris_obj_mem  iris_obj_mem_inst (

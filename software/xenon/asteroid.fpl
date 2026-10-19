@@ -1,0 +1,37 @@
+
+
+enum AsteroidType [SMALL, MEDIUM, BIG, SMALL_HD, MEDIUM_HD, BIG_HD, SMALL_IRON, MEDIUM_IRON, BIG_IRON]
+
+class Asteroid(xpos: Int, val kind:AsteroidType) : Actor(xpos, -32)
+    var t = 0
+
+    override fun update()
+        if t%2=0
+            y += 1
+        t += 1
+
+        if y > 480
+            active = false
+            return
+
+        if y>-32
+            var imageBase = 0
+            var imageCount = 0
+            when kind
+                AsteroidType.SMALL      -> (imageBase,imageCount) = (SPRITE_SMALL_STANDARD_ASTEROID, 16)
+                AsteroidType.MEDIUM     -> (imageBase,imageCount) = (SPRITE_MEDIUM_STANDARD_ASTEROID, 24)
+                AsteroidType.BIG        -> (imageBase,imageCount) = (SPRITE_BIG_STANDARD_ASTEROID, 25)
+                AsteroidType.SMALL_HD   -> (imageBase,imageCount) = (SPRITE_SMALL_HIGH_DENSITY_ASTEROID, 16)
+                AsteroidType.MEDIUM_HD  -> (imageBase,imageCount) = (SPRITE_MEDIUM_HIGH_DENSITY_ASTEROID, 24)
+                AsteroidType.BIG_HD     -> (imageBase,imageCount) = (SPRITE_BIG_HIGH_DENSITY_ASTEROID, 25)
+                AsteroidType.SMALL_IRON -> (imageBase,imageCount) = (SPRITE_SMALL_INDESTUCTIBLE_ASTEROID, 16)
+                AsteroidType.MEDIUM_IRON-> (imageBase,imageCount) = (SPRITE_MEDIUM_INDESTUCTIBLE_ASTEROID, 24)
+                AsteroidType.BIG_IRON   -> (imageBase,imageCount) = (SPRITE_BIG_INDESTUCTIBLE_ASTEROID, 25)
+
+            val imageIndex = (t/8) % imageCount
+
+            val sprite = scene.newSprite()
+            sprite.setBitmap(x, y, spriteManifest[imageBase + imageIndex], spriteDataPtr)
+
+            sprite.setZ(32)
+            scene.addObject(sprite)

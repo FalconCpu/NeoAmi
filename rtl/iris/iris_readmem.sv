@@ -196,7 +196,7 @@ always_ff @(posedge clock) begin
 
     end else if (sdram_queue_not_empty) begin
         readmem_sdram_req  <= 1'b1;
-        readmem_sdram_addr <= sdram_queue_addr[sdram_queue_read_ptr] & 26'h3FFFFC; // Align to start of cache line
+        readmem_sdram_addr <= sdram_queue_addr[sdram_queue_read_ptr] & 26'h3FFFFFC; // Align to start of cache line
         readmem_sdram_tag  <= {2'b0,sdram_queue_addr[sdram_queue_read_ptr][1], sdram_queue_read_ptr};
         sdram_queue_read_ptr <= sdram_queue_read_ptr + 3'd1;
         // synthesis translate_off
