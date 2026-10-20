@@ -177,6 +177,12 @@ cpu_instr_queue  cpu_instr_queue_inst (
     .instr_fifo_fault(instr_fifo_fault)
   );
 
+// ===================================================================
+//    CPU Decoder
+// ===================================================================
+
+logic        stall_fault;
+
 cpu_decoder  cpu_decoder_inst (
     .clock(clock),
     .reset(reset),
@@ -213,7 +219,8 @@ cpu_decoder  cpu_decoder_inst (
     .p4_rd(p4_rd),
     .p4_wren(p4_wren),
     .p4_latent(p4_latent),
-    .p4_is_store(p4_is_store)
+    .p4_is_store(p4_is_store),
+    .stall_fault(stall_fault)
   );
 
 cpu_regfile  cpu_regfile_inst (
@@ -381,6 +388,10 @@ cpu_dcache  cpu_dcache_inst (
     .dcache_sdramr_rvalid(dcache_sdramr_rvalid),
     .dcache_sdramr_rdata(dcache_sdramr_rdata)
   );
+
+// ===================================================================
+//    CPU Control and Status Registers (CSR) and Exception Handling
+// ===================================================================
 
 logic [31:1]  interrupt_source;
 logic         interrupt_signal;

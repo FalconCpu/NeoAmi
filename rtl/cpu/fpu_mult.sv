@@ -1,3 +1,5 @@
+`timescale 1ns/1ns
+
 module fpu_mult (
     input  logic        clock,
     input  logic        fpu_mult_start,  // start operation

@@ -1,3 +1,5 @@
+`timescale 1ns/1ns
+
 module fpu_add (
     input  logic        clock,
     input  logic        fpu_add_start,   // start add/sub operation

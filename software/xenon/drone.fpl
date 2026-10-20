@@ -10,8 +10,6 @@ class Drone(xpos: Int, ypos: Int, var t:Int) : Actor(xpos, ypos)
         y += 1
         t += 1
 
-
-
         if y > 480
             active = false
             return
@@ -20,4 +18,11 @@ class Drone(xpos: Int, ypos: Int, var t:Int) : Actor(xpos, ypos)
             val sprite = scene.newSprite()
             sprite.setBitmap(x, y, spriteManifest[SPRITE_DRONE + imageIndex], spriteDataPtr)
             sprite.setZ(32)
+            sprite.reserved2 = unsafe(this as Int)   # indicate this is an enemy sprite
             scene.addObject(sprite)
+
+    override fun onHit()
+        val explosion = new Explosion(x, y, 0)
+        actorList.add(explosion)
+
+        active = false

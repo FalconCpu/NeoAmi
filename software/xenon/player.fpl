@@ -1,0 +1,135 @@
+class Player
+    var xpos = 320
+    var ypos = 200
+    var velocityX = 0
+    var velocityY = 0
+    var depth = 0
+    var hit = false
+    var fireCooldown = 0
+    var speed = 2
+    var pickupClone = 0
+    var pickupWeapon = false
+    var pickupLaser = false
+    var pickupWingtip = 0
+    var t = 0
+
+    fun update()
+        val key = keyboard.getKey()
+        t += 1
+        # kprintf(" ") # (%d, %d)", xpos, ypos)
+
+        if key='q'
+            dumpMemorySystem()
+
+        # Update the sprite's velocity based on keyboard input
+        if keyboard.keyDown[KEY_SCANCODE_LEFT] and velocityX > -28
+            velocityX = velocityX - speed
+        if keyboard.keyDown[KEY_SCANCODE_RIGHT] and velocityX < 28
+            velocityX = velocityX + speed
+        if keyboard.keyDown[KEY_SCANCODE_UP] and velocityY > -28
+            velocityY = velocityY - speed
+        if keyboard.keyDown[KEY_SCANCODE_DOWN] and velocityY < 28
+            velocityY = velocityY + speed
+        if keyboard.keyDown[KEY_SCANCODE_V] and depth < 24
+            depth = depth + 2
+        val fire = keyboard.keyDown[KEY_SCANCODE_SPACE] and fireCooldown = 0
+
+        # Apply friction to the sprite's velocity
+        if velocityX > 0 then  velocityX = velocityX - 1
+        if velocityX < 0 then  velocityX = velocityX + 1
+        if velocityY > 0 then  velocityY = velocityY - 1
+        if velocityY < 0 then  velocityY = velocityY + 1
+        if depth > 0     then  depth = depth - 1
+        if fireCooldown > 0 then  fireCooldown = fireCooldown - 1
+
+        # Update all bullets
+        if fire
+            val bullet = new Bullet(xpos + 24, ypos-16)
+            actorList.add(bullet)
+
+            if pickupClone>=1
+                val cloneBullet = new Bullet(xpos + 48, ypos-40)
+                actorList.add(cloneBullet)
+            if pickupClone>=2
+                val cloneBullet = new Bullet(xpos - 48, ypos-40)
+                actorList.add(cloneBullet)
+            if pickupWingtip>=1
+                val wingtip = new Bullet(xpos + 72, ypos)
+                actorList.add(wingtip)
+            if pickupWingtip>=2
+                val wingtip = new Bullet(xpos - 24, ypos)
+                actorList.add(wingtip)
+
+            fireCooldown = if pickupWeapon then 9 else 18
+
+        # Update the sprite's position based on its velocity
+        xpos += velocityX/(10-speed)
+        ypos += velocityY/(10-speed)
+
+        # Ensure the sprite stays within the screen bounds
+        # kprintf("(%d, %d)", xpos, ypos)
+        if xpos < 0 then xpos = 0
+        if ypos < 0 then ypos = 0
+        if xpos > 640 - 64 then xpos = 640 - 64
+        if ypos > 480 - 64 then ypos = 480 - 64
+
+        # Choose the sprite's bitmap based on its state
+        var bitmapIndex = 3 + velocityX/8
+        if bitmapIndex < 0 then bitmapIndex = 0
+        if bitmapIndex > 6 then bitmapIndex = 6
+        if depth > 0       then bitmapIndex = 14+depth/4
+
+        val sprite = scene.newSprite()
+        sprite.setBitmap(xpos, ypos, spriteManifest[bitmapIndex], spriteDataPtr)
+        sprite.setZ(33-depth)
+
+        val collision = scene.checkCollision(sprite, 6)
+        if collision != null
+            val collisionActor = unsafe(collision.reserved2 as Actor?)
+            val action = if collisionActor=null then PickupType.DAMAGE else collisionActor.onCollision()
+            kprintf("Collision action: %d\n", action)
+            when action
+                PickupType.DAMAGE -> sprite.b1 = 0x1FFFS
+                PickupType.SPEED  -> speed = 4
+                PickupType.CLONE  -> pickupClone += 1
+                PickupType.WEAPON -> pickupWeapon = true
+                PickupType.LASER  -> pickupLaser = true
+                PickupType.WINGTIP -> pickupWingtip += 1
+
+        scene.addObject(sprite)
+
+        # Add engine exhaust effect if moving up
+        if velocityY < 0
+            val exhaust = scene.newSprite()
+            val index = if velocityY&1=0 then SPRITE_SHIP_ENGINE else SPRITE_SHIP_ENGINE+1
+            exhaust.setBitmap(xpos+24, ypos+64, spriteManifest[index], spriteDataPtr)
+            exhaust.setZ(33-depth)
+            exhaust.b1 = (1000 - velocityY * 70) as Short
+            scene.addObject(exhaust)
+
+        # Add clone if pickupClone is true
+        val index = if depth > 8 then 15 else (t/8) % 12
+        if pickupClone >= 1
+            val clone = scene.newSprite()
+            clone.setBitmap(xpos + 40, ypos-30, spriteManifest[SPRITE_CLONE + index], spriteDataPtr)
+            clone.setZ(33-depth)
+            scene.addObject(clone)
+
+        if pickupClone >= 2
+            val clone = scene.newSprite()
+            clone.setBitmap(xpos - 20, ypos-30, spriteManifest[SPRITE_CLONE + index], spriteDataPtr)
+            clone.setZ(33-depth)
+            scene.addObject(clone)
+
+        val wingtipIndex = if depth > 8 then 11 else (t/8) % 8
+        if pickupWingtip >= 1
+            val wingtip = scene.newSprite()
+            wingtip.setBitmap(xpos + 64, ypos, spriteManifest[SPRITE_WINGTIP + wingtipIndex], spriteDataPtr)
+            wingtip.setZ(33-depth)
+            scene.addObject(wingtip)
+
+        if pickupWingtip >= 2
+            val wingtip = scene.newSprite()
+            wingtip.setBitmap(xpos - 32, ypos, spriteManifest[SPRITE_WINGTIP + wingtipIndex], spriteDataPtr)
+            wingtip.setZ(33-depth)
+            scene.addObject(wingtip)

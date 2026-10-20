@@ -542,6 +542,108 @@
       "properties": {
         "KillBonus": 0
       }
+    },
+    {
+      "frame_width": 16,
+      "frame_height": 16,
+      "columns": 5,
+      "rows": 2,
+      "name": "SmallExplosion",
+      "source": "explode16.bmp",
+      "type": "Alien",
+      "num_frames": 10,
+      "frame_size": 256,
+      "offset": 1522176,
+      "hotspot": [
+        8,
+        8
+      ],
+      "animation_rate": 40.0,
+      "properties": {
+        "KillBonus": 0
+      }
+    },
+    {
+      "frame_width": 32,
+      "frame_height": 32,
+      "columns": 5,
+      "rows": 2,
+      "name": "MediumExplosion",
+      "source": "explode32.bmp",
+      "type": "Alien",
+      "num_frames": 10,
+      "frame_size": 1024,
+      "offset": 1524736,
+      "hotspot": [
+        16,
+        16
+      ],
+      "animation_rate": 40.0,
+      "properties": {
+        "KillBonus": 0
+      }
+    },
+    {
+      "frame_width": 64,
+      "frame_height": 64,
+      "columns": 5,
+      "rows": 2,
+      "name": "BigExplosion",
+      "source": "explode64.bmp",
+      "type": "Alien",
+      "num_frames": 10,
+      "frame_size": 4096,
+      "offset": 1534976,
+      "hotspot": [
+        32,
+        32
+      ],
+      "animation_rate": 40.0,
+      "properties": {
+        "KillBonus": 0
+      }
+    },
+    {
+      "frame_width": 32,
+      "frame_height": 32,
+      "columns": 4,
+      "rows": 5,
+      "name": "Clone",
+      "source": "clone.bmp",
+      "type": "Upgrade",
+      "num_frames": 20,
+      "frame_size": 1024,
+      "offset": 1575936,
+      "hotspot": [
+        16,
+        16
+      ],
+      "animation_rate": 8.0,
+      "properties": {
+        "InitialShield": 60,
+        "KillBonus": 0
+      }
+    },
+    {
+      "frame_width": 32,
+      "frame_height": 64,
+      "columns": 4,
+      "rows": 3,
+      "name": "Wingtip",
+      "source": "Wingtip.bmp",
+      "type": "Upgrade",
+      "num_frames": 12,
+      "frame_size": 2048,
+      "offset": 1596416,
+      "hotspot": [
+        16,
+        32
+      ],
+      "animation_rate": 8.0,
+      "properties": {
+        "InitialShield": 30,
+        "KillBonus": 0
+      }
     }
   ]
 }

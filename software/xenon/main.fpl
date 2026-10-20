@@ -61,73 +61,6 @@ fun loadGraphicsData()
     if tileMapData is Error then abort 1
     tileMap = unsafe(pageIdToAddress(tileMapData) as Pointer<Short>)
 
-fun spawnObject(tileIndex: Int, col: Int)
-    when(tileIndex)
-        1 -> 
-            val pickup = new pickup(col, PickupType.SPEED)
-            actorList.add(pickup)
-
-        2 -> 
-            val pickup = new pickup(col, PickupType.WEAPON)
-            actorList.add(pickup)
-
-        5 -> 
-            val pickup = new pickup(col, PickupType.CLONE)
-            actorList.add(pickup)
-
-        11 -> 
-            val asteroid = new Asteroid(col, AsteroidType.SMALL)
-            actorList.add(asteroid)
-
-        12 -> 
-            val asteroid = new Asteroid(col, AsteroidType.MEDIUM)
-            actorList.add(asteroid)
-
-        13 -> 
-            val asteroid = new Asteroid(col, AsteroidType.BIG)
-            actorList.add(asteroid)
-
-        14 -> 
-            val asteroid = new Asteroid(col, AsteroidType.SMALL)
-            actorList.add(asteroid)
-
-        15 -> 
-            val asteroid = new Asteroid(col, AsteroidType.MEDIUM)
-            actorList.add(asteroid)
-
-        16 -> 
-            val asteroid = new Asteroid(col, AsteroidType.BIG)
-            actorList.add(asteroid)
-
-        17 -> 
-            val asteroid = new Asteroid(col, AsteroidType.SMALL_HD)
-            actorList.add(asteroid)
-
-        18 -> 
-            val asteroid = new Asteroid(col, AsteroidType.MEDIUM_HD)
-            actorList.add(asteroid)
-
-        19 -> 
-            val asteroid = new Asteroid(col, AsteroidType.BIG_HD)
-            actorList.add(asteroid)
-
-
-        20 -> 
-            val rusher = new Rusher(col, -32, 0, 2)
-            actorList.add(rusher)
-
-        28 -> 
-            val rusher = new Rusher(col, 480, 0, -2)
-            actorList.add(rusher)
-
-        23 -> 
-            for i in 0..5
-                val drone = new Drone(col, -48 * i, i*12)
-                actorList.add(drone)
-
-        else ->
-            kprintf("Spawning object %d at col %d\n", tileIndex, col)
-
 
 fun drawBackground(time:Int)
     val backdropSprite = scene.newSprite()
@@ -159,6 +92,7 @@ fun drawBackground(time:Int)
                 tileSprite.setBitmap(tilesDataPtr + tileIndex * 32*32, 32, 2)
                 tileSprite.setSizeAndPos(tileX, tileY, 32, 32)
                 tileSprite.setZ(8)
+                tileSprite.reserved2 = 0        # indicate this is not a enemy sprite
                 scene.addObject(tileSprite)
 
             val tileIndex2 = tileMap[1024*20 + (startRow2 + row) * 20 + col] as Int
@@ -171,109 +105,13 @@ fun drawBackground(time:Int)
                 tileSprite.setZ(32)
                 if tileIndex2 < 40
                     tileSprite.setZ(12)
+                tileSprite.reserved2 = 0
                 scene.addObject(tileSprite)
 
             if tileIndex2>0 and tileIndex2<=50 and t&63=0 and row=-1
                 spawnObject(tileIndex2,  col*32)
 
     hwregs.seven_seg = 2
-
-
-class Player
-    var xpos = 320
-    var ypos = 200
-    var velocityX = 0
-    var velocityY = 0
-    var depth = 0
-    var hit = false
-    var fireCooldown = 0
-
-    fun update()
-        val key = keyboard.getKey()
-        # kprintf(" ") # (%d, %d)", xpos, ypos)
-
-        # Update the sprite's velocity based on keyboard input
-        if keyboard.keyDown[KEY_SCANCODE_LEFT] and velocityX > -26
-            velocityX = velocityX - 2
-        if keyboard.keyDown[KEY_SCANCODE_RIGHT] and velocityX < 26
-            velocityX = velocityX + 2
-        if keyboard.keyDown[KEY_SCANCODE_UP] and velocityY > -26
-            velocityY = velocityY - 2
-        if keyboard.keyDown[KEY_SCANCODE_DOWN] and velocityY < 26
-            velocityY = velocityY + 2
-        if keyboard.keyDown[KEY_SCANCODE_V] and depth < 24
-            depth = depth + 2
-        val fire = keyboard.keyDown[KEY_SCANCODE_SPACE] and fireCooldown = 0
-
-        # Apply friction to the sprite's velocity
-        if velocityX > 0
-            velocityX = velocityX - 1
-        if velocityX < 0
-            velocityX = velocityX + 1
-        if velocityY > 0
-            velocityY = velocityY - 1
-        if velocityY < 0
-            velocityY = velocityY + 1
-        if depth > 0
-            depth = depth - 1
-        if fireCooldown > 0
-            fireCooldown = fireCooldown - 1
-
-        # Update all bullets
-        if fire
-            val bullet = new Bullet(xpos + 24, ypos-16)
-            actorList.add(bullet)
-            fireCooldown = 18
-
-        # Update the sprite's position based on its velocity
-        xpos += velocityX/8
-        ypos += velocityY/8
-
-        # Ensure the sprite stays within the screen bounds
-        # kprintf("(%d, %d)", xpos, ypos)
-        if xpos < 0
-            xpos = 0
-        if xpos > 640 - 64
-            xpos = 640 - 64
-        if ypos < 0
-            ypos = 0
-        if ypos > 480 - 64
-            ypos = 480 - 64
-
-        # Choose the sprite's bitmap based on its state
-        var bitmapIndex = 3 + velocityX/8
-        if bitmapIndex < 0
-            bitmapIndex = 0
-        if bitmapIndex > 6
-            bitmapIndex = 6
-        if depth > 0
-            bitmapIndex = 14+depth/4
-
-        if xpos < 10 
-            hwregs.ledr = 1
-
-        val sprite = scene.newSprite()
-        sprite.setBitmap(xpos, ypos, spriteManifest[bitmapIndex], spriteDataPtr)
-        sprite.setZ(33-depth)
-
-        val collision = scene.checkCollision(sprite, 6)
-        sprite.b1 = if collision != null then 0x1FFFS else 0x1000S
-
-        scene.addObject(sprite)
-
-        # Add engine exhaust effect if moving up
-        if velocityY < 0
-            val exhaust = scene.newSprite()
-            val index = if velocityY&1=0 then SPRITE_SHIP_ENGINE else SPRITE_SHIP_ENGINE+1
-            exhaust.setBitmap(xpos+24, ypos+64, spriteManifest[index], spriteDataPtr)
-            exhaust.setZ(33-depth)
-            exhaust.b1 = (1000 - velocityY * 70) as Short
-            scene.addObject(exhaust)
-
-
-
-
-
 
 
 fun main() -> Int!
@@ -285,29 +123,24 @@ fun main() -> Int!
     actorList = new ActorList()
 
     val player = new Player()
-    var time = 0x1600
-    # var time = 1200
+    # var time = 0x3000
+    
+    var time = 1200
 
     hwregs.ledr = 0
     kprintf("Keyboard: %x\n", keyboard)
     kprintf("Player : %x\n", player)
 
     while true
+        time = time + 1
         drawBackground(time)
         for actor in actorList
             actor.update()
-        actorList.removeInactive()
         player.update()
+        actorList.removeInactive()
 
 
         hwregs.seven_seg = time
         waitVsync()
         scene.show()
-        time = time + 1
-        # kprintf("Time: %d  ", time)
-
-        # if time>=18010
-        #     kprintf("Reached time 18010\n")
-        #     for i in 0..50
-        #         waitVsync()
 

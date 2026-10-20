@@ -1,0 +1,17 @@
+
+class Explosion(xpos: Int, ypos: Int, val size:Int) : Actor(xpos, ypos)
+    var t = 0
+
+    override fun update()
+        t += 1
+        val imageIndex = t/4
+        if y>-16
+            val sprite = scene.newSprite()
+            val imageBase = if size = 0 then SPRITE_SMALL_EXPLOSION else if size =1 then SPRITE_MEDIUM_EXPLOSION else SPRITE_BIG_EXPLOSION
+        
+            sprite.setBitmap(x, y, spriteManifest[imageBase + imageIndex], spriteDataPtr)
+            sprite.setZ(50)
+            sprite.reserved2 = 0
+            scene.addObject(sprite)
+        if t=36
+            active = false

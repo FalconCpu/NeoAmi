@@ -27,8 +27,13 @@ const SPRITE_BIG_HIGH_DENSITY_ASTEROID = 295
 const SPRITE_SMALL_INDESTUCTIBLE_ASTEROID = 320
 const SPRITE_MEDIUM_INDESTUCTIBLE_ASTEROID = 336
 const SPRITE_BIG_INDESTUCTIBLE_ASTEROID = 360
+const SPRITE_SMALL_EXPLOSION = 385
+const SPRITE_MEDIUM_EXPLOSION = 395
+const SPRITE_BIG_EXPLOSION = 405
+const SPRITE_CLONE = 415
+const SPRITE_WINGTIP = 435
 
-const NUM_SPRITE_FRAMES = 385
+const NUM_SPRITE_FRAMES = 447
 
 const spriteManifest = const Array<Image>[
     Image(0, 64, 64),               # Ship
@@ -415,4 +420,66 @@ const spriteManifest = const Array<Image>[
     Image(1485312, 96, 96),         # BigIndestuctibleAsteroid
     Image(1494528, 96, 96),         # BigIndestuctibleAsteroid
     Image(1503744, 96, 96),         # BigIndestuctibleAsteroid
-    Image(1512960, 96, 96) ]        # BigIndestuctibleAsteroid
+    Image(1512960, 96, 96),         # BigIndestuctibleAsteroid
+    Image(1522176, 16, 16),         # SmallExplosion
+    Image(1522432, 16, 16),         # SmallExplosion
+    Image(1522688, 16, 16),         # SmallExplosion
+    Image(1522944, 16, 16),         # SmallExplosion
+    Image(1523200, 16, 16),         # SmallExplosion
+    Image(1523456, 16, 16),         # SmallExplosion
+    Image(1523712, 16, 16),         # SmallExplosion
+    Image(1523968, 16, 16),         # SmallExplosion
+    Image(1524224, 16, 16),         # SmallExplosion
+    Image(1524480, 16, 16),         # SmallExplosion
+    Image(1524736, 32, 32),         # MediumExplosion
+    Image(1525760, 32, 32),         # MediumExplosion
+    Image(1526784, 32, 32),         # MediumExplosion
+    Image(1527808, 32, 32),         # MediumExplosion
+    Image(1528832, 32, 32),         # MediumExplosion
+    Image(1529856, 32, 32),         # MediumExplosion
+    Image(1530880, 32, 32),         # MediumExplosion
+    Image(1531904, 32, 32),         # MediumExplosion
+    Image(1532928, 32, 32),         # MediumExplosion
+    Image(1533952, 32, 32),         # MediumExplosion
+    Image(1534976, 64, 64),         # BigExplosion
+    Image(1539072, 64, 64),         # BigExplosion
+    Image(1543168, 64, 64),         # BigExplosion
+    Image(1547264, 64, 64),         # BigExplosion
+    Image(1551360, 64, 64),         # BigExplosion
+    Image(1555456, 64, 64),         # BigExplosion
+    Image(1559552, 64, 64),         # BigExplosion
+    Image(1563648, 64, 64),         # BigExplosion
+    Image(1567744, 64, 64),         # BigExplosion
+    Image(1571840, 64, 64),         # BigExplosion
+    Image(1575936, 32, 32),         # Clone
+    Image(1576960, 32, 32),         # Clone
+    Image(1577984, 32, 32),         # Clone
+    Image(1579008, 32, 32),         # Clone
+    Image(1580032, 32, 32),         # Clone
+    Image(1581056, 32, 32),         # Clone
+    Image(1582080, 32, 32),         # Clone
+    Image(1583104, 32, 32),         # Clone
+    Image(1584128, 32, 32),         # Clone
+    Image(1585152, 32, 32),         # Clone
+    Image(1586176, 32, 32),         # Clone
+    Image(1587200, 32, 32),         # Clone
+    Image(1588224, 32, 32),         # Clone
+    Image(1589248, 32, 32),         # Clone
+    Image(1590272, 32, 32),         # Clone
+    Image(1591296, 32, 32),         # Clone
+    Image(1592320, 32, 32),         # Clone
+    Image(1593344, 32, 32),         # Clone
+    Image(1594368, 32, 32),         # Clone
+    Image(1595392, 32, 32),         # Clone
+    Image(1596416, 32, 64),         # Wingtip
+    Image(1598464, 32, 64),         # Wingtip
+    Image(1600512, 32, 64),         # Wingtip
+    Image(1602560, 32, 64),         # Wingtip
+    Image(1604608, 32, 64),         # Wingtip
+    Image(1606656, 32, 64),         # Wingtip
+    Image(1608704, 32, 64),         # Wingtip
+    Image(1610752, 32, 64),         # Wingtip
+    Image(1612800, 32, 64),         # Wingtip
+    Image(1614848, 32, 64),         # Wingtip
+    Image(1616896, 32, 64),         # Wingtip
+    Image(1618944, 32, 64) ]        # Wingtip

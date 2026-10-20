@@ -55,7 +55,12 @@ SPRITES = [
     "BigHighDensityAsteroid",
     "SmallIndestuctibleAsteroid",
     "MediumIndestuctibleAsteroid",
-    "BigIndestuctibleAsteroid"
+    "BigIndestuctibleAsteroid",
+    "SmallExplosion",
+    "MediumExplosion",
+    "BigExplosion",
+    "Clone",
+    "Wingtip"
 ]
 
 # Optional names for the rows of a sprite sheet, for the benefit of game code.

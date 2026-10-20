@@ -152,7 +152,13 @@ fun dumpMemorySystem()
         when type
             BLOCK_OBJECT ->
                 val className = unsafe(p as ObjectMemBlock).type.name
-                kprintf("Object %s\n",className)
+                kprintf("Object %s   ",className)
+                val q = unsafe(p as Pointer<Char>)
+                for i in 8..80
+                    kprintf("%02x",q[i] & 0xff)
+                    if i&3=3 then kprintf(" ")
+                kprintf("\n")
+
             BLOCK_ARRAY ->
                 val numElements = unsafe(p as ArrayMemBlock).numElements
                 kprintf("Array  %d\n",numElements)

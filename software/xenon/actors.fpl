@@ -1,11 +1,18 @@
 
+enum PickupType [DAMAGE, SPEED, SHIELD, CLOAK, WEAPON, CLONE, WINGTIP, LASER]
+
 class Actor(var x:Int, var y:Int)
     var active = true
 
     virtual fun update()
-        # Default update logic for an actor
         if not active
             return
+
+    virtual fun onHit()
+        return
+
+    virtual fun onCollision() -> PickupType
+        return PickupType.DAMAGE
 
 class ActorList() 
     var length = 0
@@ -30,13 +37,14 @@ class ActorList()
     fun removeInactive()
         var i = 0
         var j = 0
-        while i < length
+        while j < length
             array[i] = array[j]
             j += 1
             if array[i].active
                 i += 1
             else
-                length -= 1
+                free array[i]
+        length = i
 
 
 

@@ -1,3 +1,5 @@
+`timescale 1ns/1ns
+
 module fpu_fcmp (
     input  logic        clock,
     input  logic        start,

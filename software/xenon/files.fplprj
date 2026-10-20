@@ -13,6 +13,8 @@
 ../os/kernel_main.fpl
 sprite_manifest.fpl
 main.fpl
+player.fpl
+spawn.fpl
 actors.fpl
 Bullet.fpl
 pod.fpl
@@ -20,3 +22,4 @@ drone.fpl
 rusher.fpl
 pickup.fpl
 asteroid.fpl
+explosion.fpl

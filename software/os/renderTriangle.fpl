@@ -203,12 +203,26 @@ class GfxScene
         if row >= 0 and row < 480
             obj.next = spriteRow[row]
             spriteRow[row] = obj
+        else
+            obj.next = freeList
+            freeList = obj
 
-    fun listAppend(list:IrisSprite, obj:IrisSprite?)
+    fun listAppend(list:IrisSprite, obj:IrisSprite?) -> IrisSprite
         var ptr = list
         while ptr.next != null
             ptr = ptr.next
         ptr.next = obj
+        return list
+
+    fun listLength(list:IrisSprite?) -> Int
+        var count = 0
+        var ptr = list
+        while ptr != null
+            count += 1
+            ptr = ptr.next
+        return count
+
+    var alloc_count = 0
 
     fun show()
         # kprintf("Starting to show sprites\n")
@@ -217,16 +231,17 @@ class GfxScene
             val s = spriteRow[i]
             if s != null
                 # kprintf("Appending sprite at row %d %x %x\n", i, s, list)
-                listAppend(s,list)
-                list = s
+                list = listAppend(s,list)
                 spriteRow[i] = null
 
+        # kprintf("New sprite list of length %d\n", listLength(list))
         var old_list = hwregs.vga_obj_list
         hwregs.vga_obj_list = list
 
         # free the old list
+        # kprintf("Freeing old sprite list of length %d - %d   %d\n", listLength(old_list), listLength(freeList), alloc_count)
         if (freeList != null)
-            listAppend(freeList, old_list)
+            freeList = listAppend(freeList, old_list)
         else
             freeList = old_list
 
@@ -235,22 +250,19 @@ class GfxScene
         return value
 
 
-
     fun newSprite() -> IrisSprite
-        hwregs.seven_seg = 9
         if freeList != null
-            hwregs.seven_seg = 20
+            # kprintf("Reusing sprite from free list\n")
             val ret = freeList
             freeList = freeList.next
-            hwregs.seven_seg = 21
             ret.next = null
-            hwregs.seven_seg = 10
+            ret.reserved2 = 0
             return ret
         else
-            hwregs.seven_seg = 12
+            alloc_count += 1
             val ret = new IrisSprite()
             ret.initialize()
-            hwregs.seven_seg = 11
+            ret.reserved2 = 0
             return ret
 
     # Check if the given IrisSprite object collides with any other objects in the scene.

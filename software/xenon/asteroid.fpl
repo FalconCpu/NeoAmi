@@ -1,37 +1,57 @@
 
 
-enum AsteroidType [SMALL, MEDIUM, BIG, SMALL_HD, MEDIUM_HD, BIG_HD, SMALL_IRON, MEDIUM_IRON, BIG_IRON]
 
-class Asteroid(xpos: Int, val kind:AsteroidType) : Actor(xpos, -32)
+class Asteroid(xpos: Int, ypos:Int, val dx:Int,  val kind:Int, val size:Int) : Actor(xpos, ypos)
     var t = 0
+    var hit_points = kind+1
 
     override fun update()
+        y += 1
         if t%2=0
-            y += 1
+            x += dx
         t += 1
 
         if y > 480
             active = false
             return
 
-        if y>-32
-            var imageBase = 0
-            var imageCount = 0
-            when kind
-                AsteroidType.SMALL      -> (imageBase,imageCount) = (SPRITE_SMALL_STANDARD_ASTEROID, 16)
-                AsteroidType.MEDIUM     -> (imageBase,imageCount) = (SPRITE_MEDIUM_STANDARD_ASTEROID, 24)
-                AsteroidType.BIG        -> (imageBase,imageCount) = (SPRITE_BIG_STANDARD_ASTEROID, 25)
-                AsteroidType.SMALL_HD   -> (imageBase,imageCount) = (SPRITE_SMALL_HIGH_DENSITY_ASTEROID, 16)
-                AsteroidType.MEDIUM_HD  -> (imageBase,imageCount) = (SPRITE_MEDIUM_HIGH_DENSITY_ASTEROID, 24)
-                AsteroidType.BIG_HD     -> (imageBase,imageCount) = (SPRITE_BIG_HIGH_DENSITY_ASTEROID, 25)
-                AsteroidType.SMALL_IRON -> (imageBase,imageCount) = (SPRITE_SMALL_INDESTUCTIBLE_ASTEROID, 16)
-                AsteroidType.MEDIUM_IRON-> (imageBase,imageCount) = (SPRITE_MEDIUM_INDESTUCTIBLE_ASTEROID, 24)
-                AsteroidType.BIG_IRON   -> (imageBase,imageCount) = (SPRITE_BIG_INDESTUCTIBLE_ASTEROID, 25)
+        var imageBase = 0
+        var imageCount = 0
+        when kind*3+size
+            0 -> (imageBase,imageCount) = (SPRITE_SMALL_STANDARD_ASTEROID, 16)
+            1 -> (imageBase,imageCount) = (SPRITE_MEDIUM_STANDARD_ASTEROID, 24)
+            2 -> (imageBase,imageCount) = (SPRITE_BIG_STANDARD_ASTEROID, 25)
+            3 -> (imageBase,imageCount) = (SPRITE_SMALL_HIGH_DENSITY_ASTEROID, 16)
+            4 -> (imageBase,imageCount) = (SPRITE_MEDIUM_HIGH_DENSITY_ASTEROID, 24)
+            5 -> (imageBase,imageCount) = (SPRITE_BIG_HIGH_DENSITY_ASTEROID, 25)
+            6 -> (imageBase,imageCount) = (SPRITE_SMALL_INDESTUCTIBLE_ASTEROID, 16)
+            7 -> (imageBase,imageCount) = (SPRITE_MEDIUM_INDESTUCTIBLE_ASTEROID, 24)
+            8 -> (imageBase,imageCount) = (SPRITE_BIG_INDESTUCTIBLE_ASTEROID, 25)
 
-            val imageIndex = (t/8) % imageCount
 
+        val imageIndex = (t/8) % imageCount
+
+        if y>-spriteManifest[imageBase + imageIndex].height
             val sprite = scene.newSprite()
             sprite.setBitmap(x, y, spriteManifest[imageBase + imageIndex], spriteDataPtr)
-
+            sprite.reserved2 = unsafe(this as Int)   # indicate this is an enemy sprite
             sprite.setZ(32)
             scene.addObject(sprite)
+
+    override fun onHit()
+        if kind=2
+            return
+
+        hit_points -= 1
+        if hit_points=0
+            if size=0
+                val explosion = new Explosion(x, y, 0)
+                actorList.add(explosion)
+                active = false
+            else
+                # Split the asteroid into two smaller asteroids
+                val asteroid1 = new Asteroid(x-8, y, dx-1, kind, size-1)
+                val asteroid2 = new Asteroid(x+8, y, dx+1, kind, size-1)
+                actorList.add(asteroid1)
+                actorList.add(asteroid2)
+                active = false

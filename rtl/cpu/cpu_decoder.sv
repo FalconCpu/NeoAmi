@@ -49,7 +49,8 @@ module cpu_decoder (
     output logic        p4_is_store,
     input logic [4:0]   p4_rd,              // Destination register for the instruction in stage 4
     input logic         p4_wren,            // Indicates that the destination register is valid
-    input logic         p4_latent           // The writeback came from a multi-cycle instruction
+    input logic         p4_latent,          // The writeback came from a multi-cycle instruction
+    output logic        stall_fault
 );
 
 // Break the instruction into its fields
@@ -66,6 +67,7 @@ wire [4:0] instr_b = p2_instr[4:0];    // Source register 2
 assign p2_rs1 = instr_a;
 assign p2_rs2 = instr_b;
 
+logic [7:0] stall_count;
 
 // Scoreboard logic
 // 1 bit per register, 1=not ready, 0=ready
@@ -321,6 +323,18 @@ always_ff @(posedge clock) begin
     p3_immediate <= p2_immediate;
     p3_latent <= p2_latent;
     p4_is_store <= p3_is_store;
+
+    if (reset)
+        stall_fault <= 1'b0;
+    if (stall)
+        stall_count <= stall_count + 1'b1;
+    else
+        stall_count <= 8'h0;
+    if (stall_count == 8'hFF)
+        stall_fault <= 1'b1;
+
 end
+
+
 
 endmodule

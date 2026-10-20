@@ -165,7 +165,7 @@ TASK_STRUCT_ADDR = 0x1000
 
 boot:
     # Initialize stack pointer
-    ld $31, 0x01F000
+    ld $31, 0x020000
 
     # Initialize globals pointer
     ld $29, 0x00100

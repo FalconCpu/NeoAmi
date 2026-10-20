@@ -1,0 +1,71 @@
+fun spawnObject(tileIndex: Int, col: Int)
+    when(tileIndex)
+        1 -> 
+            val pickup = new pickup(col, PickupType.SPEED)
+            actorList.add(pickup)
+
+        2 -> 
+            val pickup = new pickup(col, PickupType.WEAPON)
+            actorList.add(pickup)
+
+        5 -> 
+            val pickup = new pickup(col, PickupType.CLONE)
+            actorList.add(pickup)
+
+        6 -> 
+            val pickup = new pickup(col, PickupType.WINGTIP)
+            actorList.add(pickup)
+
+        11 -> 
+            val asteroid = new Asteroid(col, -32, 0, 0, 0)
+            actorList.add(asteroid)
+
+        12 -> 
+            val asteroid = new Asteroid(col, -64, 0, 0, 1)
+            actorList.add(asteroid)
+
+        13 -> 
+            val asteroid = new Asteroid(col-1, -96, 0, 0, 2)
+            actorList.add(asteroid)
+
+        14 -> 
+            val asteroid = new Asteroid(col, -32, 0, 1, 0)
+            actorList.add(asteroid)
+
+        15 -> 
+            val asteroid = new Asteroid(col, -64, 0, 1, 1)
+            actorList.add(asteroid)
+
+        16 -> 
+            val asteroid = new Asteroid(col-1, -96, 0, 1, 2)
+            actorList.add(asteroid)
+
+        17 -> 
+            val asteroid = new Asteroid(col, -32, 0, 2, 0)
+            actorList.add(asteroid)
+
+        18 -> 
+            val asteroid = new Asteroid(col, -64, 0, 2, 1)
+            actorList.add(asteroid)
+
+        19 -> 
+            val asteroid = new Asteroid(col-1, -96, 0, 2, 2)
+            actorList.add(asteroid)
+
+
+        20 -> 
+            val rusher = new Rusher(col, -32, 0, 4)
+            actorList.add(rusher)
+
+        28 -> 
+            val rusher = new Rusher(col, 480, 0, -4)
+            actorList.add(rusher)
+
+        23 -> 
+            for i in 0..5
+                val drone = new Drone(col, -48 * i, i*12)
+                actorList.add(drone)
+
+        else ->
+            kprintf("Spawning object %d at col %d\n", tileIndex, col)
+

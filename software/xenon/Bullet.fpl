@@ -1,7 +1,7 @@
 
 class Bullet(xpos: Int, ypos: Int) : Actor(xpos, ypos)
     var velocityX = 0
-    var velocityY = -5
+    var velocityY = -8
 
     override fun update()
         x += velocityX
@@ -12,13 +12,14 @@ class Bullet(xpos: Int, ypos: Int) : Actor(xpos, ypos)
 
         val sprite = scene.newSprite()
         sprite.setBitmap(x, y, spriteManifest[SPRITE_MISSILE], spriteDataPtr)
+        sprite.reserved2 = 0
         sprite.setZ(32)
 
         val collision = scene.checkCollision(sprite, 0)
         if collision != null
-            kprintf("Bullet collided with an object %x\n", collision)
-            collision.b1 = 0x1FFFS
+            val collidedObject = unsafe(collision.reserved2 as Actor?)
+            if collidedObject != null
+                collidedObject.onHit()
             active = false
-            return
 
         scene.addObject(sprite)

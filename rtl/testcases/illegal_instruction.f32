@@ -1,0 +1,18 @@
+jmp test
+
+exception_handler:
+    cfg $1, !epc
+    cfg $2, !ecause
+    cfg $3, !edata
+    ld $30,0            # Jump to address 0 to end the program
+    nop
+    ret
+
+test:
+    ld $1, 0x12345678
+    dcw 0xFFFFFFFF        # Invalid instruction (not defined in the ISA)
+    ld $2, 0x9ABCDEF0     # This instruction should be skipped
+    ld $30,0
+    ret
+
+

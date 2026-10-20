@@ -1,6 +1,7 @@
 
 class Rusher(xpos: Int, ypos: Int, val dx:Int, val dy:Int) : Actor(xpos, ypos)
     var t = 0
+    var hit_points = 2
 
     override fun update()
         x += dx
@@ -15,10 +16,13 @@ class Rusher(xpos: Int, ypos: Int, val dx:Int, val dy:Int) : Actor(xpos, ypos)
             val imageIndex = (t/8) % 24
             val sprite = scene.newSprite()
             sprite.setBitmap(x, y, spriteManifest[SPRITE_RUSHER + imageIndex], spriteDataPtr)
-
-            if dy<0
-                # flip sprite vertically
-                sprite.dg_dy = IRIS_FP_MINUS_ONE
-
             sprite.setZ(32)
+            sprite.reserved2 = unsafe(this as Int)   # indicate this is an enemy sprite
             scene.addObject(sprite)
+
+    override fun onHit()
+        hit_points -= 1
+        if hit_points <= 0
+            val explosion = new Explosion(x, y, 1)
+            actorList.add(explosion)
+            active = false
