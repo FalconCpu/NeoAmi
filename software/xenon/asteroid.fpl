@@ -6,7 +6,7 @@ class Asteroid(xpos: Int, ypos:Int, val dx:Int,  val kind:Int, val size:Int) : A
     var hit_points = kind+1
 
     override fun update()
-        y += 1
+        y += 2
         if t%2=0
             x += dx
         t += 1

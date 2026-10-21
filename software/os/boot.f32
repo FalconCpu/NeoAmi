@@ -115,7 +115,7 @@ exception_handler:
     # Pass exception cause and data to the handler as parameters
     cfg $3, !edata
 
-    jsr /handleException(Int,Int,Int)
+    jsr /handleException(Int,Error,Int)
     
     # Exception handler should not return
     # If it does, halt the system

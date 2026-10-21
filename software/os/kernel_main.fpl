@@ -1,8 +1,12 @@
+var fileSystem : FileSystem
 
-
-fun handleException(task: Int, error: Int, data: Int)
-    # Handle the exception here
-    # You can add your exception handling logic based on the task, error, and data parameters
+fun handleException(task: Int, error: Error, data: Int)
+    val regs = unsafe(task as Pointer<Int>)
+    kprintf("EXCEPTION %s PC=%x task=%x data=%x\n", error.description, regs[32], task, data)
+    for i in 0..31
+        kprintf("$%2d=%08x ", i, regs[i])
+        if i % 8 = 7 then kprintf("\n")
+    abort error
 
 fun handleSysCall(task: Int, sysCallNumber: Int)
     # Handle the system call here
@@ -16,6 +20,14 @@ fun kernelMain() -> Int
     kprintf("Kernel main started\n")
     initializeMemorySystem()
     initPageAllocator()
+
+    fileSystem = new FileSystem()
+    val init_result = fileSystem.initialize()
+    if  init_result!=Error.NONE
+        kprintf("Failed to initialize FAT32 file system: %s\n", init_result.description)
+        abort(0)
+    kprintf("FAT32 file system initialized successfully\n")
+
 
     main()
     return 0

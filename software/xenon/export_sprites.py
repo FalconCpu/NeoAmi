@@ -33,6 +33,10 @@ SPRITES = [
     "Ship",
     "ShipEngine",
     "Missile",
+    "HomingMissile",
+    "HomerProjectile",
+    "Spinner",
+    "Spore",
     "Pod",
     "Drone",
     "Rusher",
@@ -60,7 +64,14 @@ SPRITES = [
     "MediumExplosion",
     "BigExplosion",
     "Clone",
-    "Wingtip"
+    "Wingtip",
+    "SmokeEffect",
+    "Homer",
+    "StandardLoner",
+    "MediumLoner",
+    "ArmouredLoner",
+    "OrganicGun",
+
 ]
 
 # Optional names for the rows of a sprite sheet, for the benefit of game code.

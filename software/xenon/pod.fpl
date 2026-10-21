@@ -1,12 +1,11 @@
 
 class Pod(xpos: Int, ypos: Int) : Actor(xpos, ypos)
     var velocityX = 0
-    var velocityY = 5
     var t = 0
 
     override fun update()
         x += velocityX
-        y += velocityY
+        y += 1
         if y > 480
             active = false
             return

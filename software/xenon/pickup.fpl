@@ -2,8 +2,7 @@ class pickup(xpos: Int, val kind:PickupType) : Actor(xpos, -32)
     var t = 0
 
     override fun update()
-        if t%2=0
-            y += 1
+        y += 1
         t += 1
 
         if y > 480
@@ -20,6 +19,8 @@ class pickup(xpos: Int, val kind:PickupType) : Actor(xpos, -32)
                 PickupType.WEAPON -> imageBase = SPRITE_WEAPON_PICKUP
                 PickupType.CLONE  -> imageBase = SPRITE_CLONE_PICKUP
                 PickupType.WINGTIP -> imageBase = SPRITE_WINGTIP_PICKUP
+                PickupType.DIVE  -> imageBase = SPRITE_DIVE_PICKUP
+                PickupType.LASER -> imageBase = SPRITE_LASER_PICKUP
                 else -> imageBase = 0
 
             val sprite = scene.newSprite()

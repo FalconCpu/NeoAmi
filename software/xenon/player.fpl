@@ -6,12 +6,32 @@ class Player
     var depth = 0
     var hit = false
     var fireCooldown = 0
-    var speed = 2
+    var speed = 0
     var pickupClone = 0
     var pickupWeapon = false
     var pickupLaser = false
     var pickupWingtip = 0
     var t = 0
+    var shield = 160
+    var smokeCount = 0
+    val shieldBar = new ShieldBar()
+
+    fun reset()
+        xpos = 320
+        ypos = 400
+        velocityX = 0
+        velocityY = 0
+        depth = 0
+        hit = false
+        fireCooldown = 0
+        speed = 0
+        pickupClone = 0
+        pickupWeapon = false
+        pickupLaser = false
+        pickupWingtip = 0
+        t = 0
+        shield = 160
+        smokeCount = 0
 
     fun update()
         val key = keyboard.getKey()
@@ -22,17 +42,18 @@ class Player
             dumpMemorySystem()
 
         # Update the sprite's velocity based on keyboard input
-        if keyboard.keyDown[KEY_SCANCODE_LEFT] and velocityX > -28
-            velocityX = velocityX - speed
-        if keyboard.keyDown[KEY_SCANCODE_RIGHT] and velocityX < 28
-            velocityX = velocityX + speed
-        if keyboard.keyDown[KEY_SCANCODE_UP] and velocityY > -28
-            velocityY = velocityY - speed
-        if keyboard.keyDown[KEY_SCANCODE_DOWN] and velocityY < 28
-            velocityY = velocityY + speed
-        if keyboard.keyDown[KEY_SCANCODE_V] and depth < 24
-            depth = depth + 2
-        val fire = keyboard.keyDown[KEY_SCANCODE_SPACE] and fireCooldown = 0
+        if shield > 0
+            if keyboard.keyDown[KEY_SCANCODE_LEFT] and velocityX > -10
+                velocityX = velocityX - 2
+            if keyboard.keyDown[KEY_SCANCODE_RIGHT] and velocityX < 10
+                velocityX = velocityX + 2
+            if keyboard.keyDown[KEY_SCANCODE_UP] and velocityY > -10
+                velocityY = velocityY - 2
+            if keyboard.keyDown[KEY_SCANCODE_DOWN] and velocityY < 10
+                velocityY = velocityY + 2
+            if keyboard.keyDown[KEY_SCANCODE_V] and depth < 10
+                depth = depth + 2
+        val fire = keyboard.keyDown[KEY_SCANCODE_LSHIFT] and fireCooldown = 0 and shield > 0 and depth=0
 
         # Apply friction to the sprite's velocity
         if velocityX > 0 then  velocityX = velocityX - 1
@@ -54,30 +75,35 @@ class Player
                 val cloneBullet = new Bullet(xpos - 48, ypos-40)
                 actorList.add(cloneBullet)
             if pickupWingtip>=1
-                val wingtip = new Bullet(xpos + 72, ypos)
+                val wingtip = new Bullet(xpos - 24, ypos)
                 actorList.add(wingtip)
             if pickupWingtip>=2
-                val wingtip = new Bullet(xpos - 24, ypos)
+                val wingtip = new Bullet(xpos + 72, ypos)
                 actorList.add(wingtip)
 
             fireCooldown = if pickupWeapon then 9 else 18
 
         # Update the sprite's position based on its velocity
-        xpos += velocityX/(10-speed)
-        ypos += velocityY/(10-speed)
+        xpos += velocityX/(3-speed)
+        ypos += velocityY/(3-speed)
 
         # Ensure the sprite stays within the screen bounds
         # kprintf("(%d, %d)", xpos, ypos)
-        if xpos < 0 then xpos = 0
+        if xpos < 1 then xpos = 1
         if ypos < 0 then ypos = 0
         if xpos > 640 - 64 then xpos = 640 - 64
         if ypos > 480 - 64 then ypos = 480 - 64
 
         # Choose the sprite's bitmap based on its state
-        var bitmapIndex = 3 + velocityX/8
+        var bitmapIndex = 3 + velocityX/2
         if bitmapIndex < 0 then bitmapIndex = 0
         if bitmapIndex > 6 then bitmapIndex = 6
         if depth > 0       then bitmapIndex = 14+depth/4
+        if shield <= 0
+            bitmapIndex = SPRITE_MEDIUM_EXPLOSION + smokeCount/8
+            smokeCount += 1
+            if smokeCount = 80
+                reset()
 
         val sprite = scene.newSprite()
         sprite.setBitmap(xpos, ypos, spriteManifest[bitmapIndex], spriteDataPtr)
@@ -87,10 +113,12 @@ class Player
         if collision != null
             val collisionActor = unsafe(collision.reserved2 as Actor?)
             val action = if collisionActor=null then PickupType.DAMAGE else collisionActor.onCollision()
-            kprintf("Collision action: %d\n", action)
+            # kprintf("Collision action: %d\n", action)
             when action
-                PickupType.DAMAGE -> sprite.b1 = 0x1FFFS
-                PickupType.SPEED  -> speed = 4
+                PickupType.DAMAGE -> 
+                    sprite.b1 = 0x1FFFS
+                    shield -= 1
+                PickupType.SPEED  -> speed += 1
                 PickupType.CLONE  -> pickupClone += 1
                 PickupType.WEAPON -> pickupWeapon = true
                 PickupType.LASER  -> pickupLaser = true
@@ -124,12 +152,14 @@ class Player
         val wingtipIndex = if depth > 8 then 11 else (t/8) % 8
         if pickupWingtip >= 1
             val wingtip = scene.newSprite()
-            wingtip.setBitmap(xpos + 64, ypos, spriteManifest[SPRITE_WINGTIP + wingtipIndex], spriteDataPtr)
+            wingtip.setBitmap(xpos - 32, ypos, spriteManifest[SPRITE_WINGTIP + wingtipIndex], spriteDataPtr)
             wingtip.setZ(33-depth)
             scene.addObject(wingtip)
 
         if pickupWingtip >= 2
             val wingtip = scene.newSprite()
-            wingtip.setBitmap(xpos - 32, ypos, spriteManifest[SPRITE_WINGTIP + wingtipIndex], spriteDataPtr)
+            wingtip.setBitmap(xpos + 64, ypos, spriteManifest[SPRITE_WINGTIP + wingtipIndex], spriteDataPtr)
             wingtip.setZ(33-depth)
             scene.addObject(wingtip)
+
+        shieldBar.setShield(shield)

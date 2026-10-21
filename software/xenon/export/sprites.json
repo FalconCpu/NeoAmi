@@ -75,6 +75,112 @@
       }
     },
     {
+      "frame_width": 32,
+      "frame_height": 32,
+      "columns": 4,
+      "rows": 2,
+      "name": "HomingMissile",
+      "source": "hmissile.bmp",
+      "type": "Bullet",
+      "num_frames": 8,
+      "frame_size": 1024,
+      "offset": 88576,
+      "hotspot": [
+        16,
+        16
+      ],
+      "animation_rate": 0.0,
+      "properties": {
+        "KillBonus": 0,
+        "EnergyGrade0": 1,
+        "EnergyGrade1": 2,
+        "EnergyGrade2": 3,
+        "SpeedGrade0": 5.0,
+        "SpeedGrade1": 5.0,
+        "SpeedGrade2": 5.0
+      }
+    },
+    {
+      "frame_width": 16,
+      "frame_height": 16,
+      "columns": 4,
+      "rows": 2,
+      "name": "HomerProjectile",
+      "source": "HomProjc.bmp",
+      "type": "AlienBullet",
+      "num_frames": 8,
+      "frame_size": 256,
+      "offset": 96768,
+      "hotspot": [
+        8,
+        8
+      ],
+      "animation_rate": 0.0,
+      "properties": {
+        "KillBonus": 0,
+        "EnergyGrade0": 30,
+        "EnergyGrade1": 50,
+        "EnergyGrade2": 70,
+        "SpeedGrade0": 3.0,
+        "SpeedGrade1": 3.0,
+        "SpeedGrade2": 3.0
+      }
+    },
+    {
+      "frame_width": 16,
+      "frame_height": 16,
+      "columns": 8,
+      "rows": 3,
+      "name": "Spinner",
+      "source": "spinners.bmp",
+      "type": "AlienBullet",
+      "num_frames": 24,
+      "frame_size": 256,
+      "offset": 98816,
+      "hotspot": [
+        8,
+        8
+      ],
+      "animation_rate": 16.0,
+      "properties": {
+        "InitialShield": 10,
+        "KillBonus": 5000,
+        "EnergyGrade0": 15,
+        "EnergyGrade1": 25,
+        "EnergyGrade2": 35,
+        "SpeedGrade0": 5.0,
+        "SpeedGrade1": 5.0,
+        "SpeedGrade2": 5.0
+      }
+    },
+    {
+      "frame_width": 16,
+      "frame_height": 16,
+      "columns": 4,
+      "rows": 2,
+      "name": "Spore",
+      "source": "SporesA.bmp",
+      "type": "AlienBullet",
+      "num_frames": 8,
+      "frame_size": 256,
+      "offset": 104960,
+      "hotspot": [
+        8,
+        8
+      ],
+      "animation_rate": 8.0,
+      "properties": {
+        "InitialShield": 1,
+        "KillBonus": 5000,
+        "EnergyGrade0": 2,
+        "EnergyGrade1": 4,
+        "EnergyGrade2": 6,
+        "SpeedGrade0": 1.0,
+        "SpeedGrade1": 1.25,
+        "SpeedGrade2": 1.5
+      }
+    },
+    {
       "frame_width": 96,
       "frame_height": 96,
       "columns": 6,
@@ -84,7 +190,7 @@
       "type": "Alien",
       "num_frames": 24,
       "frame_size": 9216,
-      "offset": 88576,
+      "offset": 107008,
       "hotspot": [
         48,
         48
@@ -105,7 +211,7 @@
       "type": "Alien",
       "num_frames": 16,
       "frame_size": 1024,
-      "offset": 309760,
+      "offset": 328192,
       "hotspot": [
         16,
         16
@@ -126,7 +232,7 @@
       "type": "Alien",
       "num_frames": 24,
       "frame_size": 2048,
-      "offset": 326144,
+      "offset": 344576,
       "hotspot": [
         32,
         16
@@ -147,7 +253,7 @@
       "type": "Pickup",
       "num_frames": 8,
       "frame_size": 1024,
-      "offset": 375296,
+      "offset": 393728,
       "hotspot": [
         16,
         16
@@ -167,7 +273,7 @@
       "type": "Pickup",
       "num_frames": 8,
       "frame_size": 1024,
-      "offset": 383488,
+      "offset": 401920,
       "hotspot": [
         16,
         16
@@ -187,7 +293,7 @@
       "type": "Pickup",
       "num_frames": 8,
       "frame_size": 1024,
-      "offset": 391680,
+      "offset": 410112,
       "hotspot": [
         16,
         16
@@ -207,7 +313,7 @@
       "type": "Pickup",
       "num_frames": 8,
       "frame_size": 1024,
-      "offset": 399872,
+      "offset": 418304,
       "hotspot": [
         16,
         16
@@ -227,7 +333,7 @@
       "type": "Pickup",
       "num_frames": 8,
       "frame_size": 1024,
-      "offset": 408064,
+      "offset": 426496,
       "hotspot": [
         16,
         16
@@ -247,7 +353,7 @@
       "type": "Pickup",
       "num_frames": 8,
       "frame_size": 1024,
-      "offset": 416256,
+      "offset": 434688,
       "hotspot": [
         16,
         16
@@ -267,7 +373,7 @@
       "type": "Pickup",
       "num_frames": 20,
       "frame_size": 1024,
-      "offset": 424448,
+      "offset": 442880,
       "hotspot": [
         16,
         16
@@ -287,7 +393,7 @@
       "type": "Pickup",
       "num_frames": 12,
       "frame_size": 2048,
-      "offset": 444928,
+      "offset": 463360,
       "hotspot": [
         16,
         32
@@ -307,7 +413,7 @@
       "type": "Pickup",
       "num_frames": 8,
       "frame_size": 1024,
-      "offset": 469504,
+      "offset": 487936,
       "hotspot": [
         16,
         16
@@ -327,7 +433,7 @@
       "type": "Pickup",
       "num_frames": 8,
       "frame_size": 1024,
-      "offset": 477696,
+      "offset": 496128,
       "hotspot": [
         16,
         16
@@ -347,7 +453,7 @@
       "type": "Pickup",
       "num_frames": 1,
       "frame_size": 1024,
-      "offset": 485888,
+      "offset": 504320,
       "hotspot": [
         16,
         16
@@ -367,7 +473,7 @@
       "type": "Alien",
       "num_frames": 16,
       "frame_size": 1024,
-      "offset": 486912,
+      "offset": 505344,
       "hotspot": [
         16,
         16
@@ -388,7 +494,7 @@
       "type": "Alien",
       "num_frames": 24,
       "frame_size": 4096,
-      "offset": 503296,
+      "offset": 521728,
       "hotspot": [
         32,
         32
@@ -409,7 +515,7 @@
       "type": "Alien",
       "num_frames": 25,
       "frame_size": 9216,
-      "offset": 601600,
+      "offset": 620032,
       "hotspot": [
         48,
         48
@@ -430,7 +536,7 @@
       "type": "Alien",
       "num_frames": 16,
       "frame_size": 1024,
-      "offset": 832000,
+      "offset": 850432,
       "hotspot": [
         16,
         16
@@ -451,7 +557,7 @@
       "type": "Alien",
       "num_frames": 24,
       "frame_size": 4096,
-      "offset": 848384,
+      "offset": 866816,
       "hotspot": [
         32,
         32
@@ -472,7 +578,7 @@
       "type": "Alien",
       "num_frames": 25,
       "frame_size": 9216,
-      "offset": 946688,
+      "offset": 965120,
       "hotspot": [
         48,
         48
@@ -493,7 +599,7 @@
       "type": "Alien",
       "num_frames": 16,
       "frame_size": 1024,
-      "offset": 1177088,
+      "offset": 1195520,
       "hotspot": [
         16,
         16
@@ -513,7 +619,7 @@
       "type": "Alien",
       "num_frames": 24,
       "frame_size": 4096,
-      "offset": 1193472,
+      "offset": 1211904,
       "hotspot": [
         32,
         32
@@ -533,7 +639,7 @@
       "type": "Alien",
       "num_frames": 25,
       "frame_size": 9216,
-      "offset": 1291776,
+      "offset": 1310208,
       "hotspot": [
         48,
         48
@@ -553,7 +659,7 @@
       "type": "Alien",
       "num_frames": 10,
       "frame_size": 256,
-      "offset": 1522176,
+      "offset": 1540608,
       "hotspot": [
         8,
         8
@@ -573,7 +679,7 @@
       "type": "Alien",
       "num_frames": 10,
       "frame_size": 1024,
-      "offset": 1524736,
+      "offset": 1543168,
       "hotspot": [
         16,
         16
@@ -593,7 +699,7 @@
       "type": "Alien",
       "num_frames": 10,
       "frame_size": 4096,
-      "offset": 1534976,
+      "offset": 1553408,
       "hotspot": [
         32,
         32
@@ -613,7 +719,7 @@
       "type": "Upgrade",
       "num_frames": 20,
       "frame_size": 1024,
-      "offset": 1575936,
+      "offset": 1594368,
       "hotspot": [
         16,
         16
@@ -634,7 +740,7 @@
       "type": "Upgrade",
       "num_frames": 12,
       "frame_size": 2048,
-      "offset": 1596416,
+      "offset": 1614848,
       "hotspot": [
         16,
         32
@@ -643,6 +749,131 @@
       "properties": {
         "InitialShield": 30,
         "KillBonus": 0
+      }
+    },
+    {
+      "frame_width": 32,
+      "frame_height": 32,
+      "columns": 4,
+      "rows": 1,
+      "name": "SmokeEffect",
+      "source": "smoke.bmp",
+      "type": "Effect",
+      "num_frames": 4,
+      "frame_size": 1024,
+      "offset": 1639424,
+      "hotspot": [
+        16,
+        16
+      ],
+      "animation_rate": 8.0,
+      "properties": {
+        "KillBonus": 0
+      }
+    },
+    {
+      "frame_width": 64,
+      "frame_height": 64,
+      "columns": 4,
+      "rows": 4,
+      "name": "Homer",
+      "source": "Homing.bmp",
+      "type": "Alien",
+      "num_frames": 16,
+      "frame_size": 4096,
+      "offset": 1643520,
+      "hotspot": [
+        32,
+        32
+      ],
+      "animation_rate": 16.0,
+      "properties": {
+        "InitialShield": 5,
+        "KillBonus": 50000
+      }
+    },
+    {
+      "frame_width": 64,
+      "frame_height": 64,
+      "columns": 4,
+      "rows": 4,
+      "name": "StandardLoner",
+      "source": "LonerA.bmp",
+      "type": "Alien",
+      "num_frames": 16,
+      "frame_size": 4096,
+      "offset": 1709056,
+      "hotspot": [
+        32,
+        32
+      ],
+      "animation_rate": 16.0,
+      "properties": {
+        "InitialShield": 3,
+        "KillBonus": 15000
+      }
+    },
+    {
+      "frame_width": 64,
+      "frame_height": 64,
+      "columns": 4,
+      "rows": 4,
+      "name": "MediumLoner",
+      "source": "LonerB.bmp",
+      "type": "Alien",
+      "num_frames": 16,
+      "frame_size": 4096,
+      "offset": 1774592,
+      "hotspot": [
+        32,
+        32
+      ],
+      "animation_rate": 16.0,
+      "properties": {
+        "InitialShield": 5,
+        "KillBonus": 25000
+      }
+    },
+    {
+      "frame_width": 64,
+      "frame_height": 64,
+      "columns": 4,
+      "rows": 4,
+      "name": "ArmouredLoner",
+      "source": "LonerC.bmp",
+      "type": "Alien",
+      "num_frames": 16,
+      "frame_size": 4096,
+      "offset": 1840128,
+      "hotspot": [
+        32,
+        32
+      ],
+      "animation_rate": 16.0,
+      "properties": {
+        "InitialShield": 8,
+        "KillBonus": 40000
+      }
+    },
+    {
+      "frame_width": 64,
+      "frame_height": 64,
+      "columns": 4,
+      "rows": 4,
+      "name": "OrganicGun",
+      "source": "GShoot.bmp",
+      "type": "Alien",
+      "num_frames": 16,
+      "frame_size": 4096,
+      "offset": 1905664,
+      "hotspot": [
+        16,
+        16
+      ],
+      "animation_rate": 8.0,
+      "properties": {
+        "InitialShield": 5,
+        "KillBonus": 30000
       }
     }
   ]

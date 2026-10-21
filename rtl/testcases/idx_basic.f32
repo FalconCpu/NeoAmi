@@ -1,0 +1,134 @@
+# Test IDX instructions (idx1, idx2, idx4) - bounds checking array indexing
+# Tests normal operation and exception on overflow
+
+jmp test
+
+exception_handler:
+    # Check this is an index overflow exception
+    cfg $1, !ecause
+    sub $2, $1, 9           # ecause should be 9 (index overflow)
+    bne $2, 0, bad_exception
+    
+    # Get the bad index value from edata
+    cfg $3, !edata
+    
+    # Store exception info for verification
+    ld $25, 0xE0000000      # Mark that we caught an exception
+    add $26, $3, 0          # Save the bad index value
+    
+    # Skip past the faulting instruction (epc += 4)
+    cfg $4, !epc
+    add $4, 4
+    cfg !epc, $4
+    
+    rte
+
+bad_exception:
+    ld $31, 0xBADECAF0
+    ld $30, 0
+    ret
+
+test:
+    # Test 1: idx1 within bounds
+    ld $1, 5
+    ld $2, 10
+    idx1 $3, $1, $2         # $3 = 5 (5 < 10)
+    sub $4, $3, 5
+    bne $4, 0, fail
+    
+    # Test 2: idx1 at boundary (should work)
+    ld $5, 9
+    ld $6, 10
+    idx1 $7, $5, $6         # $7 = 9 (9 < 10)
+    sub $8, $7, 9
+    bne $8, 0, fail
+    
+    # Test 3: idx1 with index=0
+    ld $9, 0
+    ld $10, 10
+    idx1 $11, $9, $10       # $11 = 0 (0 < 10)
+    bne $11, 0, fail
+    
+    # Test 4: idx2 within bounds (multiply by 2)
+    ld $12, 5
+    ld $13, 10
+    idx2 $14, $12, $13      # $14 = 10 (5*2, and 5 < 10)
+    sub $15, $14, 10
+    bne $15, 0, fail
+    
+    # Test 5: idx4 within bounds (multiply by 4)
+    ld $16, 5
+    ld $17, 10
+    idx4 $18, $16, $17      # $18 = 20 (5*4, and 5 < 10)
+    sub $19, $18, 20
+    bne $19, 0, fail
+    
+    # Test 6: idx4 at boundary
+    ld $20, 9
+    ld $21, 10
+    idx4 $22, $20, $21      # $22 = 36 (9*4, and 9 < 10)
+    sub $23, $22, 36
+    bne $23, 0, fail
+    
+    # Test 7: idx1 overflow (should trigger exception)
+    ld $25, 0               # Clear exception marker
+    ld $26, 0
+    ld $1, 10
+    ld $2, 10
+    idx1 $3, $1, $2         # Should trap: 10 >= 10
+    # Exception handler should have run
+    ld $4, 0xE0000000
+    sub $5, $25, $4
+    bne $5, 0, fail
+    sub $6, $26, 10         # Should have saved index value 10
+    bne $6, 0, fail
+    
+    # Test 8: idx2 overflow
+    ld $25, 0               # Clear exception marker
+    ld $26, 0
+    ld $7, 15
+    ld $8, 10
+    idx2 $9, $7, $8         # Should trap: 15 >= 10
+    ld $10, 0xE0000000
+    sub $11, $25, $10
+    bne $11, 0, fail
+    sub $12, $26, 15        # Should have saved index value 15
+    bne $12, 0, fail
+    
+    # Test 9: idx4 overflow
+    ld $25, 0               # Clear exception marker
+    ld $26, 0
+    ld $13, 100
+    ld $14, 50
+    idx4 $15, $13, $14      # Should trap: 100 >= 50
+    ld $16, 0xE0000000
+    sub $17, $25, $16
+    bne $17, 0, fail
+    sub $18, $26, 100       # Should have saved index value 100
+    bne $18, 0, fail
+    
+    # Test 10: idx1 with bound=1 (only index 0 valid)
+    ld $19, 0
+    ld $20, 1
+    idx1 $21, $19, $20      # $21 = 0 (0 < 1)
+    bne $21, 0, fail
+    
+    # Test 11: idx1 overflow with bound=1
+    ld $25, 0               # Clear exception marker
+    ld $26, 0
+    ld $22, 1
+    ld $23, 1
+    idx1 $24, $22, $23      # Should trap: 1 >= 1
+    ld $27, 0xE0000000
+    sub $28, $25, $27
+    bne $28, 0, fail
+    sub $29, $26, 1         # Should have saved index value 1
+    bne $29, 0, fail
+    
+    # All tests passed
+    ld $30, 0
+    ret
+
+fail:
+    ld $30, 0xBAD00001
+    ret

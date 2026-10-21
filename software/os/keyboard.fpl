@@ -36,6 +36,14 @@ const KEY_SCANCODE_B = 0x32
 const KEY_SCANCODE_D = 0x23
 const KEY_SCANCODE_R = 0x2D
 const KEY_SCANCODE_V = 0x2A
+const KEY_SCANCODE_LSHIFT = 0x12
+const KEY_SCANCODE_LCTRL = 0x14
+const KEY_SCANCODE_LALT = 0x11
+const KEY_SCANCODE_RSHIFT = 0x59
+const KEY_SCANCODE_RCTRL = 0x94
+const KEY_SCANCODE_RALT = 0x91
+const KEY_SCANCODE_WINDOWS = 0x9f
+const KEY_SCANCODE_MENU = 0xaf
 
 # lookup table of Scan codes to ASCII
 # One row per scan code

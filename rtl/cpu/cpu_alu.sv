@@ -36,7 +36,8 @@ module cpu_alu (
 
     output logic        mul_valid,          // Indicates that the multiply result is valid
     output logic [4:0]  mul_rd,             // Destination register for the multiply
-    output logic [31:0] mul_result          // Result from the multiply operation
+    output logic [31:0] mul_result,         // Result from the multiply operation
+    output logic        idx_bounds_exception// Indicates that an index bounds exception occurred
 );
 
 logic [31:0] p3_shift_result;
@@ -47,6 +48,7 @@ wire signed [31:0] signed_b = p3_data_b;
 // ALU operation
 always_comb begin
     p3_alu_result = 32'hx;
+    idx_bounds_exception = 1'b0;
 
     if (p3_is_alu)
         case (p3_alu_op)
@@ -60,13 +62,15 @@ always_comb begin
             `ALU_CLTU: p3_alu_result = (p3_data_a < p3_data_b) ? 32'h1 : 32'h0;
             default:  p3_alu_result = 32'hx;
         endcase
-    else if (p3_is_idx) 
+    else if (p3_is_idx) begin
+        idx_bounds_exception = p3_data_a >= p3_data_b || p3_data_a[31];
         case (p3_alu_op)
             `IDX_IDX1: p3_alu_result = p3_data_a;
             `IDX_IDX2: p3_alu_result = p3_data_a << 1;
             `IDX_IDX4: p3_alu_result = p3_data_a << 2;
             default:  p3_alu_result = 32'hx;
         endcase
+    end
     else begin
         p3_alu_result = 32'hx;
     end
@@ -134,7 +138,7 @@ always_ff @(posedge clock) begin
     mul_valid <= p3_is_mult;
     mul_rd <= p3_rd;
 
-    p4_alu_valid <= p3_is_alu || p3_is_shift || p3_is_idx;
+    p4_alu_valid <= p3_is_alu || p3_is_shift || (p3_is_idx && !idx_bounds_exception);
     p4_alu_latent <= p3_is_shift;
     p4_alu_rd <= p3_rd;
 

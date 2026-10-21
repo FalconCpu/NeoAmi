@@ -1,3 +1,5 @@
+
+
 fun spawnObject(tileIndex: Int, col: Int)
     when(tileIndex)
         1 -> 
@@ -8,6 +10,13 @@ fun spawnObject(tileIndex: Int, col: Int)
             val pickup = new pickup(col, PickupType.WEAPON)
             actorList.add(pickup)
 
+        3 -> 
+            val pickup = new pickup(col, PickupType.CLOAK)
+
+        4 -> 
+            val pickup = new pickup(col, PickupType.DIVE)
+            actorList.add(pickup)
+
         5 -> 
             val pickup = new pickup(col, PickupType.CLONE)
             actorList.add(pickup)
@@ -15,6 +24,13 @@ fun spawnObject(tileIndex: Int, col: Int)
         6 -> 
             val pickup = new pickup(col, PickupType.WINGTIP)
             actorList.add(pickup)
+
+        8 -> 
+            val pickup = new pickup(col, PickupType.LASER)
+            actorList.add(pickup)
+
+        9 -> 
+            kprintf("Static wall hugger - not yet implemented\n")
 
         11 -> 
             val asteroid = new Asteroid(col, -32, 0, 0, 0)
@@ -57,14 +73,24 @@ fun spawnObject(tileIndex: Int, col: Int)
             val rusher = new Rusher(col, -32, 0, 4)
             actorList.add(rusher)
 
-        28 -> 
-            val rusher = new Rusher(col, 480, 0, -4)
-            actorList.add(rusher)
+        21 -> 
+            val pod = new Pod(col, -64)
+            actorList.add(pod)
+
+        22 -> 
+            kprintf("homer not yet implemented\n")
 
         23 -> 
             for i in 0..5
                 val drone = new Drone(col, -48 * i, i*12)
                 actorList.add(drone)
+
+        27 ->
+            kprintf("checkpoint\n")
+
+        28 -> 
+            val rusher = new Rusher(col, 480, 0, -4)
+            actorList.add(rusher)
 
         else ->
             kprintf("Spawning object %d at col %d\n", tileIndex, col)

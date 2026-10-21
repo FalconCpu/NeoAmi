@@ -1,5 +1,5 @@
 
-enum PickupType [DAMAGE, SPEED, SHIELD, CLOAK, WEAPON, CLONE, WINGTIP, LASER]
+enum PickupType [DAMAGE, SPEED, SHIELD, CLOAK, WEAPON, CLONE, WINGTIP, LASER, DIVE]
 
 class Actor(var x:Int, var y:Int)
     var active = true

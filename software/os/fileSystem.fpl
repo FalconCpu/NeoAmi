@@ -1,0 +1,101 @@
+
+# The top level file system class
+
+fun freeDirList(list: List<DirectoryEntry>)
+    for entry in list
+        free entry
+    free list
+
+class DirectoryEntry(val name: String, val attr: Int, val first_cluster: Int, val file_size: Int)
+    fun free()
+        free(name)
+
+fun print(dirEntry: DirectoryEntry)
+    if dirEntry.attr & 0x10 != 0
+        kprintf("Directory ")
+    else
+        kprintf("%8d  ", dirEntry.file_size)
+    kprintf("%s\n", dirEntry.name)
+
+
+class FileSystem
+    var fat32: Fat32FileSystem
+
+    # Initializes the file system.
+    # For now we hardcode the mount point.
+    fun initialize() -> Error
+        val sdcard = new SDCardDevice()
+        fat32 = new Fat32FileSystem(sdcard)
+        val init_result = fat32.initialize()
+        if  init_result is Error then return init_result
+        return Error.NONE
+
+    # Extracts the next path element from the given path.
+    # Returns a pointer to the path element and its length.
+    fun getPathElement(path: Pointer<Char>, length: Int) -> (Pointer<Char>, Int)
+        var i = 0
+        while i < length and path[i] != '/'
+            i += 1
+        return (path, i)
+
+    fun getFinalPathElement(path: Pointer<Char>, length: Int) -> (Pointer<Char>, Int)
+        var i = length - 1
+        while i >= 0 and path[i] != '/'
+            i -= 1
+        return (path + i + 1, length - i - 1)
+    
+
+    # Finds the cluster ID corresponding to the given path starting from the 
+    # specified parent cluster, and ignoring the final path element
+    # Returns the cluster ID if successful, otherwise an error.
+    fun findPath(parentClusterId: Int, path: Pointer<Char>, length: Int) -> Int!
+        var currentCluster = parentClusterId
+        var remainingLength = length
+        var currentPath = path
+        while remainingLength > 0
+            val (element, elementLength) = getPathElement(currentPath, remainingLength)
+            if elementLength = remainingLength then return currentCluster
+            val entry = fat32.scanDirectory(currentCluster, element, elementLength)
+            if entry = null then return Error.FILE_NOT_FOUND
+            val attr =fat32.get_u8(entry, 11)
+            if attr & 0x10 = 0 then return Error.NOT_A_DIRECTORY
+            currentCluster = fat32.getClusterIdFromEntry(entry)
+            currentPath = currentPath + elementLength + 1
+            remainingLength -= elementLength + 1
+        return currentCluster
+
+    # Lists directory
+    fun listDirectory(parentClusterId: Int, subDirName: String) -> List<DirectoryEntry>!
+        if subDirName = "" then
+            return fat32.listDirectory(parentClusterId)
+
+        val nameAsPointer = unsafe(subDirName as Pointer<Char>)
+        val (finalElement, finalElementLength) = getFinalPathElement(nameAsPointer, subDirName.length)
+
+        val pathClusterId = try findPath(parentClusterId, nameAsPointer, subDirName.length)
+        return fat32.listSubDirectory(pathClusterId, finalElement, finalElementLength)
+
+    # Opens a file by its name in the specified directory cluster.
+    # Returns a File object if successful, otherwise an error.
+    fun openFile(clusterId: Int, fileName: String) -> Fat32File!
+        val nameAsPointer = unsafe(fileName as Pointer<Char>)
+        val (finalElement, finalElementLength) = getFinalPathElement(nameAsPointer, fileName.length)
+
+        val pathClusterId = try findPath(clusterId, nameAsPointer, fileName.length)
+        return fat32.openFile(pathClusterId, finalElement, finalElementLength)
+
+
+fun loadFile(name:String) -> Pointer<Char>!
+    val file = fileSystem.openFile(0, name)
+    if file is Error
+        kprintf("Failed to open file: %s\n", file.description)
+        abort(0)
+    kprintf("File %s opened successfully\n", name)
+# 
+    val fileSize = file.file_size
+    val page = try allocPage(fileSize)
+    val buffer = pageIDToAddress(page)
+    kprintf("Allocated page at %x for file buffer\n", buffer)
+    val bytes_read = try file.read(buffer, file.file_size)
+    kprintf("Read %d bytes from file\n", bytes_read)
+    return buffer

@@ -1,0 +1,40 @@
+
+class ShieldBar
+    var shield = 160
+    var bitmap = new Array<Char>(160*16)
+
+    fun init()
+        # Create a white border
+        for x in 0..159
+            bitmap[0*160 + x] = 4 as Char   # clear
+            bitmap[15*160 + x] = 4 as Char   # clear
+        for y in 0..15
+            bitmap[y*160 + 0] = 4 as Char   # clear
+            bitmap[y*160 + 159] = 4 as Char   # clear
+
+    fun setShield(sh: Int)
+        shield = sh
+
+        for x in 0..159
+            bitmap[0*160 + x] = 4 as Char   # clear
+            bitmap[15*160 + x] = 4 as Char   # clear
+        for y in 0..15
+            bitmap[y*160 + 0] = 4 as Char   # clear
+            bitmap[y*160 + 159] = 4 as Char   # clear
+
+        for y in 1..14
+            for x in 1..158
+                if x > shield
+                    bitmap[y*160 + x] = 0 as Char   # clear
+                else if x%4=0
+                    bitmap[y*160 + x] = 0 as Char   # gaps clear
+                else if shield > 20
+                    bitmap[y*160 + x] = 2 as Char   # Green
+                else
+                    bitmap[y*160 + x] = 1 as Char   # Red
+
+        val sprite = scene.newSprite()
+        sprite.setBitmap(bitmap, 160, 3)
+        sprite.setSizeAndPos(10, 460, 160, 16)
+        sprite.setZ(100)
+        scene.addObject(sprite)

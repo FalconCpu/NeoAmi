@@ -1,0 +1,87 @@
+
+class SDCardDevice
+    # Wait for a non 0xFF response from the SD card
+    fun read_sd_card_response_1() -> Int!
+        for i in 0..10000
+            val x = hwregs.sd_card_rx
+            if x != -1 and x != 0xFF
+                return x
+        return Error.TIMEOUT
+
+    # Read a single byte from the SD card
+    fun read_sd_card_byte() -> Int!
+        for i in 0..10000
+            val x = hwregs.sd_card_rx
+            if x != -1
+                return x
+        return Error.TIMEOUT
+
+    # Read an R5 response from the SD card
+    fun read_sd_card_response_5() -> Int!
+        val b1 = try read_sd_card_response_1()
+        val b2 = try read_sd_card_byte()
+        val b3 = try read_sd_card_byte()
+        val b4 = try read_sd_card_byte()
+        val b5 = try read_sd_card_byte()   # Ignore checksum byte
+        return b1 lsl 24 | b2 lsl 16 | b3 lsl 8 | b4 
+
+    # Send a command to the SD card and read an R1 response
+    fun sdcard_cmd(cmd:Long)
+        hwregs.sd_card_cmd_hi = (cmd lsr 32) as Int
+        hwregs.sd_card_cmd_lo = cmd as Int
+
+    fun initialize() -> Bool!
+
+        hwregs.sd_card_ctrl = 0    # Assert CS for SD card
+        hwregs.sd_card_ctrl = 1    # Deassert CS for SD card
+
+        sdcard_cmd(0x400000000095L)
+        val r1 = try read_sd_card_response_1()
+        if r1 != 1 then return Error.IO_ERROR
+
+        sdcard_cmd(0x48000001AA87L)   # Send CMD8 to SD card
+        val r2 = try read_sd_card_response_5()
+        if r2!=0x01000001 then return Error.IO_ERROR
+
+        # Send CMD55 / ACMD41 to initialize the SD card
+        # Repeat until the SD card is initialized
+        repeat
+            sdcard_cmd(0x770000000065L)
+            val r3 = try read_sd_card_response_1()
+            if r3 != 1 then return Error.IO_ERROR
+
+            sdcard_cmd(0x694000000077L)
+            val r4 = try read_sd_card_response_1()
+            if r4 = 0 then break
+        until false
+
+        # switch to high speed clock
+        hwregs.sd_card_ctrl = 0    # Assert CS for SD card
+        for i in 0..100000
+            val dummy = 1
+        hwregs.sd_card_ctrl = 3    # Reassert with high speed clock
+
+
+        return true
+
+    fun read_sector(sector: Int, buffer: Pointer<Char>, max_size: Int) -> Int!
+        if max_size <= 0 then return 0
+        sdcard_cmd(0x5100000000FFL | ((sector as Long) lsl 8))
+        val r1 =  try read_sd_card_response_1() 
+        if r1 != 0 then return Error.IO_ERROR
+
+        # Wait for the data token from the SD card
+        val r2 = try read_sd_card_response_1()
+        if r2 != 0xFE then return Error.IO_ERROR
+
+        # Read the 512-byte sector from the SD card
+        for i in 0..511
+            val byte = try read_sd_card_byte()
+            if i<=max_size
+                buffer[i] = byte as Char
+        val crc1 = try read_sd_card_byte()
+        val crc2 = try read_sd_card_byte()
+
+        return 0
+
+

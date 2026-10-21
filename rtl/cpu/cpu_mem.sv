@@ -36,7 +36,10 @@ module cpu_mem (
     output logic [3:0]  cpu_aux_strb,     // Byte enable signals (For both read and write)
     output logic [4:0]  cpu_aux_rd,       // Destination register for the instruction in stage 3
 
-    output logic        mem_ready,        // Indicates that the memory is ready to accept a new request
+    output logic        misaligned_exception,  // Indicates a misaligned memory access
+    output logic        dmpu_exception,        // Indicates a data memory protection unit fault
+    output logic [31:0] mem_exc_addr,          // Address that caused the DMPU fault
+    output logic        mem_ready,             // Indicates that the memory is ready to accept a new request
     output logic        memif_fault
 );
 
@@ -151,6 +154,9 @@ always_ff @(posedge clock) begin
     prev_dcache_queue1 <= dcache_queue1;
     prev_dcache_queue2 <= dcache_queue2;
     memif_fault <= next_memif_fault;
+    misaligned_exception <= misaligned_access;
+    dmpu_exception <= 1'b0; // Not yet implemented
+    mem_exc_addr <= addr;
 
     // synthesis translate_off
     if (next_memif_fault)

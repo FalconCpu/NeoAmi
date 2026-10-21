@@ -5,12 +5,16 @@
 ../os/page_alloc.fpl
 ../os/math.fpl
 ../stdlib/list.fpl
+../stdlib/string.fpl
 ../os/kprintf.fpl
 ../os/IrisSprite.fpl
 ../os/renderTriangle.fpl
 ../os/fileHandler.fpl
 ../os/keyboard.fpl
 ../os/kernel_main.fpl
+../os/sdcardDevice.fpl
+../os/Fat32FileSystem.fpl
+../os/fileSystem.fpl
 sprite_manifest.fpl
 main.fpl
 player.fpl
@@ -23,3 +27,4 @@ rusher.fpl
 pickup.fpl
 asteroid.fpl
 explosion.fpl
+shieldBar.fpl

@@ -1,0 +1,262 @@
+
+class Fat32FileSystem (val device : SDCardDevice )
+
+    val sectorBuffer = new Array<Char>(512)
+    var clusterBuffer : Array<Char>
+
+    var data_start = 0          # The starting LBA of the data region on the SD card
+    var sectors_per_cluster = 0
+    var fat_start = 0
+
+    var fat_cache : Pointer<Char>
+    var fat_cache_sector = 0 
+    
+    var root_cluster = 0
+    var root_lba = 0
+
+
+    fun get_u32(buffer: Pointer<Char>, offset: Int) -> Int
+        val b0 = (buffer[offset] as Int) & 0xFF
+        val b1 = (buffer[offset + 1] as Int) & 0xFF
+        val b2 = (buffer[offset + 2] as Int) & 0xFF
+        val b3 = (buffer[offset + 3] as Int) & 0xFF
+        return b0 | (b1 lsl 8) | (b2 lsl 16) | (b3 lsl 24)
+
+    fun get_u16(buffer: Pointer<Char>, offset: Int) -> Int
+        val b0 = (buffer[offset] as Int) & 0xFF
+        val b1 = (buffer[offset + 1] as Int) & 0xFF
+        return b0 | (b1 lsl 8)
+
+    fun get_u8(buffer: Pointer<Char>, offset: Int) -> Int
+        return (buffer[offset] as Int) & 0xFF
+
+    fun read_fat_entry(cluster: Int) -> Int!
+        val sector = cluster lsr 7
+        if fat_cache_sector != sector
+            device.read_sector(fat_start + sector, fat_cache, 512)
+            fat_cache_sector = sector
+        return get_u32(fat_cache, 4*(cluster & 0x7F)) & 0x0FFFFFFF
+
+    # Reads an cluster from the SD card into the provided buffer, 
+    # returns the total number of bytes read
+    fun read_sdcard_cluster(cluster: Int, buffer: Pointer<Char>, max_size:Int) -> Int!
+        val start_lba = data_start + (cluster - 2) * sectors_per_cluster
+        var remaining = max_size
+        var total_read = 0
+        for i in 0..<sectors_per_cluster
+            val to_read = if remaining > 512 then 512 else remaining
+            val result = try device.read_sector(start_lba + i, buffer + i*512, to_read)
+            remaining -= to_read
+            total_read += to_read
+        return total_read
+
+    fun initialize() -> Bool!
+        val init_result = try device.initialize()
+
+        # Read sector 0 and check it for the signature 0x55AA at the end
+        device.read_sector(0, sectorBuffer, 512)
+        val signature = get_u16(sectorBuffer, 510)
+        if signature != 0xAA55 then return Error.IO_ERROR
+
+        # Read the volume ID, start LBA, and total sectors from the buffer
+        val volume_id = get_u32(sectorBuffer, 440)
+        val start_lba = get_u32(sectorBuffer, 454)
+        val total_sectors = get_u32(sectorBuffer, 458)
+
+        # Fetch the LBA of the first partition from the buffer
+        device.read_sector(start_lba, sectorBuffer, 512)
+
+        val sig2 = get_u16(sectorBuffer, 510)
+        if sig2 != 0xAA55 then return Error.IO_ERROR
+        
+        sectors_per_cluster = get_u8(sectorBuffer, 13)
+        val reserved_sectors = get_u16(sectorBuffer, 14)
+        val number_of_fats = get_u8(sectorBuffer, 16)
+        val fat_size_in_sectors = get_u32(sectorBuffer, 36)
+        root_cluster = get_u32(sectorBuffer, 44)
+
+        fat_start = start_lba + reserved_sectors
+        data_start = fat_start + number_of_fats * fat_size_in_sectors
+
+        fat_cache = new Array<Char>(512)
+        clusterBuffer = new Array<Char>(sectors_per_cluster * 512)
+        kprintf("Sector buffer allocated at %x\n", sectorBuffer)
+        kprintf("Cluster buffer allocated at %x\n", clusterBuffer)
+        fat_cache_sector = -1
+
+        # kprintf("Sectors per cluster: %02x\n", sectors_per_cluster)
+        # kprintf("Reserved sectors: %04x\n", reserved_sectors)
+        # kprintf("Number of FATs: %02x\n", number_of_fats)
+        # kprintf("FAT size in sectors: %08x\n", fat_size_in_sectors)
+        # kprintf("Root cluster: %08x\n", root_cluster)
+        # kprintf("FAT start: %08x\n", fat_start)
+        # kprintf("Data start: %08x\n", data_start)
+
+        return true
+
+    # ===============================================================================
+    #                   Directory walking functions
+    # ===============================================================================
+    # Walk a directory - starting from a given cluster, iterates over each directory entry
+    # Note - this is stateful - it maintains the current cluster and offset within the cluster
+    var dirCluster = 0
+    var dirOffset = 0
+    val fileName : InlineArray<Char>(256)
+    var hasLongFileName = false
+    var fileNameLength = 0
+
+    fun addToFileName(c1: Char, c2: Char, seq: Int, offset: Int)
+        if c1=0 as Char or c1=-1 as Char then return
+        val index = 13*(seq -1) + offset
+        if (c2=0 as Char)
+            fileName[index] = c1
+        else if c2!=0xff as Char
+            fileName[index] = '?'
+        if c1!=0 as Char and index >= fileNameLength
+            fileNameLength = index + 1
+
+    fun addShortFileName(c: Char, lc:Bool)
+        var lcc = if c>='A' and c<='Z' and lc then (c as Int + 0x20) as Char else c
+        if c!=' '
+            fileName[fileNameLength] = lcc
+            fileNameLength += 1
+
+
+    fun startWalkDirectory(clusterId:Int) -> Bool!
+        dirCluster = if clusterId = 0 then root_cluster else clusterId
+        dirOffset = -32
+        hasLongFileName = false
+        fileNameLength = 0
+        val read_root_result = try read_sdcard_cluster(dirCluster, clusterBuffer, sectors_per_cluster * 512)
+        return true
+
+    fun walkDirectory() -> Pointer<Char>?
+        hasLongFileName = false
+        fileNameLength = 0
+        while true
+            dirOffset += 32
+            if dirOffset >= sectors_per_cluster * 512
+                # Reached the end of the current cluster
+                # TODO - move onto the next cluster
+                return null
+            val entry = unsafe( ((clusterBuffer as Int) + dirOffset) as Pointer<Char>)
+            if get_u8(entry, 0) = 0
+                # End of directory entries
+                return null
+            if get_u8(entry, 0) = 0xE5
+                # Deleted entry
+                hasLongFileName = false
+                continue
+            if get_u8(entry, 11) = 0x0F
+                # Long file name entry
+                # TODO - add more error checking (eg sequence number validity, and checksum)
+                hasLongFileName = true
+                val seq = get_u8(entry, 0) & 0x1F
+                addToFileName(entry[1], entry[2], seq, 0)
+                addToFileName(entry[3], entry[4], seq, 1)
+                addToFileName(entry[5], entry[6], seq, 2)
+                addToFileName(entry[7], entry[8], seq, 3)
+                addToFileName(entry[9], entry[10], seq, 4)
+                addToFileName(entry[14], entry[15], seq, 5)
+                addToFileName(entry[16], entry[17], seq, 6)
+                addToFileName(entry[18], entry[19], seq, 7)
+                addToFileName(entry[20], entry[21], seq, 8)
+                addToFileName(entry[22], entry[23], seq, 9)
+                addToFileName(entry[24], entry[25], seq, 10)
+                addToFileName(entry[28], entry[29], seq, 11)
+                addToFileName(entry[30], entry[31], seq, 12)
+                continue
+            if not hasLongFileName
+                # Build an 8.2 file name
+                val lc = entry[12] & 0x08 != 0
+                for i in 0..7
+                    addShortFileName(entry[i], lc)
+                if entry[8] != ' '
+                    addShortFileName('.', false)
+                val lcx = entry[12] & 0x10 != 0
+                for i in 8..10
+                    addShortFileName(entry[i], lcx)
+            return entry
+
+
+    # Checks if the directory entry matches the given name
+    fun matchName(name: Pointer<Char>, length: Int) -> Bool
+        if fileNameLength != length
+            return false
+        for i in 0..fileNameLength-1
+            if fileName[i] != name[i]
+                return false
+        return true
+
+    # Scans a directory for a specific file by name - returns a pointer to the directory entry if found,
+    # otherwise null
+    fun scanDirectory(clusterId:Int, file_name:Pointer<Char>, length: Int) -> Pointer<Char>?
+        startWalkDirectory(clusterId)
+        while true
+            val entry = walkDirectory()
+            if entry = null then return null
+            if matchName(file_name, length) then return entry
+
+    # Lists all entries in a directory and returns them as a list of Fat32DirectoryEntry objects
+    fun listDirectory(clusterId:Int) -> List<DirectoryEntry>!
+
+        # Read the root directory sector
+        startWalkDirectory(clusterId)
+        val ret = new List<DirectoryEntry>()
+
+        while true
+            val entry = walkDirectory()
+            if entry = null
+                return ret
+            val attr = get_u8(entry, 11)
+            val file_name = makeString(unsafe(fileName as Pointer<Char>), fileNameLength)
+            val first_cluster = getClusterIdFromEntry(entry)
+            val file_size     = get_u32(entry, 28)
+            ret.add(new DirectoryEntry(file_name, attr, first_cluster, file_size))
+
+    # List a sub-directory given its parent directory cluster ID and the sub-directory name
+    fun listSubDirectory(parentClusterId:Int, subDirName:Pointer<Char>, length: Int) -> List<DirectoryEntry>!
+        val entry = scanDirectory(parentClusterId, subDirName, length)
+        if entry = null then return Error.FILE_NOT_FOUND
+        val attr = get_u8(entry, 11)
+        if attr & 0x10 = 0 then return Error.NOT_A_DIRECTORY
+        val first_cluster = getClusterIdFromEntry(entry)
+        return listDirectory(first_cluster)
+
+    # Retrieves the cluster ID from a directory entry.
+    fun getClusterIdFromEntry(entry: Pointer<Char>) -> Int
+        return (get_u16(entry, 20) lsl 16) | get_u16(entry, 26)
+
+    # Opens a file by its name in the specified directory cluster. Returns a Fat32File object if successful, 
+    # otherwise an error.
+    fun openFile(clusterId:Int, file_name:Pointer<Char>, length: Int) -> Fat32File!
+        val entry = scanDirectory(clusterId, file_name, length)
+        if entry = null
+            return Error.FILE_NOT_FOUND
+        val attr = get_u8(entry, 11)
+        if attr & 0x10 != 0
+            return Error.IS_A_DIRECTORY
+        val first_cluster = getClusterIdFromEntry(entry)
+        val file_size     = get_u32(entry, 28)
+        return new Fat32File(this, first_cluster, file_size)
+
+
+class Fat32File(val fs: Fat32FileSystem, val first_cluster: Int, val file_size: Int)
+    var current_cluster   = first_cluster
+    var file_offset       = 0
+
+    # Reads data from the file into the destination buffer. Returns the number of bytes read.
+    fun read(dest: Pointer<Char>, size: Int) -> Int!
+        var remaining = size
+        var total_read = 0
+        kprintf("Starting read of %d bytes from cluster %d\n", size, current_cluster)
+        while true
+            val result = try fs.read_sdcard_cluster(current_cluster, dest + total_read, remaining)
+            remaining -= result
+            total_read += result
+            if remaining <= 0
+                return total_read
+
+            current_cluster = try fs.read_fat_entry(current_cluster)
+            if current_cluster >= 0x0FFFFFF8
+                return Error.BAD_SECTOR

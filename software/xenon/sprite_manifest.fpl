@@ -4,36 +4,46 @@
 const SPRITE_SHIP = 0
 const SPRITE_SHIP_ENGINE = 21
 const SPRITE_MISSILE = 23
-const SPRITE_POD = 29
-const SPRITE_DRONE = 53
-const SPRITE_RUSHER = 69
-const SPRITE_SPEED_PICKUP = 93
-const SPRITE_SHIELD_PICKUP = 101
-const SPRITE_WEAPON_PICKUP = 109
-const SPRITE_CLOAK_PICKUP = 117
-const SPRITE_DIVE_PICKUP = 125
-const SPRITE_SCORE_PICKUP = 133
-const SPRITE_CLONE_PICKUP = 141
-const SPRITE_WINGTIP_PICKUP = 161
-const SPRITE_MISSILE_PICKUP = 173
-const SPRITE_LASER_PICKUP = 181
-const SPRITE_LIFE_PICKUP = 189
-const SPRITE_SMALL_STANDARD_ASTEROID = 190
-const SPRITE_MEDIUM_STANDARD_ASTEROID = 206
-const SPRITE_BIG_STANDARD_ASTEROID = 230
-const SPRITE_SMALL_HIGH_DENSITY_ASTEROID = 255
-const SPRITE_MEDIUM_HIGH_DENSITY_ASTEROID = 271
-const SPRITE_BIG_HIGH_DENSITY_ASTEROID = 295
-const SPRITE_SMALL_INDESTUCTIBLE_ASTEROID = 320
-const SPRITE_MEDIUM_INDESTUCTIBLE_ASTEROID = 336
-const SPRITE_BIG_INDESTUCTIBLE_ASTEROID = 360
-const SPRITE_SMALL_EXPLOSION = 385
-const SPRITE_MEDIUM_EXPLOSION = 395
-const SPRITE_BIG_EXPLOSION = 405
-const SPRITE_CLONE = 415
-const SPRITE_WINGTIP = 435
+const SPRITE_HOMING_MISSILE = 29
+const SPRITE_HOMER_PROJECTILE = 37
+const SPRITE_SPINNER = 45
+const SPRITE_SPORE = 69
+const SPRITE_POD = 77
+const SPRITE_DRONE = 101
+const SPRITE_RUSHER = 117
+const SPRITE_SPEED_PICKUP = 141
+const SPRITE_SHIELD_PICKUP = 149
+const SPRITE_WEAPON_PICKUP = 157
+const SPRITE_CLOAK_PICKUP = 165
+const SPRITE_DIVE_PICKUP = 173
+const SPRITE_SCORE_PICKUP = 181
+const SPRITE_CLONE_PICKUP = 189
+const SPRITE_WINGTIP_PICKUP = 209
+const SPRITE_MISSILE_PICKUP = 221
+const SPRITE_LASER_PICKUP = 229
+const SPRITE_LIFE_PICKUP = 237
+const SPRITE_SMALL_STANDARD_ASTEROID = 238
+const SPRITE_MEDIUM_STANDARD_ASTEROID = 254
+const SPRITE_BIG_STANDARD_ASTEROID = 278
+const SPRITE_SMALL_HIGH_DENSITY_ASTEROID = 303
+const SPRITE_MEDIUM_HIGH_DENSITY_ASTEROID = 319
+const SPRITE_BIG_HIGH_DENSITY_ASTEROID = 343
+const SPRITE_SMALL_INDESTUCTIBLE_ASTEROID = 368
+const SPRITE_MEDIUM_INDESTUCTIBLE_ASTEROID = 384
+const SPRITE_BIG_INDESTUCTIBLE_ASTEROID = 408
+const SPRITE_SMALL_EXPLOSION = 433
+const SPRITE_MEDIUM_EXPLOSION = 443
+const SPRITE_BIG_EXPLOSION = 453
+const SPRITE_CLONE = 463
+const SPRITE_WINGTIP = 483
+const SPRITE_SMOKE_EFFECT = 495
+const SPRITE_HOMER = 499
+const SPRITE_STANDARD_LONER = 515
+const SPRITE_MEDIUM_LONER = 531
+const SPRITE_ARMOURED_LONER = 547
+const SPRITE_ORGANIC_GUN = 563
 
-const NUM_SPRITE_FRAMES = 447
+const NUM_SPRITE_FRAMES = 579
 
 const spriteManifest = const Array<Image>[
     Image(0, 64, 64),               # Ship
@@ -65,8 +75,54 @@ const spriteManifest = const Array<Image>[
     Image(87808, 16, 16),           # Missile
     Image(88064, 16, 16),           # Missile
     Image(88320, 16, 16),           # Missile
-    Image(88576, 96, 96),           # Pod
-    Image(97792, 96, 96),           # Pod
+    Image(88576, 32, 32),           # HomingMissile
+    Image(89600, 32, 32),           # HomingMissile
+    Image(90624, 32, 32),           # HomingMissile
+    Image(91648, 32, 32),           # HomingMissile
+    Image(92672, 32, 32),           # HomingMissile
+    Image(93696, 32, 32),           # HomingMissile
+    Image(94720, 32, 32),           # HomingMissile
+    Image(95744, 32, 32),           # HomingMissile
+    Image(96768, 16, 16),           # HomerProjectile
+    Image(97024, 16, 16),           # HomerProjectile
+    Image(97280, 16, 16),           # HomerProjectile
+    Image(97536, 16, 16),           # HomerProjectile
+    Image(97792, 16, 16),           # HomerProjectile
+    Image(98048, 16, 16),           # HomerProjectile
+    Image(98304, 16, 16),           # HomerProjectile
+    Image(98560, 16, 16),           # HomerProjectile
+    Image(98816, 16, 16),           # Spinner
+    Image(99072, 16, 16),           # Spinner
+    Image(99328, 16, 16),           # Spinner
+    Image(99584, 16, 16),           # Spinner
+    Image(99840, 16, 16),           # Spinner
+    Image(100096, 16, 16),          # Spinner
+    Image(100352, 16, 16),          # Spinner
+    Image(100608, 16, 16),          # Spinner
+    Image(100864, 16, 16),          # Spinner
+    Image(101120, 16, 16),          # Spinner
+    Image(101376, 16, 16),          # Spinner
+    Image(101632, 16, 16),          # Spinner
+    Image(101888, 16, 16),          # Spinner
+    Image(102144, 16, 16),          # Spinner
+    Image(102400, 16, 16),          # Spinner
+    Image(102656, 16, 16),          # Spinner
+    Image(102912, 16, 16),          # Spinner
+    Image(103168, 16, 16),          # Spinner
+    Image(103424, 16, 16),          # Spinner
+    Image(103680, 16, 16),          # Spinner
+    Image(103936, 16, 16),          # Spinner
+    Image(104192, 16, 16),          # Spinner
+    Image(104448, 16, 16),          # Spinner
+    Image(104704, 16, 16),          # Spinner
+    Image(104960, 16, 16),          # Spore
+    Image(105216, 16, 16),          # Spore
+    Image(105472, 16, 16),          # Spore
+    Image(105728, 16, 16),          # Spore
+    Image(105984, 16, 16),          # Spore
+    Image(106240, 16, 16),          # Spore
+    Image(106496, 16, 16),          # Spore
+    Image(106752, 16, 16),          # Spore
     Image(107008, 96, 96),          # Pod
     Image(116224, 96, 96),          # Pod
     Image(125440, 96, 96),          # Pod
@@ -89,31 +145,24 @@ const spriteManifest = const Array<Image>[
     Image(282112, 96, 96),          # Pod
     Image(291328, 96, 96),          # Pod
     Image(300544, 96, 96),          # Pod
-    Image(309760, 32, 32),          # Drone
-    Image(310784, 32, 32),          # Drone
-    Image(311808, 32, 32),          # Drone
-    Image(312832, 32, 32),          # Drone
-    Image(313856, 32, 32),          # Drone
-    Image(314880, 32, 32),          # Drone
-    Image(315904, 32, 32),          # Drone
-    Image(316928, 32, 32),          # Drone
-    Image(317952, 32, 32),          # Drone
-    Image(318976, 32, 32),          # Drone
-    Image(320000, 32, 32),          # Drone
-    Image(321024, 32, 32),          # Drone
-    Image(322048, 32, 32),          # Drone
-    Image(323072, 32, 32),          # Drone
-    Image(324096, 32, 32),          # Drone
-    Image(325120, 32, 32),          # Drone
-    Image(326144, 64, 32),          # Rusher
-    Image(328192, 64, 32),          # Rusher
-    Image(330240, 64, 32),          # Rusher
-    Image(332288, 64, 32),          # Rusher
-    Image(334336, 64, 32),          # Rusher
-    Image(336384, 64, 32),          # Rusher
-    Image(338432, 64, 32),          # Rusher
-    Image(340480, 64, 32),          # Rusher
-    Image(342528, 64, 32),          # Rusher
+    Image(309760, 96, 96),          # Pod
+    Image(318976, 96, 96),          # Pod
+    Image(328192, 32, 32),          # Drone
+    Image(329216, 32, 32),          # Drone
+    Image(330240, 32, 32),          # Drone
+    Image(331264, 32, 32),          # Drone
+    Image(332288, 32, 32),          # Drone
+    Image(333312, 32, 32),          # Drone
+    Image(334336, 32, 32),          # Drone
+    Image(335360, 32, 32),          # Drone
+    Image(336384, 32, 32),          # Drone
+    Image(337408, 32, 32),          # Drone
+    Image(338432, 32, 32),          # Drone
+    Image(339456, 32, 32),          # Drone
+    Image(340480, 32, 32),          # Drone
+    Image(341504, 32, 32),          # Drone
+    Image(342528, 32, 32),          # Drone
+    Image(343552, 32, 32),          # Drone
     Image(344576, 64, 32),          # Rusher
     Image(346624, 64, 32),          # Rusher
     Image(348672, 64, 32),          # Rusher
@@ -129,145 +178,152 @@ const spriteManifest = const Array<Image>[
     Image(369152, 64, 32),          # Rusher
     Image(371200, 64, 32),          # Rusher
     Image(373248, 64, 32),          # Rusher
-    Image(375296, 32, 32),          # SpeedPickup
-    Image(376320, 32, 32),          # SpeedPickup
-    Image(377344, 32, 32),          # SpeedPickup
-    Image(378368, 32, 32),          # SpeedPickup
-    Image(379392, 32, 32),          # SpeedPickup
-    Image(380416, 32, 32),          # SpeedPickup
-    Image(381440, 32, 32),          # SpeedPickup
-    Image(382464, 32, 32),          # SpeedPickup
-    Image(383488, 32, 32),          # ShieldPickup
-    Image(384512, 32, 32),          # ShieldPickup
-    Image(385536, 32, 32),          # ShieldPickup
-    Image(386560, 32, 32),          # ShieldPickup
-    Image(387584, 32, 32),          # ShieldPickup
-    Image(388608, 32, 32),          # ShieldPickup
-    Image(389632, 32, 32),          # ShieldPickup
-    Image(390656, 32, 32),          # ShieldPickup
-    Image(391680, 32, 32),          # WeaponPickup
-    Image(392704, 32, 32),          # WeaponPickup
-    Image(393728, 32, 32),          # WeaponPickup
-    Image(394752, 32, 32),          # WeaponPickup
-    Image(395776, 32, 32),          # WeaponPickup
-    Image(396800, 32, 32),          # WeaponPickup
-    Image(397824, 32, 32),          # WeaponPickup
-    Image(398848, 32, 32),          # WeaponPickup
-    Image(399872, 32, 32),          # CloakPickup
-    Image(400896, 32, 32),          # CloakPickup
-    Image(401920, 32, 32),          # CloakPickup
-    Image(402944, 32, 32),          # CloakPickup
-    Image(403968, 32, 32),          # CloakPickup
-    Image(404992, 32, 32),          # CloakPickup
-    Image(406016, 32, 32),          # CloakPickup
-    Image(407040, 32, 32),          # CloakPickup
-    Image(408064, 32, 32),          # DivePickup
-    Image(409088, 32, 32),          # DivePickup
-    Image(410112, 32, 32),          # DivePickup
-    Image(411136, 32, 32),          # DivePickup
-    Image(412160, 32, 32),          # DivePickup
-    Image(413184, 32, 32),          # DivePickup
-    Image(414208, 32, 32),          # DivePickup
-    Image(415232, 32, 32),          # DivePickup
-    Image(416256, 32, 32),          # ScorePickup
-    Image(417280, 32, 32),          # ScorePickup
-    Image(418304, 32, 32),          # ScorePickup
-    Image(419328, 32, 32),          # ScorePickup
-    Image(420352, 32, 32),          # ScorePickup
-    Image(421376, 32, 32),          # ScorePickup
-    Image(422400, 32, 32),          # ScorePickup
-    Image(423424, 32, 32),          # ScorePickup
-    Image(424448, 32, 32),          # ClonePickup
-    Image(425472, 32, 32),          # ClonePickup
-    Image(426496, 32, 32),          # ClonePickup
-    Image(427520, 32, 32),          # ClonePickup
-    Image(428544, 32, 32),          # ClonePickup
-    Image(429568, 32, 32),          # ClonePickup
-    Image(430592, 32, 32),          # ClonePickup
-    Image(431616, 32, 32),          # ClonePickup
-    Image(432640, 32, 32),          # ClonePickup
-    Image(433664, 32, 32),          # ClonePickup
-    Image(434688, 32, 32),          # ClonePickup
-    Image(435712, 32, 32),          # ClonePickup
-    Image(436736, 32, 32),          # ClonePickup
-    Image(437760, 32, 32),          # ClonePickup
-    Image(438784, 32, 32),          # ClonePickup
-    Image(439808, 32, 32),          # ClonePickup
-    Image(440832, 32, 32),          # ClonePickup
-    Image(441856, 32, 32),          # ClonePickup
+    Image(375296, 64, 32),          # Rusher
+    Image(377344, 64, 32),          # Rusher
+    Image(379392, 64, 32),          # Rusher
+    Image(381440, 64, 32),          # Rusher
+    Image(383488, 64, 32),          # Rusher
+    Image(385536, 64, 32),          # Rusher
+    Image(387584, 64, 32),          # Rusher
+    Image(389632, 64, 32),          # Rusher
+    Image(391680, 64, 32),          # Rusher
+    Image(393728, 32, 32),          # SpeedPickup
+    Image(394752, 32, 32),          # SpeedPickup
+    Image(395776, 32, 32),          # SpeedPickup
+    Image(396800, 32, 32),          # SpeedPickup
+    Image(397824, 32, 32),          # SpeedPickup
+    Image(398848, 32, 32),          # SpeedPickup
+    Image(399872, 32, 32),          # SpeedPickup
+    Image(400896, 32, 32),          # SpeedPickup
+    Image(401920, 32, 32),          # ShieldPickup
+    Image(402944, 32, 32),          # ShieldPickup
+    Image(403968, 32, 32),          # ShieldPickup
+    Image(404992, 32, 32),          # ShieldPickup
+    Image(406016, 32, 32),          # ShieldPickup
+    Image(407040, 32, 32),          # ShieldPickup
+    Image(408064, 32, 32),          # ShieldPickup
+    Image(409088, 32, 32),          # ShieldPickup
+    Image(410112, 32, 32),          # WeaponPickup
+    Image(411136, 32, 32),          # WeaponPickup
+    Image(412160, 32, 32),          # WeaponPickup
+    Image(413184, 32, 32),          # WeaponPickup
+    Image(414208, 32, 32),          # WeaponPickup
+    Image(415232, 32, 32),          # WeaponPickup
+    Image(416256, 32, 32),          # WeaponPickup
+    Image(417280, 32, 32),          # WeaponPickup
+    Image(418304, 32, 32),          # CloakPickup
+    Image(419328, 32, 32),          # CloakPickup
+    Image(420352, 32, 32),          # CloakPickup
+    Image(421376, 32, 32),          # CloakPickup
+    Image(422400, 32, 32),          # CloakPickup
+    Image(423424, 32, 32),          # CloakPickup
+    Image(424448, 32, 32),          # CloakPickup
+    Image(425472, 32, 32),          # CloakPickup
+    Image(426496, 32, 32),          # DivePickup
+    Image(427520, 32, 32),          # DivePickup
+    Image(428544, 32, 32),          # DivePickup
+    Image(429568, 32, 32),          # DivePickup
+    Image(430592, 32, 32),          # DivePickup
+    Image(431616, 32, 32),          # DivePickup
+    Image(432640, 32, 32),          # DivePickup
+    Image(433664, 32, 32),          # DivePickup
+    Image(434688, 32, 32),          # ScorePickup
+    Image(435712, 32, 32),          # ScorePickup
+    Image(436736, 32, 32),          # ScorePickup
+    Image(437760, 32, 32),          # ScorePickup
+    Image(438784, 32, 32),          # ScorePickup
+    Image(439808, 32, 32),          # ScorePickup
+    Image(440832, 32, 32),          # ScorePickup
+    Image(441856, 32, 32),          # ScorePickup
     Image(442880, 32, 32),          # ClonePickup
     Image(443904, 32, 32),          # ClonePickup
-    Image(444928, 32, 64),          # WingtipPickup
-    Image(446976, 32, 64),          # WingtipPickup
-    Image(449024, 32, 64),          # WingtipPickup
-    Image(451072, 32, 64),          # WingtipPickup
-    Image(453120, 32, 64),          # WingtipPickup
-    Image(455168, 32, 64),          # WingtipPickup
-    Image(457216, 32, 64),          # WingtipPickup
-    Image(459264, 32, 64),          # WingtipPickup
-    Image(461312, 32, 64),          # WingtipPickup
+    Image(444928, 32, 32),          # ClonePickup
+    Image(445952, 32, 32),          # ClonePickup
+    Image(446976, 32, 32),          # ClonePickup
+    Image(448000, 32, 32),          # ClonePickup
+    Image(449024, 32, 32),          # ClonePickup
+    Image(450048, 32, 32),          # ClonePickup
+    Image(451072, 32, 32),          # ClonePickup
+    Image(452096, 32, 32),          # ClonePickup
+    Image(453120, 32, 32),          # ClonePickup
+    Image(454144, 32, 32),          # ClonePickup
+    Image(455168, 32, 32),          # ClonePickup
+    Image(456192, 32, 32),          # ClonePickup
+    Image(457216, 32, 32),          # ClonePickup
+    Image(458240, 32, 32),          # ClonePickup
+    Image(459264, 32, 32),          # ClonePickup
+    Image(460288, 32, 32),          # ClonePickup
+    Image(461312, 32, 32),          # ClonePickup
+    Image(462336, 32, 32),          # ClonePickup
     Image(463360, 32, 64),          # WingtipPickup
     Image(465408, 32, 64),          # WingtipPickup
     Image(467456, 32, 64),          # WingtipPickup
-    Image(469504, 32, 32),          # MissilePickup
-    Image(470528, 32, 32),          # MissilePickup
-    Image(471552, 32, 32),          # MissilePickup
-    Image(472576, 32, 32),          # MissilePickup
-    Image(473600, 32, 32),          # MissilePickup
-    Image(474624, 32, 32),          # MissilePickup
-    Image(475648, 32, 32),          # MissilePickup
-    Image(476672, 32, 32),          # MissilePickup
-    Image(477696, 32, 32),          # LaserPickup
-    Image(478720, 32, 32),          # LaserPickup
-    Image(479744, 32, 32),          # LaserPickup
-    Image(480768, 32, 32),          # LaserPickup
-    Image(481792, 32, 32),          # LaserPickup
-    Image(482816, 32, 32),          # LaserPickup
-    Image(483840, 32, 32),          # LaserPickup
-    Image(484864, 32, 32),          # LaserPickup
-    Image(485888, 32, 32),          # LifePickup
-    Image(486912, 32, 32),          # SmallStandardAsteroid
-    Image(487936, 32, 32),          # SmallStandardAsteroid
-    Image(488960, 32, 32),          # SmallStandardAsteroid
-    Image(489984, 32, 32),          # SmallStandardAsteroid
-    Image(491008, 32, 32),          # SmallStandardAsteroid
-    Image(492032, 32, 32),          # SmallStandardAsteroid
-    Image(493056, 32, 32),          # SmallStandardAsteroid
-    Image(494080, 32, 32),          # SmallStandardAsteroid
-    Image(495104, 32, 32),          # SmallStandardAsteroid
-    Image(496128, 32, 32),          # SmallStandardAsteroid
-    Image(497152, 32, 32),          # SmallStandardAsteroid
-    Image(498176, 32, 32),          # SmallStandardAsteroid
-    Image(499200, 32, 32),          # SmallStandardAsteroid
-    Image(500224, 32, 32),          # SmallStandardAsteroid
-    Image(501248, 32, 32),          # SmallStandardAsteroid
-    Image(502272, 32, 32),          # SmallStandardAsteroid
-    Image(503296, 64, 64),          # MediumStandardAsteroid
-    Image(507392, 64, 64),          # MediumStandardAsteroid
-    Image(511488, 64, 64),          # MediumStandardAsteroid
-    Image(515584, 64, 64),          # MediumStandardAsteroid
-    Image(519680, 64, 64),          # MediumStandardAsteroid
-    Image(523776, 64, 64),          # MediumStandardAsteroid
-    Image(527872, 64, 64),          # MediumStandardAsteroid
-    Image(531968, 64, 64),          # MediumStandardAsteroid
-    Image(536064, 64, 64),          # MediumStandardAsteroid
-    Image(540160, 64, 64),          # MediumStandardAsteroid
-    Image(544256, 64, 64),          # MediumStandardAsteroid
-    Image(548352, 64, 64),          # MediumStandardAsteroid
-    Image(552448, 64, 64),          # MediumStandardAsteroid
-    Image(556544, 64, 64),          # MediumStandardAsteroid
-    Image(560640, 64, 64),          # MediumStandardAsteroid
-    Image(564736, 64, 64),          # MediumStandardAsteroid
-    Image(568832, 64, 64),          # MediumStandardAsteroid
-    Image(572928, 64, 64),          # MediumStandardAsteroid
-    Image(577024, 64, 64),          # MediumStandardAsteroid
-    Image(581120, 64, 64),          # MediumStandardAsteroid
-    Image(585216, 64, 64),          # MediumStandardAsteroid
-    Image(589312, 64, 64),          # MediumStandardAsteroid
-    Image(593408, 64, 64),          # MediumStandardAsteroid
-    Image(597504, 64, 64),          # MediumStandardAsteroid
-    Image(601600, 96, 96),          # BigStandardAsteroid
-    Image(610816, 96, 96),          # BigStandardAsteroid
+    Image(469504, 32, 64),          # WingtipPickup
+    Image(471552, 32, 64),          # WingtipPickup
+    Image(473600, 32, 64),          # WingtipPickup
+    Image(475648, 32, 64),          # WingtipPickup
+    Image(477696, 32, 64),          # WingtipPickup
+    Image(479744, 32, 64),          # WingtipPickup
+    Image(481792, 32, 64),          # WingtipPickup
+    Image(483840, 32, 64),          # WingtipPickup
+    Image(485888, 32, 64),          # WingtipPickup
+    Image(487936, 32, 32),          # MissilePickup
+    Image(488960, 32, 32),          # MissilePickup
+    Image(489984, 32, 32),          # MissilePickup
+    Image(491008, 32, 32),          # MissilePickup
+    Image(492032, 32, 32),          # MissilePickup
+    Image(493056, 32, 32),          # MissilePickup
+    Image(494080, 32, 32),          # MissilePickup
+    Image(495104, 32, 32),          # MissilePickup
+    Image(496128, 32, 32),          # LaserPickup
+    Image(497152, 32, 32),          # LaserPickup
+    Image(498176, 32, 32),          # LaserPickup
+    Image(499200, 32, 32),          # LaserPickup
+    Image(500224, 32, 32),          # LaserPickup
+    Image(501248, 32, 32),          # LaserPickup
+    Image(502272, 32, 32),          # LaserPickup
+    Image(503296, 32, 32),          # LaserPickup
+    Image(504320, 32, 32),          # LifePickup
+    Image(505344, 32, 32),          # SmallStandardAsteroid
+    Image(506368, 32, 32),          # SmallStandardAsteroid
+    Image(507392, 32, 32),          # SmallStandardAsteroid
+    Image(508416, 32, 32),          # SmallStandardAsteroid
+    Image(509440, 32, 32),          # SmallStandardAsteroid
+    Image(510464, 32, 32),          # SmallStandardAsteroid
+    Image(511488, 32, 32),          # SmallStandardAsteroid
+    Image(512512, 32, 32),          # SmallStandardAsteroid
+    Image(513536, 32, 32),          # SmallStandardAsteroid
+    Image(514560, 32, 32),          # SmallStandardAsteroid
+    Image(515584, 32, 32),          # SmallStandardAsteroid
+    Image(516608, 32, 32),          # SmallStandardAsteroid
+    Image(517632, 32, 32),          # SmallStandardAsteroid
+    Image(518656, 32, 32),          # SmallStandardAsteroid
+    Image(519680, 32, 32),          # SmallStandardAsteroid
+    Image(520704, 32, 32),          # SmallStandardAsteroid
+    Image(521728, 64, 64),          # MediumStandardAsteroid
+    Image(525824, 64, 64),          # MediumStandardAsteroid
+    Image(529920, 64, 64),          # MediumStandardAsteroid
+    Image(534016, 64, 64),          # MediumStandardAsteroid
+    Image(538112, 64, 64),          # MediumStandardAsteroid
+    Image(542208, 64, 64),          # MediumStandardAsteroid
+    Image(546304, 64, 64),          # MediumStandardAsteroid
+    Image(550400, 64, 64),          # MediumStandardAsteroid
+    Image(554496, 64, 64),          # MediumStandardAsteroid
+    Image(558592, 64, 64),          # MediumStandardAsteroid
+    Image(562688, 64, 64),          # MediumStandardAsteroid
+    Image(566784, 64, 64),          # MediumStandardAsteroid
+    Image(570880, 64, 64),          # MediumStandardAsteroid
+    Image(574976, 64, 64),          # MediumStandardAsteroid
+    Image(579072, 64, 64),          # MediumStandardAsteroid
+    Image(583168, 64, 64),          # MediumStandardAsteroid
+    Image(587264, 64, 64),          # MediumStandardAsteroid
+    Image(591360, 64, 64),          # MediumStandardAsteroid
+    Image(595456, 64, 64),          # MediumStandardAsteroid
+    Image(599552, 64, 64),          # MediumStandardAsteroid
+    Image(603648, 64, 64),          # MediumStandardAsteroid
+    Image(607744, 64, 64),          # MediumStandardAsteroid
+    Image(611840, 64, 64),          # MediumStandardAsteroid
+    Image(615936, 64, 64),          # MediumStandardAsteroid
     Image(620032, 96, 96),          # BigStandardAsteroid
     Image(629248, 96, 96),          # BigStandardAsteroid
     Image(638464, 96, 96),          # BigStandardAsteroid
@@ -291,48 +347,48 @@ const spriteManifest = const Array<Image>[
     Image(804352, 96, 96),          # BigStandardAsteroid
     Image(813568, 96, 96),          # BigStandardAsteroid
     Image(822784, 96, 96),          # BigStandardAsteroid
-    Image(832000, 32, 32),          # SmallHighDensityAsteroid
-    Image(833024, 32, 32),          # SmallHighDensityAsteroid
-    Image(834048, 32, 32),          # SmallHighDensityAsteroid
-    Image(835072, 32, 32),          # SmallHighDensityAsteroid
-    Image(836096, 32, 32),          # SmallHighDensityAsteroid
-    Image(837120, 32, 32),          # SmallHighDensityAsteroid
-    Image(838144, 32, 32),          # SmallHighDensityAsteroid
-    Image(839168, 32, 32),          # SmallHighDensityAsteroid
-    Image(840192, 32, 32),          # SmallHighDensityAsteroid
-    Image(841216, 32, 32),          # SmallHighDensityAsteroid
-    Image(842240, 32, 32),          # SmallHighDensityAsteroid
-    Image(843264, 32, 32),          # SmallHighDensityAsteroid
-    Image(844288, 32, 32),          # SmallHighDensityAsteroid
-    Image(845312, 32, 32),          # SmallHighDensityAsteroid
-    Image(846336, 32, 32),          # SmallHighDensityAsteroid
-    Image(847360, 32, 32),          # SmallHighDensityAsteroid
-    Image(848384, 64, 64),          # MediumHighDensityAsteroid
-    Image(852480, 64, 64),          # MediumHighDensityAsteroid
-    Image(856576, 64, 64),          # MediumHighDensityAsteroid
-    Image(860672, 64, 64),          # MediumHighDensityAsteroid
-    Image(864768, 64, 64),          # MediumHighDensityAsteroid
-    Image(868864, 64, 64),          # MediumHighDensityAsteroid
-    Image(872960, 64, 64),          # MediumHighDensityAsteroid
-    Image(877056, 64, 64),          # MediumHighDensityAsteroid
-    Image(881152, 64, 64),          # MediumHighDensityAsteroid
-    Image(885248, 64, 64),          # MediumHighDensityAsteroid
-    Image(889344, 64, 64),          # MediumHighDensityAsteroid
-    Image(893440, 64, 64),          # MediumHighDensityAsteroid
-    Image(897536, 64, 64),          # MediumHighDensityAsteroid
-    Image(901632, 64, 64),          # MediumHighDensityAsteroid
-    Image(905728, 64, 64),          # MediumHighDensityAsteroid
-    Image(909824, 64, 64),          # MediumHighDensityAsteroid
-    Image(913920, 64, 64),          # MediumHighDensityAsteroid
-    Image(918016, 64, 64),          # MediumHighDensityAsteroid
-    Image(922112, 64, 64),          # MediumHighDensityAsteroid
-    Image(926208, 64, 64),          # MediumHighDensityAsteroid
-    Image(930304, 64, 64),          # MediumHighDensityAsteroid
-    Image(934400, 64, 64),          # MediumHighDensityAsteroid
-    Image(938496, 64, 64),          # MediumHighDensityAsteroid
-    Image(942592, 64, 64),          # MediumHighDensityAsteroid
-    Image(946688, 96, 96),          # BigHighDensityAsteroid
-    Image(955904, 96, 96),          # BigHighDensityAsteroid
+    Image(832000, 96, 96),          # BigStandardAsteroid
+    Image(841216, 96, 96),          # BigStandardAsteroid
+    Image(850432, 32, 32),          # SmallHighDensityAsteroid
+    Image(851456, 32, 32),          # SmallHighDensityAsteroid
+    Image(852480, 32, 32),          # SmallHighDensityAsteroid
+    Image(853504, 32, 32),          # SmallHighDensityAsteroid
+    Image(854528, 32, 32),          # SmallHighDensityAsteroid
+    Image(855552, 32, 32),          # SmallHighDensityAsteroid
+    Image(856576, 32, 32),          # SmallHighDensityAsteroid
+    Image(857600, 32, 32),          # SmallHighDensityAsteroid
+    Image(858624, 32, 32),          # SmallHighDensityAsteroid
+    Image(859648, 32, 32),          # SmallHighDensityAsteroid
+    Image(860672, 32, 32),          # SmallHighDensityAsteroid
+    Image(861696, 32, 32),          # SmallHighDensityAsteroid
+    Image(862720, 32, 32),          # SmallHighDensityAsteroid
+    Image(863744, 32, 32),          # SmallHighDensityAsteroid
+    Image(864768, 32, 32),          # SmallHighDensityAsteroid
+    Image(865792, 32, 32),          # SmallHighDensityAsteroid
+    Image(866816, 64, 64),          # MediumHighDensityAsteroid
+    Image(870912, 64, 64),          # MediumHighDensityAsteroid
+    Image(875008, 64, 64),          # MediumHighDensityAsteroid
+    Image(879104, 64, 64),          # MediumHighDensityAsteroid
+    Image(883200, 64, 64),          # MediumHighDensityAsteroid
+    Image(887296, 64, 64),          # MediumHighDensityAsteroid
+    Image(891392, 64, 64),          # MediumHighDensityAsteroid
+    Image(895488, 64, 64),          # MediumHighDensityAsteroid
+    Image(899584, 64, 64),          # MediumHighDensityAsteroid
+    Image(903680, 64, 64),          # MediumHighDensityAsteroid
+    Image(907776, 64, 64),          # MediumHighDensityAsteroid
+    Image(911872, 64, 64),          # MediumHighDensityAsteroid
+    Image(915968, 64, 64),          # MediumHighDensityAsteroid
+    Image(920064, 64, 64),          # MediumHighDensityAsteroid
+    Image(924160, 64, 64),          # MediumHighDensityAsteroid
+    Image(928256, 64, 64),          # MediumHighDensityAsteroid
+    Image(932352, 64, 64),          # MediumHighDensityAsteroid
+    Image(936448, 64, 64),          # MediumHighDensityAsteroid
+    Image(940544, 64, 64),          # MediumHighDensityAsteroid
+    Image(944640, 64, 64),          # MediumHighDensityAsteroid
+    Image(948736, 64, 64),          # MediumHighDensityAsteroid
+    Image(952832, 64, 64),          # MediumHighDensityAsteroid
+    Image(956928, 64, 64),          # MediumHighDensityAsteroid
+    Image(961024, 64, 64),          # MediumHighDensityAsteroid
     Image(965120, 96, 96),          # BigHighDensityAsteroid
     Image(974336, 96, 96),          # BigHighDensityAsteroid
     Image(983552, 96, 96),          # BigHighDensityAsteroid
@@ -356,48 +412,48 @@ const spriteManifest = const Array<Image>[
     Image(1149440, 96, 96),         # BigHighDensityAsteroid
     Image(1158656, 96, 96),         # BigHighDensityAsteroid
     Image(1167872, 96, 96),         # BigHighDensityAsteroid
-    Image(1177088, 32, 32),         # SmallIndestuctibleAsteroid
-    Image(1178112, 32, 32),         # SmallIndestuctibleAsteroid
-    Image(1179136, 32, 32),         # SmallIndestuctibleAsteroid
-    Image(1180160, 32, 32),         # SmallIndestuctibleAsteroid
-    Image(1181184, 32, 32),         # SmallIndestuctibleAsteroid
-    Image(1182208, 32, 32),         # SmallIndestuctibleAsteroid
-    Image(1183232, 32, 32),         # SmallIndestuctibleAsteroid
-    Image(1184256, 32, 32),         # SmallIndestuctibleAsteroid
-    Image(1185280, 32, 32),         # SmallIndestuctibleAsteroid
-    Image(1186304, 32, 32),         # SmallIndestuctibleAsteroid
-    Image(1187328, 32, 32),         # SmallIndestuctibleAsteroid
-    Image(1188352, 32, 32),         # SmallIndestuctibleAsteroid
-    Image(1189376, 32, 32),         # SmallIndestuctibleAsteroid
-    Image(1190400, 32, 32),         # SmallIndestuctibleAsteroid
-    Image(1191424, 32, 32),         # SmallIndestuctibleAsteroid
-    Image(1192448, 32, 32),         # SmallIndestuctibleAsteroid
-    Image(1193472, 64, 64),         # MediumIndestuctibleAsteroid
-    Image(1197568, 64, 64),         # MediumIndestuctibleAsteroid
-    Image(1201664, 64, 64),         # MediumIndestuctibleAsteroid
-    Image(1205760, 64, 64),         # MediumIndestuctibleAsteroid
-    Image(1209856, 64, 64),         # MediumIndestuctibleAsteroid
-    Image(1213952, 64, 64),         # MediumIndestuctibleAsteroid
-    Image(1218048, 64, 64),         # MediumIndestuctibleAsteroid
-    Image(1222144, 64, 64),         # MediumIndestuctibleAsteroid
-    Image(1226240, 64, 64),         # MediumIndestuctibleAsteroid
-    Image(1230336, 64, 64),         # MediumIndestuctibleAsteroid
-    Image(1234432, 64, 64),         # MediumIndestuctibleAsteroid
-    Image(1238528, 64, 64),         # MediumIndestuctibleAsteroid
-    Image(1242624, 64, 64),         # MediumIndestuctibleAsteroid
-    Image(1246720, 64, 64),         # MediumIndestuctibleAsteroid
-    Image(1250816, 64, 64),         # MediumIndestuctibleAsteroid
-    Image(1254912, 64, 64),         # MediumIndestuctibleAsteroid
-    Image(1259008, 64, 64),         # MediumIndestuctibleAsteroid
-    Image(1263104, 64, 64),         # MediumIndestuctibleAsteroid
-    Image(1267200, 64, 64),         # MediumIndestuctibleAsteroid
-    Image(1271296, 64, 64),         # MediumIndestuctibleAsteroid
-    Image(1275392, 64, 64),         # MediumIndestuctibleAsteroid
-    Image(1279488, 64, 64),         # MediumIndestuctibleAsteroid
-    Image(1283584, 64, 64),         # MediumIndestuctibleAsteroid
-    Image(1287680, 64, 64),         # MediumIndestuctibleAsteroid
-    Image(1291776, 96, 96),         # BigIndestuctibleAsteroid
-    Image(1300992, 96, 96),         # BigIndestuctibleAsteroid
+    Image(1177088, 96, 96),         # BigHighDensityAsteroid
+    Image(1186304, 96, 96),         # BigHighDensityAsteroid
+    Image(1195520, 32, 32),         # SmallIndestuctibleAsteroid
+    Image(1196544, 32, 32),         # SmallIndestuctibleAsteroid
+    Image(1197568, 32, 32),         # SmallIndestuctibleAsteroid
+    Image(1198592, 32, 32),         # SmallIndestuctibleAsteroid
+    Image(1199616, 32, 32),         # SmallIndestuctibleAsteroid
+    Image(1200640, 32, 32),         # SmallIndestuctibleAsteroid
+    Image(1201664, 32, 32),         # SmallIndestuctibleAsteroid
+    Image(1202688, 32, 32),         # SmallIndestuctibleAsteroid
+    Image(1203712, 32, 32),         # SmallIndestuctibleAsteroid
+    Image(1204736, 32, 32),         # SmallIndestuctibleAsteroid
+    Image(1205760, 32, 32),         # SmallIndestuctibleAsteroid
+    Image(1206784, 32, 32),         # SmallIndestuctibleAsteroid
+    Image(1207808, 32, 32),         # SmallIndestuctibleAsteroid
+    Image(1208832, 32, 32),         # SmallIndestuctibleAsteroid
+    Image(1209856, 32, 32),         # SmallIndestuctibleAsteroid
+    Image(1210880, 32, 32),         # SmallIndestuctibleAsteroid
+    Image(1211904, 64, 64),         # MediumIndestuctibleAsteroid
+    Image(1216000, 64, 64),         # MediumIndestuctibleAsteroid
+    Image(1220096, 64, 64),         # MediumIndestuctibleAsteroid
+    Image(1224192, 64, 64),         # MediumIndestuctibleAsteroid
+    Image(1228288, 64, 64),         # MediumIndestuctibleAsteroid
+    Image(1232384, 64, 64),         # MediumIndestuctibleAsteroid
+    Image(1236480, 64, 64),         # MediumIndestuctibleAsteroid
+    Image(1240576, 64, 64),         # MediumIndestuctibleAsteroid
+    Image(1244672, 64, 64),         # MediumIndestuctibleAsteroid
+    Image(1248768, 64, 64),         # MediumIndestuctibleAsteroid
+    Image(1252864, 64, 64),         # MediumIndestuctibleAsteroid
+    Image(1256960, 64, 64),         # MediumIndestuctibleAsteroid
+    Image(1261056, 64, 64),         # MediumIndestuctibleAsteroid
+    Image(1265152, 64, 64),         # MediumIndestuctibleAsteroid
+    Image(1269248, 64, 64),         # MediumIndestuctibleAsteroid
+    Image(1273344, 64, 64),         # MediumIndestuctibleAsteroid
+    Image(1277440, 64, 64),         # MediumIndestuctibleAsteroid
+    Image(1281536, 64, 64),         # MediumIndestuctibleAsteroid
+    Image(1285632, 64, 64),         # MediumIndestuctibleAsteroid
+    Image(1289728, 64, 64),         # MediumIndestuctibleAsteroid
+    Image(1293824, 64, 64),         # MediumIndestuctibleAsteroid
+    Image(1297920, 64, 64),         # MediumIndestuctibleAsteroid
+    Image(1302016, 64, 64),         # MediumIndestuctibleAsteroid
+    Image(1306112, 64, 64),         # MediumIndestuctibleAsteroid
     Image(1310208, 96, 96),         # BigIndestuctibleAsteroid
     Image(1319424, 96, 96),         # BigIndestuctibleAsteroid
     Image(1328640, 96, 96),         # BigIndestuctibleAsteroid
@@ -421,65 +477,151 @@ const spriteManifest = const Array<Image>[
     Image(1494528, 96, 96),         # BigIndestuctibleAsteroid
     Image(1503744, 96, 96),         # BigIndestuctibleAsteroid
     Image(1512960, 96, 96),         # BigIndestuctibleAsteroid
-    Image(1522176, 16, 16),         # SmallExplosion
-    Image(1522432, 16, 16),         # SmallExplosion
-    Image(1522688, 16, 16),         # SmallExplosion
-    Image(1522944, 16, 16),         # SmallExplosion
-    Image(1523200, 16, 16),         # SmallExplosion
-    Image(1523456, 16, 16),         # SmallExplosion
-    Image(1523712, 16, 16),         # SmallExplosion
-    Image(1523968, 16, 16),         # SmallExplosion
-    Image(1524224, 16, 16),         # SmallExplosion
-    Image(1524480, 16, 16),         # SmallExplosion
-    Image(1524736, 32, 32),         # MediumExplosion
-    Image(1525760, 32, 32),         # MediumExplosion
-    Image(1526784, 32, 32),         # MediumExplosion
-    Image(1527808, 32, 32),         # MediumExplosion
-    Image(1528832, 32, 32),         # MediumExplosion
-    Image(1529856, 32, 32),         # MediumExplosion
-    Image(1530880, 32, 32),         # MediumExplosion
-    Image(1531904, 32, 32),         # MediumExplosion
-    Image(1532928, 32, 32),         # MediumExplosion
-    Image(1533952, 32, 32),         # MediumExplosion
-    Image(1534976, 64, 64),         # BigExplosion
-    Image(1539072, 64, 64),         # BigExplosion
-    Image(1543168, 64, 64),         # BigExplosion
-    Image(1547264, 64, 64),         # BigExplosion
-    Image(1551360, 64, 64),         # BigExplosion
-    Image(1555456, 64, 64),         # BigExplosion
-    Image(1559552, 64, 64),         # BigExplosion
-    Image(1563648, 64, 64),         # BigExplosion
-    Image(1567744, 64, 64),         # BigExplosion
-    Image(1571840, 64, 64),         # BigExplosion
-    Image(1575936, 32, 32),         # Clone
-    Image(1576960, 32, 32),         # Clone
-    Image(1577984, 32, 32),         # Clone
-    Image(1579008, 32, 32),         # Clone
-    Image(1580032, 32, 32),         # Clone
-    Image(1581056, 32, 32),         # Clone
-    Image(1582080, 32, 32),         # Clone
-    Image(1583104, 32, 32),         # Clone
-    Image(1584128, 32, 32),         # Clone
-    Image(1585152, 32, 32),         # Clone
-    Image(1586176, 32, 32),         # Clone
-    Image(1587200, 32, 32),         # Clone
-    Image(1588224, 32, 32),         # Clone
-    Image(1589248, 32, 32),         # Clone
-    Image(1590272, 32, 32),         # Clone
-    Image(1591296, 32, 32),         # Clone
-    Image(1592320, 32, 32),         # Clone
-    Image(1593344, 32, 32),         # Clone
+    Image(1522176, 96, 96),         # BigIndestuctibleAsteroid
+    Image(1531392, 96, 96),         # BigIndestuctibleAsteroid
+    Image(1540608, 16, 16),         # SmallExplosion
+    Image(1540864, 16, 16),         # SmallExplosion
+    Image(1541120, 16, 16),         # SmallExplosion
+    Image(1541376, 16, 16),         # SmallExplosion
+    Image(1541632, 16, 16),         # SmallExplosion
+    Image(1541888, 16, 16),         # SmallExplosion
+    Image(1542144, 16, 16),         # SmallExplosion
+    Image(1542400, 16, 16),         # SmallExplosion
+    Image(1542656, 16, 16),         # SmallExplosion
+    Image(1542912, 16, 16),         # SmallExplosion
+    Image(1543168, 32, 32),         # MediumExplosion
+    Image(1544192, 32, 32),         # MediumExplosion
+    Image(1545216, 32, 32),         # MediumExplosion
+    Image(1546240, 32, 32),         # MediumExplosion
+    Image(1547264, 32, 32),         # MediumExplosion
+    Image(1548288, 32, 32),         # MediumExplosion
+    Image(1549312, 32, 32),         # MediumExplosion
+    Image(1550336, 32, 32),         # MediumExplosion
+    Image(1551360, 32, 32),         # MediumExplosion
+    Image(1552384, 32, 32),         # MediumExplosion
+    Image(1553408, 64, 64),         # BigExplosion
+    Image(1557504, 64, 64),         # BigExplosion
+    Image(1561600, 64, 64),         # BigExplosion
+    Image(1565696, 64, 64),         # BigExplosion
+    Image(1569792, 64, 64),         # BigExplosion
+    Image(1573888, 64, 64),         # BigExplosion
+    Image(1577984, 64, 64),         # BigExplosion
+    Image(1582080, 64, 64),         # BigExplosion
+    Image(1586176, 64, 64),         # BigExplosion
+    Image(1590272, 64, 64),         # BigExplosion
     Image(1594368, 32, 32),         # Clone
     Image(1595392, 32, 32),         # Clone
-    Image(1596416, 32, 64),         # Wingtip
-    Image(1598464, 32, 64),         # Wingtip
-    Image(1600512, 32, 64),         # Wingtip
-    Image(1602560, 32, 64),         # Wingtip
-    Image(1604608, 32, 64),         # Wingtip
-    Image(1606656, 32, 64),         # Wingtip
-    Image(1608704, 32, 64),         # Wingtip
-    Image(1610752, 32, 64),         # Wingtip
-    Image(1612800, 32, 64),         # Wingtip
+    Image(1596416, 32, 32),         # Clone
+    Image(1597440, 32, 32),         # Clone
+    Image(1598464, 32, 32),         # Clone
+    Image(1599488, 32, 32),         # Clone
+    Image(1600512, 32, 32),         # Clone
+    Image(1601536, 32, 32),         # Clone
+    Image(1602560, 32, 32),         # Clone
+    Image(1603584, 32, 32),         # Clone
+    Image(1604608, 32, 32),         # Clone
+    Image(1605632, 32, 32),         # Clone
+    Image(1606656, 32, 32),         # Clone
+    Image(1607680, 32, 32),         # Clone
+    Image(1608704, 32, 32),         # Clone
+    Image(1609728, 32, 32),         # Clone
+    Image(1610752, 32, 32),         # Clone
+    Image(1611776, 32, 32),         # Clone
+    Image(1612800, 32, 32),         # Clone
+    Image(1613824, 32, 32),         # Clone
     Image(1614848, 32, 64),         # Wingtip
     Image(1616896, 32, 64),         # Wingtip
-    Image(1618944, 32, 64) ]        # Wingtip
+    Image(1618944, 32, 64),         # Wingtip
+    Image(1620992, 32, 64),         # Wingtip
+    Image(1623040, 32, 64),         # Wingtip
+    Image(1625088, 32, 64),         # Wingtip
+    Image(1627136, 32, 64),         # Wingtip
+    Image(1629184, 32, 64),         # Wingtip
+    Image(1631232, 32, 64),         # Wingtip
+    Image(1633280, 32, 64),         # Wingtip
+    Image(1635328, 32, 64),         # Wingtip
+    Image(1637376, 32, 64),         # Wingtip
+    Image(1639424, 32, 32),         # SmokeEffect
+    Image(1640448, 32, 32),         # SmokeEffect
+    Image(1641472, 32, 32),         # SmokeEffect
+    Image(1642496, 32, 32),         # SmokeEffect
+    Image(1643520, 64, 64),         # Homer
+    Image(1647616, 64, 64),         # Homer
+    Image(1651712, 64, 64),         # Homer
+    Image(1655808, 64, 64),         # Homer
+    Image(1659904, 64, 64),         # Homer
+    Image(1664000, 64, 64),         # Homer
+    Image(1668096, 64, 64),         # Homer
+    Image(1672192, 64, 64),         # Homer
+    Image(1676288, 64, 64),         # Homer
+    Image(1680384, 64, 64),         # Homer
+    Image(1684480, 64, 64),         # Homer
+    Image(1688576, 64, 64),         # Homer
+    Image(1692672, 64, 64),         # Homer
+    Image(1696768, 64, 64),         # Homer
+    Image(1700864, 64, 64),         # Homer
+    Image(1704960, 64, 64),         # Homer
+    Image(1709056, 64, 64),         # StandardLoner
+    Image(1713152, 64, 64),         # StandardLoner
+    Image(1717248, 64, 64),         # StandardLoner
+    Image(1721344, 64, 64),         # StandardLoner
+    Image(1725440, 64, 64),         # StandardLoner
+    Image(1729536, 64, 64),         # StandardLoner
+    Image(1733632, 64, 64),         # StandardLoner
+    Image(1737728, 64, 64),         # StandardLoner
+    Image(1741824, 64, 64),         # StandardLoner
+    Image(1745920, 64, 64),         # StandardLoner
+    Image(1750016, 64, 64),         # StandardLoner
+    Image(1754112, 64, 64),         # StandardLoner
+    Image(1758208, 64, 64),         # StandardLoner
+    Image(1762304, 64, 64),         # StandardLoner
+    Image(1766400, 64, 64),         # StandardLoner
+    Image(1770496, 64, 64),         # StandardLoner
+    Image(1774592, 64, 64),         # MediumLoner
+    Image(1778688, 64, 64),         # MediumLoner
+    Image(1782784, 64, 64),         # MediumLoner
+    Image(1786880, 64, 64),         # MediumLoner
+    Image(1790976, 64, 64),         # MediumLoner
+    Image(1795072, 64, 64),         # MediumLoner
+    Image(1799168, 64, 64),         # MediumLoner
+    Image(1803264, 64, 64),         # MediumLoner
+    Image(1807360, 64, 64),         # MediumLoner
+    Image(1811456, 64, 64),         # MediumLoner
+    Image(1815552, 64, 64),         # MediumLoner
+    Image(1819648, 64, 64),         # MediumLoner
+    Image(1823744, 64, 64),         # MediumLoner
+    Image(1827840, 64, 64),         # MediumLoner
+    Image(1831936, 64, 64),         # MediumLoner
+    Image(1836032, 64, 64),         # MediumLoner
+    Image(1840128, 64, 64),         # ArmouredLoner
+    Image(1844224, 64, 64),         # ArmouredLoner
+    Image(1848320, 64, 64),         # ArmouredLoner
+    Image(1852416, 64, 64),         # ArmouredLoner
+    Image(1856512, 64, 64),         # ArmouredLoner
+    Image(1860608, 64, 64),         # ArmouredLoner
+    Image(1864704, 64, 64),         # ArmouredLoner
+    Image(1868800, 64, 64),         # ArmouredLoner
+    Image(1872896, 64, 64),         # ArmouredLoner
+    Image(1876992, 64, 64),         # ArmouredLoner
+    Image(1881088, 64, 64),         # ArmouredLoner
+    Image(1885184, 64, 64),         # ArmouredLoner
+    Image(1889280, 64, 64),         # ArmouredLoner
+    Image(1893376, 64, 64),         # ArmouredLoner
+    Image(1897472, 64, 64),         # ArmouredLoner
+    Image(1901568, 64, 64),         # ArmouredLoner
+    Image(1905664, 64, 64),         # OrganicGun
+    Image(1909760, 64, 64),         # OrganicGun
+    Image(1913856, 64, 64),         # OrganicGun
+    Image(1917952, 64, 64),         # OrganicGun
+    Image(1922048, 64, 64),         # OrganicGun
+    Image(1926144, 64, 64),         # OrganicGun
+    Image(1930240, 64, 64),         # OrganicGun
+    Image(1934336, 64, 64),         # OrganicGun
+    Image(1938432, 64, 64),         # OrganicGun
+    Image(1942528, 64, 64),         # OrganicGun
+    Image(1946624, 64, 64),         # OrganicGun
+    Image(1950720, 64, 64),         # OrganicGun
+    Image(1954816, 64, 64),         # OrganicGun
+    Image(1958912, 64, 64),         # OrganicGun
+    Image(1963008, 64, 64),         # OrganicGun
+    Image(1967104, 64, 64) ]        # OrganicGun

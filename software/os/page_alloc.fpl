@@ -105,7 +105,6 @@ fun allocPage(sizeInBytes: Int) -> Int!
         return Error.INVALID_ARGUMENT
                 
     # If we have a free block of exactly the right size, use it
-    kprintf("Allocating page of size %d KB (log2=%d)\n", 4 lsl sizeLog2, sizeLog2)
     val p = pageAllocFreeLists[sizeLog2]
     if p != null
         # kprintf("  Found perfect free block at %08x\n", unsafe(p as Int))
@@ -124,6 +123,7 @@ fun allocPage(sizeInBytes: Int) -> Int!
 
             # Remove the large block from current free list
             pageAllocFreeLists[splitIndex] = node.next
+
 
             # Split into buddies until we get down to the desired size, adding the buddies back to the free lists
             val nodeAsInt = unsafe(node as Int) & 0xFFFFF000  # Get the base address of the block

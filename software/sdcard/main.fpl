@@ -1,22 +1,5 @@
 
 
-fun freeDirList(list: List<DirectoryEntry>)
-    for entry in list
-        free entry
-    free list
-
-class DirectoryEntry(val name: String, val attr: Int, val first_cluster: Int, val file_size: Int)
-    fun free()
-        free(name)
-
-fun print(dirEntry: DirectoryEntry)
-    if dirEntry.attr & 0x10 != 0
-        kprintf("Directory ")
-    else
-        kprintf("%8d  ", dirEntry.file_size)
-    kprintf("%s\n", dirEntry.name)
-
-
 fun main()
     kprintf("Kernel Main\n")
 

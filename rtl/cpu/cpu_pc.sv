@@ -43,12 +43,14 @@ end
 
 // synthesis translate_off
 // In simulation, a jump to address zero is treated as a halt instruction
+integer finish_count;
+
 always @(posedge clock) begin
-    if (p4_jump_taken && p4_jump_target == 32'h0) begin
+    finish_count <= finish_count - 1;
+    if (p4_jump_taken && p4_jump_target == 32'h0) 
+        finish_count <= 4;
+    if (finish_count == 1) begin
         $display("Simulation completed at time %t PC=%h", $time, pc);
-        @(posedge clock);
-        @(posedge clock);
-        @(posedge clock);
         $finish;
     end
 end

@@ -1,0 +1,183 @@
+# Misaligned Memory Access Test
+# Tests that misaligned accesses generate the correct exceptions
+
+jmp test
+
+exception_handler:
+    cfg $21, !ecause
+    cfg $22, !edata
+    
+    # Increment exception counter
+    add $20, $20, 1
+        
+    # Skip faulting instruction
+    cfg $23, !epc
+    add $23, 4
+    cfg !epc, $23
+    rte
+
+test:
+    # Setup exception handler
+    
+    ld $1, 0x1000       # Base address
+    
+    # ========================================
+    # Test 1: Byte accesses (no alignment required)
+    # ========================================
+    ld $20, 0           # Reset exception counter
+    ld $2, 0x42
+    
+    stb $2, $1[0]       # Should work
+    stb $2, $1[1]       # Should work
+    stb $2, $1[2]       # Should work
+    stb $2, $1[3]       # Should work
+    
+    ldb $3, $1[0]       # Should work
+    ldb $3, $1[1]       # Should work
+    ldb $3, $1[2]       # Should work
+    ldb $3, $1[3]       # Should work
+        
+    # ========================================
+    # Test 2: Aligned halfword accesses (should work)
+    # ========================================
+    ld $5, 0x1234
+    
+    sth $5, $1[0]       # Aligned to 2 bytes - should work
+    sth $5, $1[2]       # Aligned to 2 bytes - should work
+    sth $5, $1[4]       # Aligned to 2 bytes - should work
+    
+    ldh $6, $1[0]       # Should work
+    ldh $6, $1[2]       # Should work
+    ldh $6, $1[4]       # Should work
+    
+    # Should have 0 exceptions
+    sub $7, $20, 0
+    bne $7, 0, fail
+    
+    # ========================================
+    # Test 3: Misaligned halfword store
+    # ========================================
+    ld $8, 0x5678
+    
+    sth $8, $1[1]       # Misaligned - should fault
+    
+    # Should have 1 exception
+    sub $9, $20, 1
+    bne $9, 0, fail
+    
+    # ecause should be 0x06 (store misaligned)
+    ld $10, 0x06
+    sub $11, $21, $10
+    bne $11, 0, fail
+    
+    # edata should be the faulting address
+    ld $12, 0x1001
+    sub $13, $22, $12
+    bne $13, 0, fail
+    
+    # ========================================
+    # Test 4: Misaligned halfword load
+    # ========================================
+    ld $1, 0x1000       # Reload base address (exception handler corrupted $1)
+    ld $20, 0
+    
+    ldh $14, $1[3]      # Misaligned - should fault
+    
+    # Should have 1 exception
+    sub $15, $20, 1
+    bne $15, 0, fail
+    
+    # ecause should be 0x04 (load misaligned)
+    ld $16, 0x04
+    sub $17, $21, $16
+    bne $17, 0, fail
+    
+    # edata should be the faulting address
+    ld $18, 0x1003
+    sub $19, $22, $18
+    bne $19, 0, fail
+    
+    # ========================================
+    # Test 5: Aligned word accesses (should work)
+    # ========================================
+    ld $1, 0x1000       # Reload base address (exception handler corrupted $1)
+    ld $20, 0
+    ld $23, 0xDEADBEEF
+    
+    stw $23, $1[0]      # Aligned to 4 bytes - should work
+    stw $23, $1[4]      # Aligned to 4 bytes - should work
+    stw $23, $1[8]      # Aligned to 4 bytes - should work
+    stw $23, $1[12]      # Aligned to 4 bytes - should work
+    
+    ldw $24, $1[0]      # Should work
+    ldw $24, $1[4]      # Should work
+    ldw $24, $1[8]      # Should work
+    
+    # Should have 0 exceptions
+    sub $25, $20, 0
+    bne $25, 0, fail
+    
+    # ========================================
+    # Test 6: Misaligned word store (offset 1)
+    # ========================================
+    ld $20, 0
+    ld $26, 0xCAFEBABE
+    
+    stw $26, $1[1]      # Misaligned - should fault
+    
+    # Should have 1 exception
+    sub $27, $20, 1
+    bne $27, 0, fail
+    
+    # ecause should be 0x06 (store misaligned)
+    ld $28, 0x06
+    sub $29, $21, $28
+    bne $29, 0, fail
+    
+    # ========================================
+    # Test 7: Misaligned word store (offset 2)
+    # ========================================
+    ld $1, 0x1000       # Reload base address (exception handler corrupted $1)
+    ld $20, 0
+    
+    stw $26, $1[2]      # Misaligned - should fault
+    
+    # Should have 1 exception
+    sub $3, $20, 1
+    bne $3, 0, fail
+    
+    # ecause should be 0x06 (store misaligned)
+    ld $4, 0x06
+    sub $5, $21, $4
+    bne $5, 0, fail
+    
+    # ========================================
+    # Test 8: Misaligned word load (offset 3)
+    # ========================================
+    ld $1, 0x1000       # Reload base address (exception handler corrupted $1)
+    ld $20, 0
+    
+    ldw $6, $1[3]       # Misaligned - should fault
+    
+    # Should have 1 exception
+    sub $7, $20, 1
+    bne $7, 0, fail
+    
+    # ecause should be 0x04 (load misaligned)
+    ld $8, 0x04
+    sub $9, $21, $8
+    bne $9, 0, fail
+    
+    # edata should be the faulting address
+    ld $10, 0x1003
+    sub $11, $22, $10
+    bne $11, 0, fail
+    
+    # All tests passed!
+    ld $30, 0
+    ret
+
+fail:
+    ld $29, 0xBAD00004  # Misalignment test failure
+    ld $30, 0
+    ret

@@ -7,7 +7,7 @@ class Drone(xpos: Int, ypos: Int, var t:Int) : Actor(xpos, ypos)
     override fun update()
         val dx = drone_dx[(t/8) % 12]
         x += dx
-        y += 1
+        y += 2
         t += 1
 
         if y > 480

@@ -68,7 +68,7 @@ fun initializeMemorySystem()
 
     if 1=2
         # dummy calls to avoid warnings about unused functions
-        handleException(0, 0, 0)
+        handleException(0, Error.NONE, 0)
         handleSysCall(0, 0)
         handleInterrupt(0)
 

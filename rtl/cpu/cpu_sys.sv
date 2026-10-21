@@ -23,9 +23,10 @@ module cpu_sys(
     output logic         dmpu_clear,    // Clear all regions
     output logic         dmpu_add,      // Add a region
     output logic [31:0]  dmpu_data,     // Region data to add
-    input  logic         dmpu_fault,
-    input  logic         misaligned_fault,
-    input  logic [31:0]  dmpu_fault_addr, // The address that caused the DMPU fault or misalignment
+    input  logic         dmpu_exception,
+    input  logic         misaligned_exception,
+    input  logic         cpu_check_exception, 
+    input  logic [31:0]  mem_exc_addr, // The address that caused the DMPU fault or misalignment
     input  logic         p4_is_store,
 
     // Icache flush control
@@ -155,13 +156,13 @@ always_comb begin
     // Handle exceptions
     // dmpu and misalignment faults first as they relate to instruction at p4, while the others relate to the instruction at p3. 
     // This means if we have a dmpu/misalignment fault, we want to report that instead of any other exceptions that might also be pending for the same instruction.
-    if (misaligned_fault) begin
+    if (misaligned_exception) begin
         next_reg_ecause = p4_is_store ? `CAUSE_STORE_MISALIGN : `CAUSE_LOAD_MISALIGN;
-        next_reg_edata = dmpu_fault_addr;
+        next_reg_edata = mem_exc_addr;
         exception = 1'b1;
-    end else if (dmpu_fault) begin
+    end else if (dmpu_exception) begin
         next_reg_ecause = p4_is_store ? `CAUSE_STORE_ACCESS : `CAUSE_LOAD_ACCESS;
-        next_reg_edata = dmpu_fault_addr;
+        next_reg_edata = mem_exc_addr;
         exception = 1'b1;
     end
 
@@ -174,6 +175,12 @@ always_comb begin
     if (idx_bounds_exception) begin
         next_reg_ecause = `CAUSE_INDEX;
         next_reg_edata = p3_data_a; // The index that was out of bounds
+        exception = 1'b1;
+    end
+
+    if (cpu_check_exception) begin
+        next_reg_ecause = `CAUSE_CPU_CHECK;
+        next_reg_edata = p3_data_a; // The data that caused the CPU check exception
         exception = 1'b1;
     end
 
@@ -209,7 +216,7 @@ always_comb begin
     end
         
     if (exception) begin
-        next_reg_epc = (dmpu_fault || misaligned_fault) ? p4_pc : p3_pc;
+        next_reg_epc = (dmpu_exception || misaligned_exception) ? p4_pc : p3_pc;
         next_reg_estatus = reg_status;
         next_reg_status = reg_status | 8'h01; // Switch to supervisor mode       
         exception_jump = 1'b1; 

@@ -11,6 +11,8 @@ module cpu_branch (
     input logic [31:0]  p3_pc,             // The program counter value associated with the instruction
     input logic [2:0]   p3_branch_op,      // Branch operation type
     input logic [31:0]  p3_immediate,      // Literal value for the instruction
+    input logic         exception_jump,
+    input logic [31:0]  exception_target,
     
     output logic        p4_jump_taken,     // Indicates that a jump instruction was taken
     output logic [31:0] p4_jump_target     // The target address for the jump
@@ -39,6 +41,11 @@ always_comb begin
                                p3_jump_target = p3_data_a + p3_immediate;
                            end
         endcase
+    end
+    
+    if (exception_jump) begin
+        p3_jump_taken = 1'b1;
+        p3_jump_target = exception_target;
     end
 end
 

@@ -72,3 +72,4 @@
 `define CAUSE_STORE_ACCESS   8'h07
 `define CAUSE_SYS            8'h08
 `define CAUSE_INDEX          8'h09
+`define CAUSE_CPU_CHECK      8'h0A

@@ -1,12 +1,12 @@
 jmp test
 
 exception_handler:
-    cfg $1, !epc
-    cfg $2, !ecause
-    cfg $3, !edata
-    ld $30,0            # Jump to address 0 to end the program
-    nop
-    ret
+    cfg $10, !epc
+    cfg $11, !ecause
+    cfg $12, !edata
+    add $13, $10, 4     # move past the faulting instruction
+    cfg !epc, $13
+    rte
 
 test:
     ld $1, 0x12345678

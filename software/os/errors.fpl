@@ -11,6 +11,7 @@ enum Error(description:String) [
     STORE_FAULT         ("Store Access Fault (MPU)"),
     SYSCALL             ("System Call"),
     INDEX_OVERFLOW      ("Index Overflow"),
+    CPU_CHECK            ("CPU Check Exception"),
     
     # Memory allocator errors
     OUT_OF_MEMORY       ("Out of Memory"),

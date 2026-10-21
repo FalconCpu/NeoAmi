@@ -1,8 +1,8 @@
 
 # Globals for the data pointers
 var spriteDataPtr = 0
-var backdropDataPtr = 0
-var tilesDataPtr = 0
+var backdropDataPtr : Pointer<Char>
+var tilesDataPtr : Pointer<Char>
 var tileMap : Pointer<Short>
 var actorList : ActorList
 
@@ -23,43 +23,61 @@ fun waitVsync()
         delay(1000)
 
 
-fun loadGraphicsData()
-    val spritePalette = allocatePageAndLoadFile("export/sprites_palette.bin")
-    if spritePalette is Error then abort 1
+fun loadGraphicsData() 
+    kprintf("Starting to load graphics data\n")
 
-    val spritePalettePtr = unsafe(pageIdToAddress(spritePalette) as Pointer<Int>)
+    val spritePalette = loadFile("export/sprites_palette.bin")
+    if spritePalette is Error then abort 1
+    kprintf("Loaded sprite palette\n")
+    val spritePalettePtr = unsafe(spritePalette as Pointer<Int>)
     for i in 0..255
         VGA_PALETTE[i] = spritePalettePtr[i]
 
-    val backdropPalette = allocatePageAndLoadFile("export/backdrop_ham_palette.bin")
+    kprintf("About to load backdrop palette\n")
+    val backdropPalette = loadFile("export/backdrop_ham_palette.bin")
     if backdropPalette is Error then abort 1
-    val backdropPalettePtr = unsafe(pageIdToAddress(backdropPalette) as Pointer<Int>)
+    val backdropPalettePtr = unsafe(backdropPalette as Pointer<Int>)
     for i in 0..255
         VGA_PALETTE[i+256] = backdropPalettePtr[i]
-
-    val tilesData = allocatePageAndLoadFile("export/tiles.bin")
+    
+    val tilesData = loadFile("export/tiles.bin")
     if tilesData is Error then abort 1
-    tilesDataPtr = pageIdToAddress(tilesData)
+    tilesDataPtr = tilesData
     kprintf("Loaded tiles data at %x\n", tilesDataPtr)
 
-    val backdropData = allocatePageAndLoadFile("export/backdrop_ham.bin")
+    val backdropData = loadFile("export/backdrop_ham.bin")
     if backdropData is Error then abort 1
-    backdropDataPtr = pageIdToAddress(backdropData)
+    backdropDataPtr = backdropData
 
-    val spriteData = allocatePageAndLoadFile("export/sprites.bin")
-    if spriteData is Error then abort 1
-    spriteDataPtr = pageIdToAddress(spriteData)
+    val spriteData = loadFile("export/sprites.bin")
+    if spriteData is Error
+        kprintf("Failed to load sprite data\n")
+        abort 1
+    kprintf("Loaded sprite data at %x\n", spriteData)
+    spriteDataPtr = unsafe(spriteData as Int)
 
-    val tilesPalette = allocatePageAndLoadFile("export/palette.bin")
+    # val spriteData = allocatePageAndLoadFile("export/sprites.bin")
+    # if spriteData is Error then abort 1
+    # spriteDataPtr = pageIdToAddress(spriteData)
+
+
+    val tilesPalette = loadFile("export/palette.bin")
     if tilesPalette is Error then abort 1
-    val tilesPalettePtr = unsafe(pageIdToAddress(tilesPalette) as Pointer<Int>)
+    val tilesPalettePtr = unsafe(tilesPalette as Pointer<Int>)
     for i in 0..255
         VGA_PALETTE[i+512] = tilesPalettePtr[i]
 
 
-    val tileMapData = allocatePageAndLoadFile("export/tilemap.bin")
+    val tileMapData = loadFile("export/tilemap.bin")
     if tileMapData is Error then abort 1
-    tileMap = unsafe(pageIdToAddress(tileMapData) as Pointer<Short>)
+    tileMap = unsafe(tileMapData as Pointer<Short>)
+
+    # Set palette for HUD
+    VGA_PALETTE[3*256 + 1] = 0xFF0000   # Color 1 = Red
+    VGA_PALETTE[3*256 + 2] = 0x00FF00   # Color 2 = Green
+    VGA_PALETTE[3*256 + 3] = 0x0000FF   # Color 3 = Blue
+    VGA_PALETTE[3*256 + 4] = 0xFFFFFF   # Color 4 = White
+
 
 
 fun drawBackground(time:Int)
@@ -73,12 +91,12 @@ fun drawBackground(time:Int)
     val t = if time < 39200 then time else 39200
 
     # First parallax layer
-    val startRow = 1024 - t/128
-    val scrollOffset = (t/4) & 31
+    val startRow = 1024 - t/64
+    val scrollOffset = (t/2) & 31
 
     # Second parallax layer
-    val startRow2 = 1024 - t/64
-    val scrollOffset2 = (t/2) & 31
+    val startRow2 = 1024 - t/32
+    val scrollOffset2 = t & 31
 
     hwregs.seven_seg = 1
 
@@ -108,13 +126,26 @@ fun drawBackground(time:Int)
                 tileSprite.reserved2 = 0
                 scene.addObject(tileSprite)
 
-            if tileIndex2>0 and tileIndex2<=50 and t&63=0 and row=-1
+            if tileIndex2>0 and tileIndex2<=50 and t&31=0 and row=-1
                 spawnObject(tileIndex2,  col*32)
 
     hwregs.seven_seg = 2
 
 
 fun main() -> Int!
+
+    val root_entries = fileSystem.listDirectory(0,"export")
+    if root_entries is Error
+        kprintf("Failed to list root directory: %s \n", root_entries.description)
+        abort(0)
+
+    kprintf("List Root directory entries:\n")
+    for entry in root_entries
+        print(entry)
+    freeDirList(root_entries)
+
+
+
 
     scene = new GfxScene()
     scene.init()
@@ -125,7 +156,11 @@ fun main() -> Int!
     val player = new Player()
     # var time = 0x3000
     
-    var time = 1200
+
+
+
+    var time = 600
+    # time=7000
 
     hwregs.ledr = 0
     kprintf("Keyboard: %x\n", keyboard)

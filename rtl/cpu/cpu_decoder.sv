@@ -11,6 +11,7 @@ module cpu_decoder (
     input logic         clock,
     input logic         reset,
     input logic         p4_jump_taken,     // A jump instruction was taken
+    input logic         p4_exception,      // The instruction now at stage 4 caused an exception
 
     // Input from the instruction queue
     input logic         p2_instr_valid,    // Indicates that the instruction output is valid
@@ -41,10 +42,12 @@ module cpu_decoder (
     output logic        p3_is_sys,          // Indicates that the instruction is a system operation
     output logic        p3_is_fpu,          // Indicates that the instruction is a floating-point operation
     output logic        p3_is_idx,
+    output logic        p3_is_illegal,      // Indicates that the instruction is illegal
     output logic [2:0]  p3_mem_op,          // Memory operation type (byte, halfword, word)
     output logic [31:0] p3_pc,              // The program counter value associated with the instruction
     output logic [31:0] p4_pc,
     output logic [4:0]  p3_rd,              // Destination register for the instruction in stage 3
+    output logic [31:0] p3_instr,           // The instruction in stage 3 (for exception handling)
 
     output logic        p4_is_store,
     input logic [4:0]   p4_rd,              // Destination register for the instruction in stage 4
@@ -78,6 +81,7 @@ logic        p2_is_alu, p2_is_shift, p2_is_branch, p2_is_load, p2_is_store;
 logic        p2_is_mult, p2_is_divide, p2_is_sys, p2_is_fpu, p2_is_idx;
 logic        p3_is_alu_x, p3_is_shift_x, p3_is_branch_x, p3_is_load_x, p3_is_store_x;
 logic        p3_is_mult_x, p3_is_divide_x, p3_is_sys_x, p3_is_fpu_x, p3_is_idx_x;
+logic        p2_is_illegal, p3_is_illegal_x;
 logic [2:0]  p2_alu_op, p2_shift_op, p2_mem_op;
 logic [2:0]  p2_branch_op;
 logic        stall_regs;    // Indicates that the pipeline should stall due to a register not being ready
@@ -86,18 +90,23 @@ logic        stall;
 logic        p2_wren;
 logic        p2_latent, p3_latent;    // The instruction may take multiple cycles to complete 
 
+logic        p4_exc_latent;  // For exception processing - is the instruction at p4 latent
+logic [4:0]  p4_exc_dest;    // Destination register for the instruction at p4 (for exception processing)
+
 // On a jump instruction, we need to flush the pipeline. We can do this by combinationally
 // setting all the p3_is_* signals to 0.
-assign p3_is_alu = p3_is_alu_x && !p4_jump_taken;
-assign p3_is_shift = p3_is_shift_x && !p4_jump_taken;
-assign p3_is_branch = p3_is_branch_x && !p4_jump_taken;
-assign p3_is_load = p3_is_load_x && !p4_jump_taken;
-assign p3_is_store = p3_is_store_x && !p4_jump_taken;
-assign p3_is_mult = p3_is_mult_x && !p4_jump_taken;
-assign p3_is_divide = p3_is_divide_x && !p4_jump_taken;
-assign p3_is_sys = p3_is_sys_x && !p4_jump_taken;
-assign p3_is_fpu = p3_is_fpu_x && !p4_jump_taken;
-assign p3_is_idx = p3_is_idx_x && !p4_jump_taken;
+wire flush_pipeline = p4_jump_taken || p4_exception;
+assign p3_is_alu = p3_is_alu_x && !flush_pipeline;
+assign p3_is_shift = p3_is_shift_x && !flush_pipeline;
+assign p3_is_branch = p3_is_branch_x && !flush_pipeline;
+assign p3_is_load = p3_is_load_x && !flush_pipeline;
+assign p3_is_store = p3_is_store_x && !flush_pipeline;
+assign p3_is_mult = p3_is_mult_x && !flush_pipeline;
+assign p3_is_divide = p3_is_divide_x && !flush_pipeline;
+assign p3_is_sys = p3_is_sys_x && !flush_pipeline;
+assign p3_is_fpu = p3_is_fpu_x && !flush_pipeline;
+assign p3_is_idx = p3_is_idx_x && !flush_pipeline;
+assign p3_is_illegal = p3_is_illegal_x && !flush_pipeline;
 
 
 always_comb begin
@@ -119,6 +128,7 @@ always_comb begin
     p2_immediate = 32'hx;
     p2_wren = 1'b0;
     p2_latent = 1'b0;
+    p2_is_illegal = 1'b0;
     stall_resource = 1'b0;
 
     // Decode the instruction based on the major opcode
@@ -262,6 +272,7 @@ always_comb begin
 
 
         default: begin
+            p2_is_illegal = 1'b1;
         end
     endcase
 
@@ -269,8 +280,6 @@ always_comb begin
     next_scoreboard = scoreboard;
     if (p4_wren && p4_latent)
         next_scoreboard[p4_rd] = 1'b0; // Mark the destination register as ready
-    if (p4_jump_taken && p3_latent)
-        next_scoreboard[p3_rd] = 1'b0; // Mark the destination register as ready if we are jumping and the instruction is latent
     next_scoreboard[0] = 1'b0; // Register 0 is always ready
     stall_regs = scoreboard[instr_a] || scoreboard[instr_b] || scoreboard[instr_d];
 
@@ -291,10 +300,14 @@ always_comb begin
         p2_latent = 1'b0;
     end
 
+    if (p4_jump_taken && p3_latent)
+        next_scoreboard[p3_rd] = 1'b0; // If we squashed a latent instruction due to a jump, mark its destination register as ready
+    if (p4_exception && p4_exc_latent)
+        next_scoreboard[p4_exc_dest] = 1'b0; // If we squashed a latent instruction due to an exception, mark its destination register as ready
     if (p2_wren && p2_latent)
         next_scoreboard[instr_d] = 1'b1; // Mark the destination register as not ready
 
-    if (reset)
+    if (reset || stall_fault)
         next_scoreboard = 32'h0;
 
     p2_ready = !stall;
@@ -313,6 +326,7 @@ always_ff @(posedge clock) begin
     p3_is_sys_x <= p2_is_sys;
     p3_is_fpu_x <= p2_is_fpu;
     p3_is_idx_x <= p2_is_idx;
+    p3_is_illegal_x <= p2_is_illegal;
     p3_alu_op <= p2_alu_op;
     p3_shift_op <= p2_shift_op;
     p3_branch_op <= p2_branch_op;
@@ -322,7 +336,10 @@ always_ff @(posedge clock) begin
     p3_rd <= instr_d;
     p3_immediate <= p2_immediate;
     p3_latent <= p2_latent;
+    p3_instr <= p2_instr;
     p4_is_store <= p3_is_store;
+    p4_exc_latent <= p3_latent;
+    p4_exc_dest <= p3_rd;
 
     if (reset)
         stall_fault <= 1'b0;

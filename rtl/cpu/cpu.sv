@@ -44,15 +44,6 @@ module cpu (
     output logic [31:0]  cpu_pc
 );
 
-// Signals driven by the PC module
-logic [31:0] p0_pc;
-logic        p0_req;
-
-// Signals driven by the instruction memory module
-logic        p1_instr_valid;
-logic [31:0] p1_instr;
-logic [31:0] p1_pc;
-
 // Signals driven by the instruction queue module
 logic        p1_fifo_full;
 logic        p2_ready;
@@ -90,17 +81,6 @@ logic        p4_is_store;
 logic [31:0] p3_data_a;
 logic [31:0] p3_data_b;
 
-// signals driven by the ALU module
-logic        p4_alu_valid;
-logic        p4_alu_latent;
-logic [4:0]  p4_alu_rd;
-logic [31:0] p3_alu_result;
-logic [31:0] p4_alu_result;
-logic        mem_ready;
-logic        mul_valid;
-logic [4:0]  mul_rd;
-logic [31:0] mul_result;
-
 // Signals driven by the writeback
 logic [4:0]   p4_rd;
 logic [31:0]  p4_result;
@@ -132,9 +112,15 @@ logic        memif_fault;
 
 
 
-logic p4_jump_taken;
-logic [31:0] p4_jump_target;
 
+// ===================================================================
+//    CPU Program Counter (PC)
+// ===================================================================
+
+logic [31:0] p0_pc;
+logic        p0_req;
+logic        p4_jump_taken;
+logic [31:0] p4_jump_target;
 
 cpu_pc  cpu_pc_inst (
     .clock(clock),
@@ -145,6 +131,14 @@ cpu_pc  cpu_pc_inst (
     .p4_jump_taken(p4_jump_taken),
     .p4_jump_target(p4_jump_target)
   );
+
+// ===================================================================
+//    CPU Instruction ROM (IROM)
+// ===================================================================
+
+logic        p1_instr_valid;
+logic [31:0] p1_instr;
+logic [31:0] p1_pc;
 
 cpu_irom  cpu_irom_inst (
     .clock(clock),
@@ -161,6 +155,10 @@ cpu_irom  cpu_irom_inst (
     .aux_irom_rdata(aux_irom_rdata),
     .aux_irom_rvalid(aux_irom_rvalid)
   );
+
+// ===================================================================
+//    CPU Instruction Queue
+// ===================================================================
 
 cpu_instr_queue  cpu_instr_queue_inst (
     .clock(clock),
@@ -181,12 +179,17 @@ cpu_instr_queue  cpu_instr_queue_inst (
 //    CPU Decoder
 // ===================================================================
 
+logic        p3_is_illegal;
+logic [31:0]  p3_instr;
+wire p4_exception = misaligned_exception || dmpu_exception;
+
 logic        stall_fault;
 
 cpu_decoder  cpu_decoder_inst (
     .clock(clock),
     .reset(reset),
     .p4_jump_taken(p4_jump_taken),
+    .p4_exception(p4_exception),
     .p2_instr_valid(p2_instr_valid),
     .p2_instr(p2_instr),
     .mem_ready(mem_ready),
@@ -212,6 +215,8 @@ cpu_decoder  cpu_decoder_inst (
     .p3_immediate(p3_immediate),
     .p3_is_load(p3_is_load),
     .p3_is_store(p3_is_store),
+    .p3_is_illegal(p3_is_illegal),
+    .p3_instr(p3_instr),
     .p3_mem_op(p3_mem_op),
     .p3_pc(p3_pc),
     .p4_pc(p4_pc),
@@ -222,6 +227,10 @@ cpu_decoder  cpu_decoder_inst (
     .p4_is_store(p4_is_store),
     .stall_fault(stall_fault)
   );
+
+// ===================================================================
+//    CPU Register File
+// ===================================================================
 
 cpu_regfile  cpu_regfile_inst (
     .clock(clock),
@@ -238,6 +247,21 @@ cpu_regfile  cpu_regfile_inst (
     .p3_data_a(p3_data_a),
     .p3_data_b(p3_data_b)
   );
+
+// ===================================================================
+//    CPU ALU Stage
+// ===================================================================
+
+logic         idx_bounds_exception;
+logic        p4_alu_valid;
+logic        p4_alu_latent;
+logic [4:0]  p4_alu_rd;
+logic [31:0] p3_alu_result;
+logic [31:0] p4_alu_result;
+logic        mem_ready;
+logic        mul_valid;
+logic [4:0]  mul_rd;
+logic [31:0] mul_result;
 
 cpu_alu  cpu_alu_inst (
     .clock(clock),
@@ -258,8 +282,13 @@ cpu_alu  cpu_alu_inst (
     .p4_alu_result(p4_alu_result),
     .mul_valid(mul_valid),
     .mul_rd(mul_rd),
-    .mul_result(mul_result)
+    .mul_result(mul_result),
+    .idx_bounds_exception(idx_bounds_exception)
   );
+
+// ===================================================================
+//    CPU Divider Stage
+// ===================================================================
 
 cpu_divider  cpu_divider_inst (
     .clock(clock),
@@ -275,6 +304,13 @@ cpu_divider  cpu_divider_inst (
     .divider_reg_d(divider_reg_d)
   );
 
+// ===================================================================
+//    CPU Branch Stage
+// ===================================================================
+
+logic         exception_jump;
+logic [31:0]  exception_target;
+
 cpu_branch  cpu_branch_inst (
     .clock(clock),
     .reset(reset),
@@ -285,8 +321,19 @@ cpu_branch  cpu_branch_inst (
     .p3_branch_op(p3_branch_op),
     .p3_immediate(p3_immediate),
     .p4_jump_taken(p4_jump_taken),
-    .p4_jump_target(p4_jump_target)
+    .p4_jump_target(p4_jump_target),
+    .exception_jump(exception_jump),
+    .exception_target(exception_target)
   );
+
+// ===================================================================
+//    CPU Memory Stage
+// ===================================================================
+
+logic        misaligned_exception;
+logic        dmpu_exception;
+logic [31:0] mem_exc_addr;
+
 
 cpu_mem  cpu_mem_inst (
     .clock(clock),
@@ -312,8 +359,15 @@ cpu_mem  cpu_mem_inst (
     .cpu_aux_wdata(cpu_aux_wdata),
     .cpu_aux_strb(cpu_aux_strb),
     .cpu_aux_rd(cpu_aux_rd),
+    .misaligned_exception(misaligned_exception),
+    .dmpu_exception(dmpu_exception),
+    .mem_exc_addr(mem_exc_addr),
     .memif_fault(memif_fault)
   );
+
+// ===================================================================
+//    CPU Floating Point Unit (FPU)
+// ===================================================================
 
 logic        fpu_valid;
 logic [4:0]  fpu_dest;
@@ -331,6 +385,10 @@ fpu  fpu_inst (
     .fpu_result(fpu_result),
     .fpu_div_busy(fpu_div_busy)
   );
+
+// ===================================================================
+//    CPU Writeback Stage
+// ===================================================================
 
 cpu_writeback  cpu_writeback_inst (
   .clock(clock),
@@ -364,6 +422,10 @@ cpu_writeback  cpu_writeback_inst (
     .writeback_fault(writeback_fault)
 );
 
+// ===================================================================
+//    CPU Data Cache (DCache) Interface
+// ===================================================================
+
 cpu_dcache  cpu_dcache_inst (
     .clock(clock),
     .reset(reset),
@@ -393,27 +455,20 @@ cpu_dcache  cpu_dcache_inst (
 //    CPU Control and Status Registers (CSR) and Exception Handling
 // ===================================================================
 
-logic [31:1]  interrupt_source;
+logic [31:1]  interrupt_source = 31'b0;
 logic         interrupt_signal;
 logic [4:0]   interrupt_cause;
 logic         supervisor_mode;
 logic         dmpu_clear;
 logic         dmpu_add;
 logic [31:0]  dmpu_data;
-logic         dmpu_fault=1'b0;
-logic         misaligned_fault=1'b0;
-logic [31:0]  dmpu_fault_addr;
 logic         icache_flush;
 logic         icache_flush_in_progress;
-logic         p3_is_illegal;
-logic [31:0]  p3_instr;
-logic         idx_bounds_exception;
-logic         exception_jump;
-logic [31:0]  exception_target;
 logic         sys_valid;
 logic [4:0]   sys_reg_d;
 logic [31:0]  sys_result;
 
+wire cpu_check_exception = memif_fault || writeback_fault || instr_fifo_fault || stall_fault;
 
 cpu_sys  cpu_sys_inst (
     .clock(clock),
@@ -430,9 +485,10 @@ cpu_sys  cpu_sys_inst (
     .dmpu_clear(dmpu_clear),
     .dmpu_add(dmpu_add),
     .dmpu_data(dmpu_data),
-    .dmpu_fault(dmpu_fault),
-    .misaligned_fault(misaligned_fault),
-    .dmpu_fault_addr(dmpu_fault_addr),
+    .dmpu_exception(dmpu_exception),
+    .misaligned_exception(misaligned_exception),
+    .cpu_check_exception(cpu_check_exception),
+    .mem_exc_addr(mem_exc_addr),
     .p4_is_store(p4_is_store),
     .icache_flush(icache_flush),
     .icache_flush_in_progress(icache_flush_in_progress),
