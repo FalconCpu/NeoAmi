@@ -90,6 +90,7 @@ logic [3:0]  aux_hwregs_strb;
 logic [31:0] aux_hwregs_rdata;
 logic [31:0] audio_hwregs_rdata;
 logic [31:0] combined_hwregs_rdata;
+assign audio_sdram_tag = 8'b0;
 
 assign combined_hwregs_rdata = aux_hwregs_rdata | audio_hwregs_rdata;
 
@@ -149,9 +150,7 @@ audio audio_inst (
     .sdram_request(audio_sdram_req),
     .sdram_ack(audio_sdram_ack),
     .sdram_address(audio_sdram_address),
-    .sdram_tag(audio_sdram_tag),
     .sdram_rvalid(audio_sdram_rvalid),
-    .sdram_rtag(audio_sdram_rtag),
     .sdram_rdata(audio_sdram_rdata)
   );
 
@@ -195,5 +194,7 @@ sophie_hwregs  sophie_hwregs_inst (
     .cpu_pc(cpu_pc),
     .vga_obj_list(vga_obj_list)
   );
+
+wire unused = &{audio_sdram_rtag};
 
 endmodule

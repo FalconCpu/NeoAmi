@@ -203,6 +203,8 @@ logic [3:0] state, next_state;
 logic signed [23:0] next_dy1, this_dy1;    // y1-ypos in S12.12 format
 logic signed [23:0] next_dy2, this_dy2;    // y2-ypos in S12.12 format
 logic signed [23:0] next_dx1, this_dx1;    // x1-xpos in S12.12 format
+logic signed [15:0] clip_x1, next_clip_x1;
+logic signed [15:0] clip_x2, next_clip_x2;
 logic signed [15:0] tmp;
 
 `define STATE_END 4'hf
@@ -234,6 +236,8 @@ always_comb begin
     next_obj_finished = 1'b0;
     next_obj_finished_index = 8'hx;
     next_obj_final_row = obj_final_row;
+    next_clip_x1 = clip_x1;
+    next_clip_x2 = clip_x2;
     tmp = 16'hx;
 
     next_state = (state==4'hF) ? 4'hF : state+1'b1;
@@ -254,6 +258,8 @@ always_comb begin
             next_dy2 = {2'b0,ypos,12'hFFF} - ram0_y2;
             mult_b1 = 24'h0;
             mult_b2 = 24'h0;
+            next_clip_x1 = ram0_clip_x1;
+            next_clip_x2 = ram0_clip_x2;
             if (next_dy2<0 || ram0_flags[4]==1'b1) begin
                 // Above the mid vertex, or mid vertex is on the right - so calc left edge relative to x1,y1
                 mult_a1 = ram0_dx1_dy;
@@ -299,24 +305,24 @@ always_comb begin
         // Clip the left edge to the clip rectangle
         tmp = mac_out[27:12];
 
-        if (tmp > ram0_clip_x2) begin
+        if (tmp > clip_x2) begin
             // Object is completely clipped, move to the next object
             next_state = 4'd14;
         end
-        if (tmp < ram0_clip_x1)
-            tmp = ram0_clip_x1;
+        if (tmp < clip_x1)
+            tmp = clip_x1;
         next_span_x1 = tmp[9:0];
     end
 
     3: begin
         // Clip the right edge to the clip rectangle
         tmp = mac_out[27:12];
-        if (tmp < ram0_clip_x1) begin
+        if (tmp < clip_x1) begin
             // Object is completely clipped, move to the next object
             next_state = 4'd14;
         end
-        if (tmp > ram0_clip_x2)
-            tmp = ram0_clip_x2;
+        if (tmp > clip_x2)
+            tmp = clip_x2;
         next_span_x2 = tmp[9:0];
 
         // Calculate the Z value at the left edge of this scanline
@@ -452,6 +458,8 @@ always_ff @(posedge clock) begin
     obj_finished <= next_obj_finished;
     obj_finished_index <= next_obj_finished_index;
     obj_final_row <= next_obj_final_row;
+    clip_x1 <= next_clip_x1;
+    clip_x2 <= next_clip_x2;
 end
 
 

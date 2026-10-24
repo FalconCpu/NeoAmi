@@ -17,9 +17,10 @@ module word_fifo(
     output logic [59:0]  read_data
 );
 
-logic [59:0] ram[0:31];
+
 logic [4:0]  write_ptr;
 logic [4:0]  read_ptr;
+logic [59:0] q;
 
 wire [4:0]  inc_write_ptr = write_ptr + 5'd1;
 wire [4:0]  inc_read_ptr = read_ptr + 5'd1;
@@ -29,16 +30,25 @@ assign fifo_nearly_full = (slots_free <= 5'd3);
 
 wire [4:0] next_read_ptr = (read_enable && read_valid) ? inc_read_ptr : read_ptr;
 
+
+ram_60  ram_60_inst (
+    .clock(clock),
+    .data(write_data),
+    .rdaddress(next_read_ptr),
+    .wraddress(write_ptr),
+    .wren(write_enable),
+    .q(q)
+  );
+
+
 always_ff @(posedge clock) begin
 
     // Write logic
-    if (write_enable) begin
-        ram[write_ptr] <= write_data;
+    if (write_enable) 
         write_ptr <= inc_write_ptr;
-    end
 
     // Read logic
-    read_data <= ram[next_read_ptr];
+    read_data <= q;
     read_valid <= (write_ptr != next_read_ptr);
     read_ptr <= next_read_ptr;
 

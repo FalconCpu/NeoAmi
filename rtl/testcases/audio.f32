@@ -1,0 +1,51 @@
+# dummy test to check the audio module
+
+SOPHIE_AUDIO = 0xE0000400
+AUDIO_START_ADDR   = 0x0
+AUDIO_VOLUME       = 0x4
+AUDIO_FREQUENCY    = 0x8
+AUDIO_LENGTH       = 0xC
+AUDIO_LOOP_POS     = 0x10
+AUDIO_AUDIO_OUT    = 0x14
+
+# Create a waveform in memory
+ld $1, 0x5000
+ld $2, 0x04030201
+stw $2, $1[0]
+ld $2, 0x08070605
+stw $2, $1[4]
+ld $2, 0x0C0B0A09
+stw $2, $1[8]
+ld $2, 0x100F0E0D
+stw $2, $1[12]
+ld $2, 0x14131211
+stw $2, $1[16]
+ld $2, 0x18171615
+stw $2, $1[20]
+ld $2, 0x1C1B1A19
+stw $2, $1[24]
+ld $2, 0x20211F1E
+stw $2, $1[28]
+stw $2, $1[32]
+
+ld $1, SOPHIE_AUDIO
+ld $2, 0x00800080
+stw $2, $1[AUDIO_VOLUME]
+ld $2, 0x4000
+stw $2, $1[AUDIO_FREQUENCY]
+ld $2, 0x020
+stw $2, $1[AUDIO_LENGTH]
+ld $2, 0
+stw $2, $1[AUDIO_LOOP_POS]
+ld $2, 0x5000
+stw $2, $1[AUDIO_START_ADDR]
+
+ld $3, 40000
+loop:
+sub $3, $3, 1
+bne $3, 0, loop
+
+
+ld $30,0
+ret
+

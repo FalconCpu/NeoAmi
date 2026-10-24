@@ -94,6 +94,10 @@ logic [15:0]  new_sdram_wmask;
 logic [10:0]  new_sdram_tag;
 
 
+// Under heavy graphics load the VGA requests may totally swamp the SDRAM, potentially starving other clients like audio or gemma.
+// So we need to put a limit on the number of consecutive VGA requests that can be accepted while other clients are waiting.
+logic vga_yield, next_vga_yield;
+
 always_comb begin
     dcache_sdramw_ack = 1'b0;
     dcache_sdramr_ack = 1'b0;
@@ -101,6 +105,7 @@ always_comb begin
     gemma_sdram_ack = 1'b0;
     vga_sdram_ack = 1'b0;
     audio_sdram_ack = 1'b0;
+    next_vga_yield = vga_yield;
 
     // If the SDRAM is ready then shift the new request through, otherwise hold it in the queue
     if (sdram_ack) begin
@@ -142,7 +147,7 @@ always_comb begin
         new_sdram_wmask = 16'bx;
         new_sdram_tag = 11'bx;
 
-    end else if (vga_sdram_req) begin
+    end else if (vga_sdram_req && !vga_yield) begin
         // Accept request from vga
         vga_sdram_ack = 1'b1;
         new_sdram_req = 1'b1;
@@ -151,6 +156,8 @@ always_comb begin
         new_sdram_wdata = 128'bx;
         new_sdram_wmask = 16'bx;
         new_sdram_tag = {3'b010, vga_sdram_tag[7:0]};
+        // Allow a max of 7 consecutive VGA requests before giving other clients a chance
+        next_vga_yield = dcache_sdramr_req || dcache_sdramw_req || audio_sdram_req || gemma_sdram_req || icache_sdram_req;
 
     end else if (audio_sdram_req) begin
         audio_sdram_ack = 1'b1;
@@ -209,6 +216,7 @@ always_comb begin
         new_sdram_wdata = 128'bx;
         new_sdram_wmask = 16'bx;
         new_sdram_tag = 11'bx;
+        next_vga_yield = 1'b0;
     end
 
     // Send new request to SDRAM, or add it to the queue
@@ -229,6 +237,11 @@ always_comb begin
         next_queue_sdram_wmask = new_sdram_wmask;
         next_queue_sdram_tag = new_sdram_tag;
     end
+
+
+    // if another master is granted access to the SDRAM, reset the VGA request count
+    if (dcache_sdramw_ack || dcache_sdramr_ack || audio_sdram_ack || gemma_sdram_ack || icache_sdram_ack) 
+        next_vga_yield = 1'b1;
 
     // Reset
     if (reset) begin
@@ -253,6 +266,7 @@ always_comb begin
     audio_sdram_rvalid = 2'b0;
     audio_sdram_rdata = 32'bx;
     audio_sdram_rtag = 8'bx;
+    
 
     if (sdram_rtag[10:8] == 3'b000) begin
         // Response for icache
@@ -293,6 +307,7 @@ always_ff @(posedge clock) begin
     queue_sdram_wdata <= next_queue_sdram_wdata;
     queue_sdram_wmask <= next_queue_sdram_wmask;
     queue_sdram_tag <= next_queue_sdram_tag;
+    vga_yield <= next_vga_yield;
 end
 
 endmodule

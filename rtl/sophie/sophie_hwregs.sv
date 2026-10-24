@@ -26,7 +26,8 @@
 // E0000044  SD_CARD_CMD_HI   W  Upper 16 bits of the SD card command
 // E0000048  SD_CARD_CMD_LO R/W  Lower 32 bits of the SD card command - reads as -1 once the command has been accepted
 // E000004C  SD_CARD_RX       R  Data received from the SD card over SPI - reads as -1 if no data is available
-// E0000200-02F4 AUDIO      R/W  Eight PCM channel register groups (0x20-byte stride)
+// E0000400  AUDIO          R/W  16 audio channels - 16 registers per channel
+// E00007FC  AUDIO          R/W  Last register of the audio block
 
 // verilator lint_off PINCONNECTEMPTY
 

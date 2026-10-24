@@ -88,7 +88,7 @@ fun drawBackground(time:Int)
     backdropSprite.setZ(1)
     scene.addObject(backdropSprite)
 
-    val t = if time < 39200 then time else 39200
+    val t = if time < 0x4c80 then time else 0x4c80
 
     # First parallax layer
     val startRow = 1024 - t/64
