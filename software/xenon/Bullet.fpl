@@ -20,6 +20,8 @@ class Bullet(xpos: Int, ypos: Int) : Actor(xpos, ypos)
             val collidedObject = unsafe(collision.reserved2 as Actor?)
             if collidedObject != null
                 collidedObject.onHit()
+            else
+                playSound(5, SOUND_HIT_BACKGROUND, 128)
             active = false
 
         scene.addObject(sprite)

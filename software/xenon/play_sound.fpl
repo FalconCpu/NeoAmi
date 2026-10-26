@@ -1,0 +1,12 @@
+
+fun playSound(channel: Int, soundIndex: Int, volume: Int)
+    if soundDataPtr = 0
+        kprintf("Sound data not loaded\n")
+        abort 1
+
+    hwregsAudio[channel].volume = volume * 0x10001
+    hwregsAudio[channel].frequency = 0x10000
+    hwregsAudio[channel].length = soundManifest[soundIndex].length
+    hwregsAudio[channel].loop_start = -1
+    hwregsAudio[channel].address = soundDataPtr + soundManifest[soundIndex].offset
+

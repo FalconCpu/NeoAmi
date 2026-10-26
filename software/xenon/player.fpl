@@ -1,3 +1,5 @@
+var playerX = 0
+
 class Player
     var xpos = 320
     var ypos = 200
@@ -82,6 +84,7 @@ class Player
                 actorList.add(wingtip)
 
             fireCooldown = if pickupWeapon then 9 else 18
+            playSound(4, if pickupLaser then SOUND_FIRE_LASER else SOUND_FIRE_MISSILE, 32)
 
         # Update the sprite's position based on its velocity
         xpos += velocityX/(3-speed)
@@ -113,8 +116,10 @@ class Player
         if collision != null
             val collisionActor = unsafe(collision.reserved2 as Actor?)
             val action = if collisionActor=null then PickupType.DAMAGE else collisionActor.onCollision()
+            if action != PickupType.DAMAGE
+                playSound(4, SOUND_PICKUP, 128)
             when action
-                PickupType.DAMAGE -> 
+                PickupType.DAMAGE ->
                     sprite.b1 = 0x1FFFS
                     shield -= 2
                 PickupType.SPEED  -> speed += 1
@@ -163,3 +168,4 @@ class Player
             scene.addObject(wingtip)
 
         shieldBar.setShield(shield)
+        playerX = xpos

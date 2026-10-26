@@ -1,10 +1,17 @@
 
 class Pod(xpos: Int, ypos: Int) : Actor(xpos, ypos)
-    var velocityX = 0
+    var hitPoints = 10
     var t = 0
+    var sprite : IrisSprite
 
     override fun update()
-        x += velocityX
+        t += 1
+        if t&1=0 
+            if x < playerX
+                x += 1
+            else
+                x -= 1
+
         y += 1
         if y > 480
             active = false
@@ -12,8 +19,22 @@ class Pod(xpos: Int, ypos: Int) : Actor(xpos, ypos)
 
         val imageIndex = (t/8) % 24
 
-        val sprite = scene.newSprite()
+        sprite = scene.newSprite()
+        sprite.reserved2 = unsafe(this as Int)   # indicate this is an enemy sprite
         sprite.setBitmap(x, y, spriteManifest[SPRITE_POD + imageIndex], spriteDataPtr)
         sprite.setZ(32)
 
         scene.addObject(sprite)
+
+    override fun onHit()
+        sprite.b1 = 0x1FFFS
+        hitPoints -= 1
+        if hitPoints <= 0
+            val explosion = new Explosion(x, y, 1)
+            actorList.add(explosion)
+            playSound(6, SOUND_BIG_EXPLOSION, 128)
+            active = false
+
+            # Create spores
+            for i in 0..16
+                actorList.add(new Spore(x+rand(48), y+rand(48)))

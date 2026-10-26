@@ -169,7 +169,7 @@ always_ff @(posedge clock) begin
                              (sample_left <-19'sh08000) ? 16'h8000 :
                               sample_left[15:0];
     sample_right_saturated <= (sample_right > 19'sh0FFFF) ? 16'h7FFF :
-                              (sample_right < 19'sh08000) ? 16'h8000 :
+                              (sample_right <-19'sh08000) ? 16'h8000 :
                               sample_right[15:0];
 end
 
@@ -252,7 +252,7 @@ always_comb begin
     next_start_fetch = 1'b0;
     mult_a       = 16'hx;
     mult_b       = 16'hx;
-    reg_addr     = 9'hx;
+    reg_addr     = 9'h0;
     reg_wdata    = 32'hx;
     reg_wren     = 1'b0;
     start_signal_ack = 1'b0;
@@ -363,7 +363,6 @@ always_comb begin
         STATE_ADD_R: begin 
             next_sample_data = mult_result[15:0];
             inc_sample_right = 1'b1;
-            reg_wren = 1'b1;
             reg_wdata = {{24{fetch_data[7]}}, fetch_data};
             if (current_position >= length) begin
                 if (loop_pos != 32'hffffffff) begin

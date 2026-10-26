@@ -1,0 +1,6 @@
+
+var seed = 0x1234ABCD
+
+fun rand(n:Int) -> Int
+    seed = (seed * 1103515245 + 12345) & 0x7FFFFFFF
+    return seed % n

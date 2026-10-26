@@ -1,0 +1,174 @@
+{
+  "data": "sounds.bin",
+  "format": "int8 mono",
+  "sounds": [
+    {
+      "name": "asteroid_breakup",
+      "const": "SOUND_ASTEROID_BREAKUP",
+      "source": "asteroid_breakup.wav",
+      "offset": 0,
+      "length": 33024,
+      "rate": 44100
+    },
+    {
+      "name": "big_explosion",
+      "const": "SOUND_BIG_EXPLOSION",
+      "source": "big_explosion.wav",
+      "offset": 33024,
+      "length": 84096,
+      "rate": 44100
+    },
+    {
+      "name": "bonus",
+      "const": "SOUND_BONUS",
+      "source": "bonus.wav",
+      "offset": 117120,
+      "length": 7469,
+      "rate": 44100
+    },
+    {
+      "name": "checkpoint",
+      "const": "SOUND_CHECKPOINT",
+      "source": "checkpoint.wav",
+      "offset": 124589,
+      "length": 40320,
+      "rate": 44100
+    },
+    {
+      "name": "dive_down",
+      "const": "SOUND_DIVE_DOWN",
+      "source": "dive_down.wav",
+      "offset": 164909,
+      "length": 58496,
+      "rate": 44100
+    },
+    {
+      "name": "dive_up",
+      "const": "SOUND_DIVE_UP",
+      "source": "dive_up.wav",
+      "offset": 223405,
+      "length": 47360,
+      "rate": 44100
+    },
+    {
+      "name": "fire_homing_missile",
+      "const": "SOUND_FIRE_HOMING_MISSILE",
+      "source": "fire_homing_missile.wav",
+      "offset": 270765,
+      "length": 41984,
+      "rate": 44100
+    },
+    {
+      "name": "fire_laser",
+      "const": "SOUND_FIRE_LASER",
+      "source": "fire_laser.wav",
+      "offset": 312749,
+      "length": 24704,
+      "rate": 44100
+    },
+    {
+      "name": "fire_missile",
+      "const": "SOUND_FIRE_MISSILE",
+      "source": "fire_missile.wav",
+      "offset": 337453,
+      "length": 8349,
+      "rate": 44100
+    },
+    {
+      "name": "hit_background",
+      "const": "SOUND_HIT_BACKGROUND",
+      "source": "hit_background.wav",
+      "offset": 345802,
+      "length": 15776,
+      "rate": 44100
+    },
+    {
+      "name": "medium_explosion",
+      "const": "SOUND_MEDIUM_EXPLOSION",
+      "source": "medium_explosion.wav",
+      "offset": 361578,
+      "length": 63360,
+      "rate": 44100
+    },
+    {
+      "name": "menu_back",
+      "const": "SOUND_MENU_BACK",
+      "source": "menu_back.wav",
+      "offset": 424938,
+      "length": 25920,
+      "rate": 44100
+    },
+    {
+      "name": "menu_click",
+      "const": "SOUND_MENU_CLICK",
+      "source": "menu_click.wav",
+      "offset": 450858,
+      "length": 10152,
+      "rate": 44100
+    },
+    {
+      "name": "menu_option",
+      "const": "SOUND_MENU_OPTION",
+      "source": "menu_option.WAV",
+      "offset": 461010,
+      "length": 6208,
+      "rate": 44100
+    },
+    {
+      "name": "menu_selection",
+      "const": "SOUND_MENU_SELECTION",
+      "source": "menu_selection.WAV",
+      "offset": 467218,
+      "length": 7040,
+      "rate": 44100
+    },
+    {
+      "name": "pickup",
+      "const": "SOUND_PICKUP",
+      "source": "pickup.wav",
+      "offset": 474258,
+      "length": 10688,
+      "rate": 44100
+    },
+    {
+      "name": "player_created",
+      "const": "SOUND_PLAYER_CREATED",
+      "source": "player_created.wav",
+      "offset": 484946,
+      "length": 50560,
+      "rate": 44100
+    },
+    {
+      "name": "player_destroyed",
+      "const": "SOUND_PLAYER_DESTROYED",
+      "source": "player_destroyed.wav",
+      "offset": 535506,
+      "length": 126656,
+      "rate": 44100
+    },
+    {
+      "name": "roar",
+      "const": "SOUND_ROAR",
+      "source": "roar.WAV",
+      "offset": 662162,
+      "length": 179926,
+      "rate": 44100
+    },
+    {
+      "name": "small_explosion",
+      "const": "SOUND_SMALL_EXPLOSION",
+      "source": "small_explosion.wav",
+      "offset": 842088,
+      "length": 58519,
+      "rate": 44100
+    },
+    {
+      "name": "snort",
+      "const": "SOUND_SNORT",
+      "source": "snort.WAV",
+      "offset": 900607,
+      "length": 117972,
+      "rate": 44100
+    }
+  ]
+}

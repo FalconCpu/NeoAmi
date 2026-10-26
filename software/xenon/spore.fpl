@@ -1,0 +1,33 @@
+
+class Spore(xpos: Int, ypos: Int) : Actor(xpos, ypos)
+    var t = 0
+    var sprite : IrisSprite
+
+    override fun update()
+        t += 1
+        if t&7=0
+            if x < playerX
+                x += 1
+            else
+                x -= 1
+        else
+            x += rand(3) - 1
+
+
+        y += 1 + rand(2)
+        if y > 480
+            active = false
+            return
+
+        val imageIndex = (t/8) % 8
+
+        val sprite = scene.newSprite()
+        sprite.reserved2 = unsafe(this as Int)   # indicate this is an enemy sprite
+        sprite.setBitmap(x, y, spriteManifest[SPRITE_SPORE + imageIndex], spriteDataPtr)
+        sprite.setZ(32)
+
+        scene.addObject(sprite)
+
+    override fun onHit()
+        active = false
+            

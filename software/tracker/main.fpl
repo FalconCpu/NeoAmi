@@ -1,0 +1,38 @@
+
+fun delay(count: Int)
+    for i in 0..count
+        val dummy = 1
+
+
+fun waitVsync()
+    # hwregs.seven_seg = hwregs.vga_pos
+    # kprintf("\n")
+    # kprintf("VGA position: %d\n", hwregs.vga_pos)
+    while hwregs.vga_pos <=0
+        delay(1000)
+    while hwregs.vga_pos > 0
+        delay(1000)
+
+
+fun main()
+    kprintf("main: starting\n")
+    val data = loadFile("modfiles/xenon2.mod")
+    # val data = loadFile("modfiles/phantom.mod")
+    if data is Error
+        kprintf("main: readFile failed: %s\n", data.description)
+        return
+
+    kprintf("main: data loaded at %x\n", data)
+    # val gc = new GraphicsContext()
+    # gc.setup()
+
+    val modPlayer = new ModPlayer(data)
+    modPlayer.initialize()
+
+    # val dummy = new Array<Int>(4096)
+
+
+    while true
+    
+        waitVsync()
+        modPlayer.timeStep()        # Update the music player state

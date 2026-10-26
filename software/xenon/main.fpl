@@ -1,6 +1,7 @@
 
 # Globals for the data pointers
 var spriteDataPtr = 0
+var soundDataPtr = 0
 var backdropDataPtr : Pointer<Char>
 var tilesDataPtr : Pointer<Char>
 var tileMap : Pointer<Short>
@@ -55,6 +56,12 @@ fun loadGraphicsData()
         abort 1
     kprintf("Loaded sprite data at %x\n", spriteData)
     spriteDataPtr = unsafe(spriteData as Int)
+
+    val soundData = loadFile("export/sounds.bin")
+    if soundData is Error 
+        kprintf("Failed to load sound data\n")
+        abort 1
+    soundDataPtr = unsafe(soundData as Int) 
 
     # val spriteData = allocatePageAndLoadFile("export/sprites.bin")
     # if spriteData is Error then abort 1
@@ -144,6 +151,13 @@ fun main() -> Int!
         print(entry)
     freeDirList(root_entries)
 
+    val modfile = loadFile("modfiles/xenon2.mod")
+    if modfile is Error
+        kprintf("main: readFile failed: %s\n", modfile.description)
+        abort(0)
+    val modPlayer = new ModPlayer(modfile)
+    modPlayer.initialize()
+
 
 
 
@@ -156,11 +170,14 @@ fun main() -> Int!
     val player = new Player()
     # var time = 0x3000
     
-
-
+    # for sound in 0..SOUND_SNORT
+    #     kprintf("Playing sound %d\n", sound)
+    #     playSound(4, sound)
+    #     for i in 0..150
+    #         waitVsync()
 
     var time = 600
-    # time=7000
+    time=7000
 
     hwregs.ledr = 0
     kprintf("Keyboard: %x\n", keyboard)
@@ -173,6 +190,8 @@ fun main() -> Int!
             actor.update()
         player.update()
         actorList.removeInactive()
+        modPlayer.timeStep()        # Update the music player state
+
 
 
         hwregs.seven_seg = time

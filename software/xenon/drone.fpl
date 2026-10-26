@@ -24,5 +24,6 @@ class Drone(xpos: Int, ypos: Int, var t:Int) : Actor(xpos, ypos)
     override fun onHit()
         val explosion = new Explosion(x, y, 0)
         actorList.add(explosion)
+        playSound(6, SOUND_SMALL_EXPLOSION, 128)
 
         active = false

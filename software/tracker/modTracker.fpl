@@ -1,0 +1,221 @@
+
+class AudioSample (
+    val address: Int,     # start address of sample data
+    val length: Int,      # length in bytes
+    val volume: Int,      # volume (0-64)
+    val finetune: Int,    # finetune value (0-15)
+    val loop_start: Int)  # loop start in bytes
+
+
+
+
+class ModPlayer(val data:Pointer<Char>)
+    val channelVolume = new Array<Int>[64,64,64,64]
+    val channelPeriod = new Array<Int>[0,0,0,0]
+    val channelSample = new Array<Int>[0,0,0,0]
+
+    val captureBuffer = new Array<Int>(640)
+    val vuBars = new Array<Int>(32)
+    val chBars = new Array<Int>(4)
+    val samples = new Array<AudioSample>(32)
+    val songLength = (data[950] as Int) & 0xFF
+
+    var bpm = 5
+    var num_patterns = 0
+    var time = 0
+    var songPos = 0
+    var patternPos = 0
+    var countBpm = 0
+
+    var fixedBpm = 0        # Override bpm if non-zero
+
+    fun countPatterns()
+        for i in 0..<128
+            val p = data[952 + i] as Int
+            if p > num_patterns
+                num_patterns = p
+        num_patterns = num_patterns + 1   # highest index + 1
+        # kprintf("Pattern count=%d\n", num_patterns)
+        # kprintf("Song length=%d\n", songLength)
+
+    fun extractSamples()
+        # kprintf("\n\nSamples:\n")
+        var current_offset = 1084 + num_patterns*1024
+        val baseAddress = unsafe(data as Int)
+
+        for s in 0..<31
+            val base = 20 + s*30
+            # kprintf("%02d: ", s)
+            # for i in 0..<22
+            #     val c = data[base+i]
+            #     if c != (0 as Char)
+            #         kprintf("%c", c)
+            val len_hi = (data[base+22] as Int) & 0xFF
+            val len_lo = (data[base+23] as Int) & 0xFF
+            val length = ((len_hi lsl 8) | len_lo) * 2
+            val start = current_offset
+            current_offset += length
+            val fine = data[base+24] as Int
+            val volume = data[base+25] as Int
+            val loop_start_hi = (data[base+26] as Int) & 0xFF
+            val loop_start_lo = (data[base+27] as Int) & 0xFF
+            val loop_length_hi = (data[base+28] as Int) & 0xFF
+            val loop_length_lo = (data[base+29] as Int) & 0xFF
+            val loop_start = ((loop_start_hi lsl 8) | loop_start_lo) * 2
+            # val loop_length = ((loop_length_hi lsl 8) | loop_length_lo) * 2
+            
+            samples[s] = new AudioSample(baseAddress+start, length, volume, fine, loop_start)
+
+            # kprintf("  start=%x len=%d  vol=%d rep=%d\n", baseAddress+start, length, volume, loop_start)
+
+            # hwregsAudio[0].address = samples[s].address
+            # hwregsAudio[0].frequency = 0x4000
+            # hwregsAudio[0].volume = samples[s].volume * 0x10001
+            # hwregsAudio[0].length = samples[s].length
+            # hwregsAudio[0].loop_start = if samples[s].loop_start != 0 then samples[s].loop_start else 0xffffffff
+            # for j in 0..100
+            #     waitVsync()
+    end fun
+
+    fun timeStep() -> Bool  # return true if end of song
+        countBpm += 1
+        if countBpm <= bpm
+            return false
+        countBpm = 0
+
+        if songPos = songLength
+            # kprintf("End of song\n")
+            return true
+        val pattern_index = (data[952 + songPos] as Int) & 0xFF
+
+        # Amiga PAL master clock / FPGA sample rate * 65536
+        const PITCH_SCALE_FACTOR = 9685386 # 8000000 # 4842699 #  
+
+        # play the specified pattern (0-127)
+        val base = 1084 + pattern_index * 1024
+
+        for ch in 0..3
+            val ii = base + patternPos*16 + ch*4
+            val b0 = (data[ii+0] as Int) & 0xFF
+            val b1 = (data[ii+1] as Int) & 0xFF
+            val b2 = (data[ii+2] as Int) & 0xFF     
+            val b3 = (data[ii+3] as Int) & 0xFF
+            val sample_num = ((b0 & 0xF0) | ((b2 & 0xF0) lsr 4)) 
+            val period = ((b0 & 0x0F) lsl 8) | b1
+            val effect = (b2 & 0x0F)
+            val effect_data = b3
+            var volume = if sample_num!=0 then samples[sample_num-1].volume else channelVolume[ch]
+
+            when effect
+                0x0 ->
+                    # Arpeggio - not implemented
+                    if effect_data != 0
+                        kprintf("Arpeggio not implemented\n")
+
+                0x1 ->
+                    # Slide up 
+                    kprintf("Slide up not implemented\n")
+
+                0x2 ->
+                    # Slide down
+                    kprintf("Slide down not implemented\n") 
+
+                0x3 ->
+                    # Slide to note
+                    kprintf("Slide to note not implemented\n")
+
+                0xC ->
+                    # Set volume
+                    volume = effect_data
+
+                0xA ->
+                    volume += (effect_data lsr 4) - (effect_data&0x0F)
+                    if volume<0
+                        volume = 0
+                    channelVolume[ch] = volume
+                    hwregsAudio[ch].volume = volume
+                    kprintf("%2d.%2d: Ch=%d vol_slide %d\n", pattern_index, patternPos, ch, volume)
+
+                0xB -> 
+                    # Jump to pattern - not implemented
+                    kprintf("Jump to pattern not implemented\n")
+
+                0xD ->
+                    # Set song position - not implemented
+                    kprintf("Set song position to %d \n", effect_data)
+                    songPos += 1
+                    patternPos = 0
+                    return false
+                
+                0xE -> 
+                    # Extended effects
+                    val ext_effect = (effect_data lsr 4)
+                    val ext_data = effect_data & 0x0F
+                    when ext_effect
+                        0x0 ->
+                            # Set filter - not implemented
+                            kprintf("Set filter not implemented\n")
+
+                        0x1 ->
+                            # Fine slide up
+                            kprintf("Fine slide up not implemented\n")
+
+                        0x2 ->
+                            # Fine slide down
+                            kprintf("Fine slide down not implemented\n")
+
+                        0xA ->
+                            # Fine volume slide
+                            volume += (ext_data lsr 4) - (ext_data&0x0F)
+                            kprintf("Fine volume slide ch=%d to %d\n", ch, volume)
+                            channelVolume[ch] = volume
+                            hwregsAudio[ch].volume = volume
+
+                        else ->
+                            kprintf("*************** Unknown extended effect E%x data %02x\n", ext_effect, ext_data)
+                    end when
+
+                0xF ->
+                    bpm = effect_data & 0x3f
+                    if fixedBpm != 0
+                        bpm = fixedBpm
+                    # kprintf("%2d.%2d: Tempo=%d\n", pattern_index, patternPos, bpm)
+                    if bpm <1 then bpm=1
+                    if bpm >31 then bpm=31
+
+                else ->
+                    kprintf("%2d.%2d: ******** Unknown effect %x data %02x\n", pattern_index, patternPos, effect, effect_data)
+
+
+            # kprintf("%02d.%d: sample=%02x period=%03x effect=%x data=%02x\n", i lsr 2, i&3, sample_num, period, effect, effect_data)
+            if sample_num>32
+                kprintf("*************** Invalid sample number %d\n", sample_num)
+            elsif period!=0 and sample_num!=0
+                val sample = samples[sample_num-1]
+                val pitch = PITCH_SCALE_FACTOR / period
+                if ch<7
+                    hwregsAudio[ch].volume = (volume/2) * 0x10001
+                    hwregsAudio[ch].frequency = pitch/2
+                    hwregsAudio[ch].length = sample.length
+                    hwregsAudio[ch].loop_start = sample.loop_start
+                    hwregsAudio[ch].address = sample.address
+                    # kprintf("ch:%d address=%x volume=%x length=%d loop_start=%d\n", ch, sample.address, volume, sample.length, sample.loop_start)
+                    channelVolume[ch] = volume
+                    channelPeriod[ch] = period
+                    channelSample[ch] = sample_num
+                    if sample.loop_start < 2
+                        hwregsAudio[ch].loop_start = -1
+                    else
+                        hwregsAudio[ch].loop_start = sample.loop_start
+        
+        patternPos += 1
+        if patternPos=64
+            patternPos=0
+            songPos += 1
+
+        return false
+
+    fun initialize()
+        countPatterns()
+        extractSamples()
+

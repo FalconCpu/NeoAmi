@@ -25,4 +25,5 @@ class Rusher(xpos: Int, ypos: Int, val dx:Int, val dy:Int) : Actor(xpos, ypos)
         if hit_points <= 0
             val explosion = new Explosion(x, y, 1)
             actorList.add(explosion)
+            playSound(6, SOUND_ROAR, 128)
             active = false

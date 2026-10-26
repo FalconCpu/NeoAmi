@@ -47,6 +47,7 @@ class Asteroid(xpos: Int, ypos:Int, val dx:Int,  val kind:Int, val size:Int) : A
             if size=0
                 val explosion = new Explosion(x, y, 0)
                 actorList.add(explosion)
+                playSound(6, SOUND_SMALL_EXPLOSION, 128)
                 active = false
             else
                 # Split the asteroid into two smaller asteroids
@@ -55,3 +56,4 @@ class Asteroid(xpos: Int, ypos:Int, val dx:Int,  val kind:Int, val size:Int) : A
                 actorList.add(asteroid1)
                 actorList.add(asteroid2)
                 active = false
+                playSound(6, SOUND_ASTEROID_BREAKUP, 128)

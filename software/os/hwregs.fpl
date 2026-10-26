@@ -25,24 +25,24 @@ const hwregs = unsafe(0xE0000000 as HwRegs)
 
 
 class HwAudio
-    var start_address  : Int    # The base address of the audio buffer in main memory
-    var end_address    : Int    # The end address of the audio buffer
-    var loop_address   : Int    # The loop start address of the audio
+    var address        : Int    # The base address of the audio buffer in main memory
     var volume         : Int    # The volume level for the audio output. [15:0]=Left channel, [31:16]=Right channel
                                 # Default volume=0x0100 for each channel
     var frequency      : Int    # sample rate. 0x10000=48kHz, 0x8000=24kHz, 0x4000=12kHz etc
-    var sample_out     : Int    # The current audio sample output
-    var reserved1      : Int    # Reserved for future use
-    var reserved2      : Int    # Reserved for future use
+    var length         : Int    # The end address of the audio buffer
+    var loop_start     : Int    # The loop start address of the audio
 
-const hwAudio0 = unsafe(0xE0000200 as HwAudio)
-const hwAudio1 = unsafe(0xE0000220 as HwAudio)
-const hwAudio2 = unsafe(0xE0000240 as HwAudio)
-const hwAudio3 = unsafe(0xE0000260 as HwAudio)
-const hwAudio4 = unsafe(0xE0000280 as HwAudio)
-const hwAudio5 = unsafe(0xE00002A0 as HwAudio)
-const hwAudio6 = unsafe(0xE00002C0 as HwAudio)
-const hwAudio7 = unsafe(0xE00002E0 as HwAudio)
+const hwregsAudio = const Array<HwAudio> [
+    unsafe(0xE0000400 as HwAudio),
+    unsafe(0xE0000440 as HwAudio),
+    unsafe(0xE0000480 as HwAudio),
+    unsafe(0xE00004C0 as HwAudio),
+    unsafe(0xE0000500 as HwAudio),
+    unsafe(0xE00004A0 as HwAudio),
+    unsafe(0xE00004C0 as HwAudio),
+    unsafe(0xE00004E0 as HwAudio) ]
+
+
 
 class HwGemma
     var start          : Int  # One bit per processing unit. Writing a 1 to a bit starts the corresponding processing unit.

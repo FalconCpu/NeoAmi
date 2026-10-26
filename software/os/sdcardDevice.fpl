@@ -35,6 +35,7 @@ class SDCardDevice
         hwregs.sd_card_ctrl = 0    # Assert CS for SD card
         hwregs.sd_card_ctrl = 1    # Deassert CS for SD card
 
+        sdcard_cmd(0xFFFFFFFFFFFFL)
         sdcard_cmd(0x400000000095L)
         val r1 = try read_sd_card_response_1()
         if r1 != 1 then return Error.IO_ERROR
