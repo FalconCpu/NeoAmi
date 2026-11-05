@@ -1,0 +1,1364 @@
+# address  file:line  source
+ffff0380  ../os/hwregs.fpl:2  class HwRegs
+ffff0380  ../os/hwregs.fpl:27  class HwAudio
+ffff0380  ../os/hwregs.fpl:47  class HwGemma
+ffff0380  ../os/hwregs.fpl:61  class HwGemmaTriangleSetup
+ffff0380  ../os/memory.fpl:41  class FreeMemBlock
+ffff0380  ../os/memory.fpl:45  class ArrayMemBlock
+ffff0380  ../os/memory.fpl:50  class ObjectMemBlock
+ffff0380  ../os/memory.fpl:55  class ClassDescriptor          # An instance of this class is created by the compiler for each class in the program
+ffff0380  ../os/memory.fpl:61  var freeList : FreeMemBlock?         # linked list of free blocks sorted by size
+ffff0380  ../os/page_alloc.fpl:49  class FreePageNode
+ffff0380  ../os/page_alloc.fpl:52  val pageAllocFreeLists : InlineArray<FreePageNode?>(NUM_FREE_LISTS)
+ffff0380  ../os/page_alloc.fpl:53  var pageMemFree = 0  # Total free memory in bytes (for debugging)
+ffff0388  ../stdlib/list.fpl:1  class List<T>
+ffff0388  ../os/IrisSprite.fpl:7  class IrisSprite
+ffff0388  ../os/IrisSprite.fpl:152  class Bitmap
+ffff0388  ../os/renderTriangle.fpl:3  var first = true
+ffff0390  ../os/renderTriangle.fpl:7  class GfxVertex(
+ffff0390  ../os/renderTriangle.fpl:15  class GfxScene
+ffff0390  ../os/fileHandler.fpl:11  var checksum = 0
+ffff0398  ../os/keyboard.fpl:313  class Keyboard
+ffff0398  ../os/kernel_main.fpl:1  var fileSystem : FileSystem
+ffff0398  ../os/sdcardDevice.fpl:2  class SDCardDevice
+ffff0398  ../os/Fat32FileSystem.fpl:2  class Fat32FileSystem (val device : SDCardDevice )
+ffff0398  ../os/Fat32FileSystem.fpl:244  class Fat32File(val fs: Fat32FileSystem, val first_cluster: Int, val file_size: Int)
+ffff0398  ../os/fileSystem.fpl:9  class DirectoryEntry(val name: String, val attr: Int, val first_cluster: Int, val file_size: Int)
+ffff0398  ../os/fileSystem.fpl:21  class FileSystem
+ffff0398  ../tracker/modtracker.fpl:2  class AudioSample (
+ffff0398  ../tracker/modtracker.fpl:12  class ModPlayer(val data:Pointer<Char>)
+ffff0398  random.fpl:2  var seed = 0x1234ABCD
+ffff03a4  main.fpl:3  var spriteDataPtr = 0
+ffff03ac  main.fpl:4  var soundDataPtr = 0
+ffff03b4  main.fpl:5  var backdropDataPtr : Pointer<Char>
+ffff03b4  main.fpl:6  var tilesDataPtr : Pointer<Char>
+ffff03b4  main.fpl:7  var tileMap : Pointer<Short>
+ffff03b4  main.fpl:8  var actorList : ActorList
+ffff03b4  main.fpl:10  var scene : GfxScene
+ffff03b4  main.fpl:11  var keyboard : Keyboard
+ffff03b4  player.fpl:1  var playerX = 0
+ffff03bc  player.fpl:3  class Player
+ffff03bc  actors.fpl:4  class Actor(var x:Int, var y:Int)
+ffff03bc  actors.fpl:17  class ActorList()
+ffff03bc  Bullet.fpl:2  class Bullet(xpos: Int, ypos: Int) : Actor(xpos, ypos)
+ffff03bc  pod.fpl:2  class Pod(xpos: Int, ypos: Int) : Actor(xpos, ypos)
+ffff03bc  spore.fpl:2  class Spore(xpos: Int, ypos: Int) : Actor(xpos, ypos)
+ffff03bc  drone.fpl:5  class Drone(xpos: Int, ypos: Int, var t:Int) : Actor(xpos, ypos)
+ffff03bc  rusher.fpl:2  class Rusher(xpos: Int, ypos: Int, val dx:Int, val dy:Int) : Actor(xpos, ypos)
+ffff03bc  pickup.fpl:1  class pickup(xpos: Int, val kind:PickupType) : Actor(xpos, -32)
+ffff03bc  asteroid.fpl:4  class Asteroid(xpos: Int, ypos:Int, val dx:Int,  val kind:Int, val size:Int) : Actor(xpos, ypos)
+ffff03bc  explosion.fpl:2  class Explosion(xpos: Int, ypos: Int, val size:Int) : Actor(xpos, ypos)
+ffff03bc  shieldBar.fpl:2  class ShieldBar
+ffff03c0  ../os/hwregs.fpl:100  var a = -1
+ffff03c4  ../os/hwregs.fpl:101  repeat
+ffff03c4  ../os/hwregs.fpl:102  a = hwregs.uart_tx
+ffff03d4  ../os/hwregs.fpl:104  hwregs.uart_tx = (c as Int)
+ffff03e8  ../os/memory.fpl:64  kprintf("Initializing Kernel memory region %d bytes\n", HEAP_END - HEAP_START)
+ffff0408  ../os/memory.fpl:65  freeList = unsafe(HEAP_START as FreeMemBlock)
+ffff0414  ../os/memory.fpl:66  freeList.size = HEAP_END - HEAP_START
+ffff0418  ../os/memory.fpl:67  freeList.next = null
+ffff0420  ../os/memory.fpl:69  if 1=2
+ffff042c  ../os/memory.fpl:71  handleException(0, Error.NONE, 0)
+ffff043c  ../os/memory.fpl:72  handleSysCall(0, 0)
+ffff0448  ../os/memory.fpl:73  handleInterrupt(0)
+ffff0460  ../os/memory.fpl:78  block.size = size
+ffff0464  ../os/memory.fpl:79  var p = freeList
+ffff0468  ../os/memory.fpl:80  var prev : FreeMemBlock? = null
+ffff046c  ../os/memory.fpl:81  while p!=null and p.size<size
+ffff0470  ../os/memory.fpl:82  prev = p
+ffff0474  ../os/memory.fpl:83  p = p.next
+ffff0484  ../os/memory.fpl:84  if prev=null
+ffff0488  ../os/memory.fpl:85  block.next = freeList
+ffff0490  ../os/memory.fpl:86  freeList = block
+ffff0498  ../os/memory.fpl:88  block.next = prev.next
+ffff04a0  ../os/memory.fpl:89  prev.next = block
+ffff04c0  ../os/memory.fpl:93  var prev : FreeMemBlock? = null
+ffff04c4  ../os/memory.fpl:98  var p = freeList
+ffff04c8  ../os/memory.fpl:99  while p!=null and p.size<sizeReq
+ffff04cc  ../os/memory.fpl:100  prev = p
+ffff04d0  ../os/memory.fpl:101  p = p.next
+ffff04e0  ../os/memory.fpl:102  if p=null
+ffff04e4  ../os/memory.fpl:103  abort Error.OUT_OF_MEMORY
+ffff04f0  ../os/memory.fpl:106  if prev=null
+ffff04f4  ../os/memory.fpl:107  freeList = p.next
+ffff0500  ../os/memory.fpl:109  prev.next = p.next
+ffff0508  ../os/memory.fpl:112  val sizeSplit = p.size - sizeReq
+ffff0510  ../os/memory.fpl:113  if sizeSplit>0
+ffff0514  ../os/memory.fpl:115  val newBlock = unsafe(((p as Int) + sizeReq) as FreeMemBlock)
+ffff0518  ../os/memory.fpl:116  insertBlockIntoFreeList(newBlock, sizeSplit)
+ffff051c  ../os/memory.fpl:117  return p
+ffff054c  ../os/memory.fpl:121  val size = (klass.size + 8 + 15) & 0xFFFFFFF0       # add 8 for the header, and round up to a multiple of 16
+ffff055c  ../os/memory.fpl:122  val ret = unsafe(mallocInternal(size) as ObjectMemBlock)
+ffff0564  ../os/memory.fpl:123  ret.size = size | BLOCK_OBJECT
+ffff056c  ../os/memory.fpl:124  ret.type = klass
+ffff0570  ../os/memory.fpl:125  return unsafe(ret as Int)+8       # Skip past the object's header
+ffff059c  ../os/memory.fpl:128  val size = ((numElements * elementSize) + 8 + 15) & 0xfffffff0  # add 8 for header, and round up to multiple of 16
+ffff05ac  ../os/memory.fpl:129  val ret = unsafe(mallocInternal(size) as ArrayMemBlock)
+ffff05b4  ../os/memory.fpl:130  ret.size = size | BLOCK_ARRAY
+ffff05bc  ../os/memory.fpl:131  ret.numElements = numElements
+ffff05c0  ../os/memory.fpl:132  val retInt = unsafe(ret as Int)+8 # Skip past the object's header
+ffff05c4  ../os/memory.fpl:133  return retInt
+ffff05e8  ../os/memory.fpl:136  if ptr=0 then return        # do nothing for a null pointer
+ffff05ec  ../os/memory.fpl:136  if ptr=0 then return        # do nothing for a null pointer
+ffff05f0  ../os/memory.fpl:137  val block = unsafe((ptr - 8) as FreeMemBlock)
+ffff05f4  ../os/memory.fpl:138  val size = block.size
+ffff05f8  ../os/memory.fpl:139  if (size & 0xF)=0
+ffff0600  ../os/memory.fpl:140  abort Error.DOUBLE_FREE
+ffff060c  ../os/memory.fpl:141  insertBlockIntoFreeList(block, size & 0xfffffff0)
+ffff0648  ../os/memory.fpl:144  var p = HEAP_START
+ffff0650  ../os/memory.fpl:145  kprintf("\nMEMORY DUMP\n")
+ffff0664  ../os/memory.fpl:146  while p < HEAP_END and p>=0
+ffff0668  ../os/memory.fpl:147  val block = unsafe(p as FreeMemBlock)
+ffff066c  ../os/memory.fpl:148  val sizeAndType = block.size
+ffff0670  ../os/memory.fpl:149  val type = sizeAndType & 0xF
+ffff0674  ../os/memory.fpl:150  val size = sizeAndType & 0xFFFFFFF0
+ffff0678  ../os/memory.fpl:151  kprintf("%08x %08x ",p,size)
+ffff0694  ../os/memory.fpl:152  when type
+ffff06ac  ../os/memory.fpl:154  val className = unsafe(p as ObjectMemBlock).type.name
+ffff06b4  ../os/memory.fpl:155  kprintf("Object %s   ",className)
+ffff06cc  ../os/memory.fpl:156  val q = unsafe(p as Pointer<Char>)
+ffff06d0  ../os/memory.fpl:157  for i in 8..80
+ffff06dc  ../os/memory.fpl:158  kprintf("%02x",q[i] & 0xff)
+ffff0700  ../os/memory.fpl:159  if i&3=3 then kprintf(" ")
+ffff070c  ../os/memory.fpl:159  if i&3=3 then kprintf(" ")
+ffff0728  ../os/memory.fpl:160  kprintf("\n")
+ffff0740  ../os/memory.fpl:163  val numElements = unsafe(p as ArrayMemBlock).numElements
+ffff0744  ../os/memory.fpl:164  kprintf("Array  %d\n",numElements)
+ffff0760  ../os/memory.fpl:166  kprintf("Free   %p\n",block.next)
+ffff077c  ../os/memory.fpl:167  p += size
+ffff078c  ../os/memory.fpl:169  kprintf("\n")
+ffff07d0  ../os/page_alloc.fpl:61  for i in 0 ..< NUM_FREE_LISTS
+ffff07dc  ../os/page_alloc.fpl:62  pageAllocFreeLists[i] = null
+ffff07fc  ../os/page_alloc.fpl:67  for sz in 9..12    # 128KB to 16MB      # Should be 5
+ffff0808  ../os/page_alloc.fpl:68  val blockAddr = MIN_PAGE_SIZE lsl sz
+ffff0810  ../os/page_alloc.fpl:69  addFreePage(blockAddr + sz)
+ffff0820  ../os/page_alloc.fpl:70  for i in 2..3      # Add two more 16MB blocks to cover the rest of the space
+ffff082c  ../os/page_alloc.fpl:71  val blockAddr = 16*1024*1024 * i  # 16MB blocks with log2=12
+ffff0834  ../os/page_alloc.fpl:72  addFreePage(blockAddr + 12)  # Size log2=12 for 16MB
+ffff0844  ../os/page_alloc.fpl:73  kprintf("Page allocator initialized: %d MB user memory\n", (USER_MEM_END - USER_MEM_START) lsr 20)
+ffff0874  ../os/page_alloc.fpl:76  val log2Size = blockId & 0xF
+ffff0878  ../os/page_alloc.fpl:77  val node = unsafe((blockId &  0xFFFFF000) as FreePageNode)
+ffff087c  ../os/page_alloc.fpl:78  node.next = pageAllocFreeLists[log2Size]
+ffff0894  ../os/page_alloc.fpl:79  pageAllocFreeLists[log2Size] = node
+ffff08a8  ../os/page_alloc.fpl:80  pageMemFree += MIN_PAGE_SIZE lsl log2Size
+ffff08c0  ../os/page_alloc.fpl:89  return unsafe((pageId & 0xFFFFF000) as Pointer<Char>)
+ffff08cc  ../os/page_alloc.fpl:92  var log2 = 0
+ffff08d0  ../os/page_alloc.fpl:93  var size = sizeInBytes
+ffff08d0  ../os/page_alloc.fpl:94  while size > MIN_PAGE_SIZE
+ffff08d4  ../os/page_alloc.fpl:95  size = size lsr 1
+ffff08d8  ../os/page_alloc.fpl:96  log2 = log2 + 1
+ffff08e4  ../os/page_alloc.fpl:97  return log2
+ffff0900  ../os/page_alloc.fpl:102  val sizeLog2 = getLogPageSize(sizeInBytes)
+ffff0908  ../os/page_alloc.fpl:103  if sizeLog2 < 0 or sizeLog2 > 12
+ffff0914  ../os/page_alloc.fpl:104  kprintf("ERROR: Invalid page size log2=%d (must be %d..%d)\n")
+ffff0928  ../os/page_alloc.fpl:105  return Error.INVALID_ARGUMENT
+ffff0934  ../os/page_alloc.fpl:108  val p = pageAllocFreeLists[sizeLog2]
+ffff0948  ../os/page_alloc.fpl:109  if p != null
+ffff094c  ../os/page_alloc.fpl:111  pageAllocFreeLists[sizeLog2] = p.next
+ffff0964  ../os/page_alloc.fpl:112  return unsafe(p as Int) | sizeLog2  # Return address with log2 size in lower bits
+ffff0970  ../os/page_alloc.fpl:115  var splitIndex = sizeLog2 + 1
+ffff0974  ../os/page_alloc.fpl:116  while splitIndex <= 12
+ffff0978  ../os/page_alloc.fpl:118  var node = pageAllocFreeLists[splitIndex]
+ffff098c  ../os/page_alloc.fpl:119  if node!=null
+ffff0990  ../os/page_alloc.fpl:121  var currentLog2 = splitIndex
+ffff0990  ../os/page_alloc.fpl:125  pageAllocFreeLists[splitIndex] = node.next
+ffff09a8  ../os/page_alloc.fpl:129  val nodeAsInt = unsafe(node as Int) & 0xFFFFF000  # Get the base address of the block
+ffff09ac  ../os/page_alloc.fpl:130  while currentLog2 > sizeLog2
+ffff09b0  ../os/page_alloc.fpl:132  currentLog2 = currentLog2 - 1
+ffff09b4  ../os/page_alloc.fpl:133  val buddyAddr = nodeAsInt + (MIN_PAGE_SIZE lsl currentLog2)
+ffff09c0  ../os/page_alloc.fpl:134  addFreePage(buddyAddr | currentLog2)
+ffff09cc  ../os/page_alloc.fpl:136  return nodeAsInt | sizeLog2  # Return the allocated block with log2 size in lower bits
+ffff09d8  ../os/page_alloc.fpl:137  splitIndex += 1
+ffff09e4  ../os/page_alloc.fpl:139  kprintf("ERROR: Out of memory (requested size=%d KB)\n", (4 lsl sizeLog2))
+ffff0a04  ../os/page_alloc.fpl:140  return Error.OUT_OF_MEMORY
+ffff0a98  ../stdlib/list.fpl:6  if length >= array.length
+ffff0aa8  ../stdlib/list.fpl:7  var oldArray = array
+ffff0aa8  ../stdlib/list.fpl:8  array = new Array<T>(array.length * 2)
+ffff0acc  ../stdlib/list.fpl:9  for i in 0..<oldArray.length
+ffff0ad8  ../stdlib/list.fpl:10  array[i] = oldArray[i]
+ffff0b00  ../stdlib/list.fpl:11  free oldArray
+ffff0b08  ../stdlib/list.fpl:12  array[length] = item
+ffff0b20  ../stdlib/list.fpl:13  length+=1
+ffff0b48  ../stdlib/list.fpl:16  return array[index]
+ffff0b68  ../stdlib/list.fpl:101  free array
+ffff0b98  ../stdlib/string.fpl:3  val result = new Array<Char>(length)
+ffff0bb8  ../stdlib/string.fpl:4  for i in 0..length-1
+ffff0bc4  ../stdlib/string.fpl:5  result[i] = data[i]
+ffff0be4  ../stdlib/string.fpl:6  return unsafe(result as String)
+ffff0c24  ../os/kprintf.fpl:2  if align=1  # Right
+ffff0c2c  ../os/kprintf.fpl:3  for j in 0 ..< width-s.length
+ffff0c3c  ../os/kprintf.fpl:4  uartTx(' ')
+ffff0c4c  ../os/kprintf.fpl:5  for c in s
+ffff0c60  ../os/kprintf.fpl:6  uartTx(c)
+ffff0c6c  ../os/kprintf.fpl:7  if align=0  # Left
+ffff0c70  ../os/kprintf.fpl:8  for j in 0 ..< width-s.length
+ffff0c80  ../os/kprintf.fpl:9  uartTx(' ')
+ffff0ce0  ../os/kprintf.fpl:12  if align=1  # Right
+ffff0ce8  ../os/kprintf.fpl:13  for j in 0 ..< width-length
+ffff0cf4  ../os/kprintf.fpl:14  uartTx(' ')
+ffff0d04  ../os/kprintf.fpl:15  if align=2  # Pad with zeros
+ffff0d0c  ../os/kprintf.fpl:16  for j in 0 ..< width-length
+ffff0d18  ../os/kprintf.fpl:17  uartTx('0')
+ffff0d28  ../os/kprintf.fpl:18  for j in (length-1) ..>= 0
+ffff0d30  ../os/kprintf.fpl:19  uartTx(ary[j])
+ffff0d4c  ../os/kprintf.fpl:20  if align=0  # Left
+ffff0d50  ../os/kprintf.fpl:21  for j in 0 ..< width-length
+ffff0d5c  ../os/kprintf.fpl:22  uartTx(' ')
+ffff0db4  ../os/kprintf.fpl:25  val arry = InlineArray<Char>(16)
+ffff0db8  ../os/kprintf.fpl:26  var index = 0
+ffff0dbc  ../os/kprintf.fpl:27  var n = i
+ffff0dc0  ../os/kprintf.fpl:28  if n<0
+ffff0dc4  ../os/kprintf.fpl:29  uartTx('-')
+ffff0dcc  ../os/kprintf.fpl:30  n=-n
+ffff0dd4  ../os/kprintf.fpl:31  repeat
+ffff0dd4  ../os/kprintf.fpl:32  val digit = n % 10
+ffff0dd8  ../os/kprintf.fpl:33  arry[index] = ((digit+('0' as Int)) as Char)
+ffff0dec  ../os/kprintf.fpl:34  index += 1
+ffff0df0  ../os/kprintf.fpl:35  n = n / 10
+ffff0df8  ../os/kprintf.fpl:37  kprintField(arry, index, width, align)
+ffff0e3c  ../os/kprintf.fpl:40  val arry = InlineArray<Char>(16)
+ffff0e40  ../os/kprintf.fpl:41  var index = 0
+ffff0e44  ../os/kprintf.fpl:42  var n = i
+ffff0e44  ../os/kprintf.fpl:43  repeat
+ffff0e44  ../os/kprintf.fpl:44  val digit = n & 0xF
+ffff0e48  ../os/kprintf.fpl:45  if digit<10
+ffff0e50  ../os/kprintf.fpl:46  arry[index] = ((digit+('0' as Int)) as Char)
+ffff0e68  ../os/kprintf.fpl:48  arry[index] = ((digit-10+('A' as Int)) as Char)
+ffff0e80  ../os/kprintf.fpl:49  index += 1
+ffff0e84  ../os/kprintf.fpl:50  n = n lsr 4
+ffff0e8c  ../os/kprintf.fpl:52  kprintField(arry, index, width,align)
+ffff0ebc  ../os/kprintf.fpl:55  val buffer = InlineArray<Char>(16)
+ffff0ec0  ../os/kprintf.fpl:56  var v = value
+ffff0ec4  ../os/kprintf.fpl:59  if v < 0.0
+ffff0ed0  ../os/kprintf.fpl:60  uartTx('-')
+ffff0ed8  ../os/kprintf.fpl:61  v = -v
+ffff0ee0  ../os/kprintf.fpl:65  val intPart = (v as Int)
+ffff0ee4  ../os/kprintf.fpl:66  var n = intPart
+ffff0ee8  ../os/kprintf.fpl:67  var index = 0
+ffff0eec  ../os/kprintf.fpl:70  repeat
+ffff0eec  ../os/kprintf.fpl:71  val digit = n % 10
+ffff0ef0  ../os/kprintf.fpl:72  buffer[index] = (digit + 48) as Char
+ffff0f04  ../os/kprintf.fpl:73  index += 1
+ffff0f08  ../os/kprintf.fpl:74  n = n / 10
+ffff0f10  ../os/kprintf.fpl:78  while index > 0
+ffff0f14  ../os/kprintf.fpl:79  index -= 1
+ffff0f18  ../os/kprintf.fpl:80  uartTx(buffer[index])
+ffff0f30  ../os/kprintf.fpl:84  var fracPart = v - (intPart as Float)
+ffff0f38  ../os/kprintf.fpl:85  if fracPart != 0.0
+ffff0f3c  ../os/kprintf.fpl:86  uartTx('.')
+ffff0f44  ../os/kprintf.fpl:89  val fracBuf = InlineArray<Char>(6)
+ffff0f48  ../os/kprintf.fpl:90  var fracIndex = 0
+ffff0f4c  ../os/kprintf.fpl:91  for i in 0..5
+ffff0f58  ../os/kprintf.fpl:92  fracPart = fracPart * 10.0
+ffff0f60  ../os/kprintf.fpl:93  val digit = (fracPart as Int)
+ffff0f64  ../os/kprintf.fpl:94  fracBuf[fracIndex] = (digit + 48) as Char
+ffff0f78  ../os/kprintf.fpl:95  fracIndex += 1
+ffff0f7c  ../os/kprintf.fpl:96  fracPart = fracPart - (digit as Float)
+ffff0f8c  ../os/kprintf.fpl:100  while fracIndex > 0 and fracBuf[fracIndex - 1] = '0'
+ffff0f90  ../os/kprintf.fpl:101  fracIndex -= 1
+ffff0fb4  ../os/kprintf.fpl:105  for i in 0..(fracIndex - 1)
+ffff0fc0  ../os/kprintf.fpl:106  uartTx(fracBuf[i])
+ffff1020  ../os/kprintf.fpl:113  var index = 0
+ffff1024  ../os/kprintf.fpl:114  var inFormat = false
+ffff1028  ../os/kprintf.fpl:115  var width = 0
+ffff102c  ../os/kprintf.fpl:116  var align = 1  # 0:Left, 1:Right 2:Pad with zeros
+ffff1030  ../os/kprintf.fpl:117  for c in format
+ffff1044  ../os/kprintf.fpl:118  if not inFormat
+ffff1048  ../os/kprintf.fpl:119  width = 0
+ffff104c  ../os/kprintf.fpl:120  align = 1
+ffff1050  ../os/kprintf.fpl:122  if inFormat
+ffff1054  ../os/kprintf.fpl:123  if c='0' and width=0
+ffff10b0  ../os/kprintf.fpl:124  align = 2  # Pad with zeros
+ffff10b8  ../os/kprintf.fpl:126  align = 0  # Left
+ffff10c0  ../os/kprintf.fpl:128  width = width*10 + (c as Int) - ('0' as Int)
+ffff10d0  ../os/kprintf.fpl:130  kprintString(arg[index] as String, width, align)
+ffff10ec  ../os/kprintf.fpl:131  index += 1
+ffff10f0  ../os/kprintf.fpl:132  inFormat = false
+ffff10f8  ../os/kprintf.fpl:134  kprintInt(arg[index] as Int, width, align)
+ffff1114  ../os/kprintf.fpl:135  index += 1
+ffff1118  ../os/kprintf.fpl:136  inFormat = false
+ffff1120  ../os/kprintf.fpl:138  kprintFloat(arg[index] as Float)
+ffff1134  ../os/kprintf.fpl:139  index += 1
+ffff1138  ../os/kprintf.fpl:140  inFormat = false
+ffff1140  ../os/kprintf.fpl:142  kprintHex(arg[index] as Int, width, align)
+ffff115c  ../os/kprintf.fpl:143  index += 1
+ffff1160  ../os/kprintf.fpl:144  inFormat = false
+ffff1168  ../os/kprintf.fpl:146  uartTx(arg[index] as Char)
+ffff117c  ../os/kprintf.fpl:147  index += 1
+ffff1180  ../os/kprintf.fpl:148  inFormat = false
+ffff1188  ../os/kprintf.fpl:150  kprintHex(arg[index] as Int, 8, 2)
+ffff11a4  ../os/kprintf.fpl:151  index += 1
+ffff11a8  ../os/kprintf.fpl:152  inFormat = false
+ffff11b0  ../os/kprintf.fpl:154  uartTx(c)
+ffff11b4  ../os/kprintf.fpl:155  inFormat = false
+ffff11bc  ../os/kprintf.fpl:156  else if c='%'
+ffff11c4  ../os/kprintf.fpl:157  inFormat = true
+ffff11cc  ../os/kprintf.fpl:159  uartTx(c)
+ffff1204  ../os/IrisSprite.fpl:84  flags = 0|16|32
+ffff120c  ../os/IrisSprite.fpl:85  clip_x1 = 0
+ffff1214  ../os/IrisSprite.fpl:86  clip_x2 = 640
+ffff121c  ../os/IrisSprite.fpl:87  dx1_dy = 0
+ffff1224  ../os/IrisSprite.fpl:88  dx2_dy = 0
+ffff122c  ../os/IrisSprite.fpl:89  dx3_dy = 0
+ffff1234  ../os/IrisSprite.fpl:90  z1 = 0
+ffff123c  ../os/IrisSprite.fpl:91  dz_dx = 0
+ffff1244  ../os/IrisSprite.fpl:92  dz_dy = 0
+ffff124c  ../os/IrisSprite.fpl:93  reserved = 0
+ffff1254  ../os/IrisSprite.fpl:94  r1 = 0x0
+ffff125c  ../os/IrisSprite.fpl:95  dr_dx = IRIS_FP_ONE
+ffff1264  ../os/IrisSprite.fpl:96  dr_dy = 0
+ffff126c  ../os/IrisSprite.fpl:97  g1 = 0
+ffff1274  ../os/IrisSprite.fpl:98  dg_dx = 0
+ffff127c  ../os/IrisSprite.fpl:99  dg_dy = IRIS_FP_ONE
+ffff1284  ../os/IrisSprite.fpl:100  b1 = 0x1000
+ffff1288  ../os/IrisSprite.fpl:101  db_dx = 0
+ffff1290  ../os/IrisSprite.fpl:102  db_dy = 0
+ffff1298  ../os/IrisSprite.fpl:103  next = null
+ffff12a4  ../os/IrisSprite.fpl:106  tex_stride = stride as Short
+ffff12a8  ../os/IrisSprite.fpl:107  tex_addr = unsafe(bitmap as Int)
+ffff12ac  ../os/IrisSprite.fpl:108  flags = ((palette*4) | (16|32)) as Short
+ffff12b8  ../os/IrisSprite.fpl:109  b1 = 0x1000
+ffff12c0  ../os/IrisSprite.fpl:110  dg_dy = IRIS_FP_ONE
+ffff12c8  ../os/IrisSprite.fpl:114  x1 = ((x * 16)  as Short)
+ffff12d0  ../os/IrisSprite.fpl:115  y1 = ((y * 16)  as Short)
+ffff12d8  ../os/IrisSprite.fpl:116  x2 = (((x + image.width) * 16)  as Short)
+ffff12e8  ../os/IrisSprite.fpl:117  y2 = ((y * 16)  as Short)
+ffff12ec  ../os/IrisSprite.fpl:118  ytop = y as Short
+ffff12f0  ../os/IrisSprite.fpl:119  ybot = (y + image.height) as Short
+ffff12fc  ../os/IrisSprite.fpl:121  if (y<0)
+ffff1300  ../os/IrisSprite.fpl:123  ytop = 0
+ffff1308  ../os/IrisSprite.fpl:125  tex_stride = image.width as Short
+ffff130c  ../os/IrisSprite.fpl:126  tex_addr = image.dataPtr + baseAddress
+ffff1318  ../os/IrisSprite.fpl:127  flags = ((16|32)) as Short
+ffff1320  ../os/IrisSprite.fpl:128  b1 = 0x1000
+ffff1328  ../os/IrisSprite.fpl:129  dg_dy = IRIS_FP_ONE
+ffff1330  ../os/IrisSprite.fpl:133  x1 = ((x * 16)  as Short)
+ffff1338  ../os/IrisSprite.fpl:134  y1 = ((y * 16)  as Short)
+ffff1340  ../os/IrisSprite.fpl:135  x2 = (((x + width) * 16)  as Short)
+ffff134c  ../os/IrisSprite.fpl:136  y2 = ((y * 16)  as Short)
+ffff1350  ../os/IrisSprite.fpl:137  ytop = y as Short
+ffff1354  ../os/IrisSprite.fpl:138  ybot = (y + height) as Short
+ffff135c  ../os/IrisSprite.fpl:140  if (y<0)
+ffff1360  ../os/IrisSprite.fpl:142  ytop = 0
+ffff136c  ../os/IrisSprite.fpl:145  z1 = z as Short
+ffff13b8  ../os/renderTriangle.fpl:198  for i in 0..479
+ffff13c4  ../os/renderTriangle.fpl:199  spriteRow[i] = null
+ffff13e8  ../os/renderTriangle.fpl:202  var row = obj.ytop as Int
+ffff13ec  ../os/renderTriangle.fpl:203  if row >= 0 and row < 480
+ffff13f8  ../os/renderTriangle.fpl:204  obj.next = spriteRow[row]
+ffff1410  ../os/renderTriangle.fpl:205  spriteRow[row] = obj
+ffff1424  ../os/renderTriangle.fpl:207  obj.next = freeList
+ffff142c  ../os/renderTriangle.fpl:208  freeList = obj
+ffff1434  ../os/renderTriangle.fpl:211  var ptr = list
+ffff1438  ../os/renderTriangle.fpl:212  while ptr.next != null
+ffff143c  ../os/renderTriangle.fpl:213  ptr = ptr.next
+ffff1448  ../os/renderTriangle.fpl:214  ptr.next = obj
+ffff144c  ../os/renderTriangle.fpl:215  return list
+ffff146c  ../os/renderTriangle.fpl:229  var list : IrisSprite? = null
+ffff1470  ../os/renderTriangle.fpl:230  for i in 479..>=0
+ffff1478  ../os/renderTriangle.fpl:231  val s = spriteRow[i]
+ffff148c  ../os/renderTriangle.fpl:232  if s != null
+ffff1490  ../os/renderTriangle.fpl:234  list = listAppend(s,list)
+ffff149c  ../os/renderTriangle.fpl:235  spriteRow[i] = null
+ffff14b8  ../os/renderTriangle.fpl:238  var old_list = hwregs.vga_obj_list
+ffff14c0  ../os/renderTriangle.fpl:239  hwregs.vga_obj_list = list
+ffff14c4  ../os/renderTriangle.fpl:243  if (freeList != null)
+ffff14cc  ../os/renderTriangle.fpl:244  freeList = listAppend(freeList, old_list)
+ffff14e0  ../os/renderTriangle.fpl:246  freeList = old_list
+ffff14fc  ../os/renderTriangle.fpl:249  if value < 0 then return -value
+ffff1500  ../os/renderTriangle.fpl:249  if value < 0 then return -value
+ffff150c  ../os/renderTriangle.fpl:250  return value
+ffff1520  ../os/renderTriangle.fpl:254  if freeList != null
+ffff1528  ../os/renderTriangle.fpl:256  val ret = freeList
+ffff152c  ../os/renderTriangle.fpl:257  freeList = freeList.next
+ffff1534  ../os/renderTriangle.fpl:258  ret.next = null
+ffff153c  ../os/renderTriangle.fpl:259  ret.reserved2 = 0
+ffff1544  ../os/renderTriangle.fpl:260  return ret
+ffff1548  ../os/renderTriangle.fpl:262  alloc_count += 1
+ffff1554  ../os/renderTriangle.fpl:263  val ret = new IrisSprite()
+ffff1568  ../os/renderTriangle.fpl:264  ret.initialize()
+ffff1570  ../os/renderTriangle.fpl:265  ret.reserved2 = 0
+ffff1578  ../os/renderTriangle.fpl:266  return ret
+ffff15cc  ../os/renderTriangle.fpl:272  var ystart = obj.ytop as Int - 32       # Biggest objects are 32 pixels tall
+ffff15d4  ../os/renderTriangle.fpl:273  if ystart < 0 then ystart = 0
+ffff15d8  ../os/renderTriangle.fpl:273  if ystart < 0 then ystart = 0
+ffff15dc  ../os/renderTriangle.fpl:274  val yend = if obj.ybot<480S then obj.ybot as Int else 479
+ffff15ec  ../os/renderTriangle.fpl:275  for i in ystart..yend
+ffff15f0  ../os/renderTriangle.fpl:276  var s = spriteRow[i]
+ffff1604  ../os/renderTriangle.fpl:277  while s != null
+ffff1608  ../os/renderTriangle.fpl:279  val x1 = (s.x1 + s.x2) / 32     # Average X-coordinate of the sprite, accounting for fixed-point representation
+ffff1618  ../os/renderTriangle.fpl:280  val w1 = (s.x2 - s.x1) / 16     # Width of the sprite
+ffff1620  ../os/renderTriangle.fpl:281  val y1 = (s.ytop + s.ybot) / 2  # Average Y-coordinate of the sprite, accounting for fixed-point representation
+ffff1630  ../os/renderTriangle.fpl:282  val x2 = (obj.x1 + obj.x2) / 32     # Average X-coordinate of the object, accounting for fixed-point representation
+ffff1640  ../os/renderTriangle.fpl:283  val w2 = (obj.x2 - obj.x1) / 16     # Width of the object
+ffff1648  ../os/renderTriangle.fpl:284  val y2 = (obj.ytop + obj.ybot) / 2  # Average Y-coordinate of the object, accounting for fixed-point representation
+ffff1658  ../os/renderTriangle.fpl:286  val d = abs(x1 - x2) + abs(y1 - y2) # Manhattan distance between the centers of the sprite and the object
+ffff1678  ../os/renderTriangle.fpl:287  val td = (w1 + w2) / 2              # Total distance threshold for collision based on sprite and object dimensions
+ffff1680  ../os/renderTriangle.fpl:289  if d < td - threshold and abs(s.z1 - obj.z1) < COLLISION_THRESHOLD_Z
+ffff16a4  ../os/renderTriangle.fpl:290  return s
+ffff16ac  ../os/renderTriangle.fpl:291  s = s.next
+ffff16bc  ../os/renderTriangle.fpl:292  return null
+ffff1798  ../os/keyboard.fpl:328  var keycode = hwregs.keyboard
+ffff17a0  ../os/keyboard.fpl:330  if keycode = -1
+ffff17a8  ../os/keyboard.fpl:331  return 0
+ffff17b0  ../os/keyboard.fpl:334  if keycode = 0xE0
+ffff17c4  ../os/keyboard.fpl:335  seenE0 = true
+ffff17cc  ../os/keyboard.fpl:336  return 0
+ffff17d4  ../os/keyboard.fpl:338  seenF0 = true
+ffff17dc  ../os/keyboard.fpl:339  return 0
+ffff17e4  ../os/keyboard.fpl:342  val key = if seenE0 then keycode + 128 else keycode
+ffff17f0  ../os/keyboard.fpl:343  val pressed = not seenF0
+ffff17f8  ../os/keyboard.fpl:344  seenE0 = false
+ffff1800  ../os/keyboard.fpl:345  seenF0 = false
+ffff1808  ../os/keyboard.fpl:346  if key > 255
+ffff1810  ../os/keyboard.fpl:347  return 0
+ffff1818  ../os/keyboard.fpl:349  keyDown[key] = pressed
+ffff182c  ../os/keyboard.fpl:350  when key
+ffff1878  ../os/keyboard.fpl:351  0x12 -> lshift = pressed
+ffff1880  ../os/keyboard.fpl:352  0x14 -> lctrl = pressed
+ffff1888  ../os/keyboard.fpl:353  0x11 -> lalt = pressed
+ffff1890  ../os/keyboard.fpl:354  0x59 -> rshift = pressed
+ffff1898  ../os/keyboard.fpl:355  0x94 -> rctrl = pressed
+ffff18a0  ../os/keyboard.fpl:356  0x91 -> ralt = pressed
+ffff18a8  ../os/keyboard.fpl:357  0x9f -> windows = pressed
+ffff18b0  ../os/keyboard.fpl:358  0xaf -> menu = pressed
+ffff18b8  ../os/keyboard.fpl:360  if pressed
+ffff18bc  ../os/keyboard.fpl:361  caps = not caps
+ffff18cc  ../os/keyboard.fpl:363  if pressed
+ffff18d0  ../os/keyboard.fpl:364  if lshift or rshift
+ffff18fc  ../os/keyboard.fpl:365  return keycode_table[key*4+1]
+ffff191c  ../os/keyboard.fpl:367  return keycode_table[key*4+3]
+ffff193c  ../os/keyboard.fpl:369  return keycode_table[key*4+2]
+ffff195c  ../os/keyboard.fpl:371  return keycode_table[key*4]
+ffff1978  ../os/keyboard.fpl:372  return 0
+ffff199c  ../os/kernel_main.fpl:4  val regs = unsafe(task as Pointer<Int>)
+ffff19a0  ../os/kernel_main.fpl:5  kprintf("EXCEPTION %s PC=%x task=%x data=%x\n", error.description, regs[32], task, data)
+ffff19dc  ../os/kernel_main.fpl:6  for i in 0..31
+ffff19e8  ../os/kernel_main.fpl:7  kprintf("$%2d=%08x ", i, regs[i])
+ffff1a10  ../os/kernel_main.fpl:8  if i % 8 = 7 then kprintf("\n")
+ffff1a1c  ../os/kernel_main.fpl:8  if i % 8 = 7 then kprintf("\n")
+ffff1a38  ../os/kernel_main.fpl:9  abort error
+ffff1a74  ../os/kernel_main.fpl:20  kprintf("Kernel main started\n")
+ffff1a88  ../os/kernel_main.fpl:21  initializeMemorySystem()
+ffff1a8c  ../os/kernel_main.fpl:22  initPageAllocator()
+ffff1a90  ../os/kernel_main.fpl:24  fileSystem = new FileSystem()
+ffff1aa8  ../os/kernel_main.fpl:25  val init_result = fileSystem.initialize()
+ffff1ab0  ../os/kernel_main.fpl:26  if  init_result!=Error.NONE
+ffff1ab4  ../os/kernel_main.fpl:27  kprintf("Failed to initialize FAT32 file system: %s\n", init_result.description)
+ffff1adc  ../os/kernel_main.fpl:28  abort(0)
+ffff1ae8  ../os/kernel_main.fpl:29  kprintf("FAT32 file system initialized successfully\n")
+ffff1afc  ../os/kernel_main.fpl:32  main()
+ffff1b00  ../os/kernel_main.fpl:33  return 0
+ffff1b18  ../os/sdcardDevice.fpl:5  for i in 0..10000
+ffff1b28  ../os/sdcardDevice.fpl:6  val x = hwregs.sd_card_rx
+ffff1b30  ../os/sdcardDevice.fpl:7  if x != -1 and x != 0xFF
+ffff1b40  ../os/sdcardDevice.fpl:8  return x
+ffff1b50  ../os/sdcardDevice.fpl:9  return Error.TIMEOUT
+ffff1b5c  ../os/sdcardDevice.fpl:13  for i in 0..10000
+ffff1b6c  ../os/sdcardDevice.fpl:14  val x = hwregs.sd_card_rx
+ffff1b74  ../os/sdcardDevice.fpl:15  if x != -1
+ffff1b7c  ../os/sdcardDevice.fpl:16  return x
+ffff1b8c  ../os/sdcardDevice.fpl:17  return Error.TIMEOUT
+ffff1bb8  ../os/sdcardDevice.fpl:21  val b1 = try read_sd_card_response_1()
+ffff1bc8  ../os/sdcardDevice.fpl:22  val b2 = try read_sd_card_byte()
+ffff1bd8  ../os/sdcardDevice.fpl:23  val b3 = try read_sd_card_byte()
+ffff1be8  ../os/sdcardDevice.fpl:24  val b4 = try read_sd_card_byte()
+ffff1bf8  ../os/sdcardDevice.fpl:25  val b5 = try read_sd_card_byte()   # Ignore checksum byte
+ffff1c04  ../os/sdcardDevice.fpl:26  return b1 lsl 24 | b2 lsl 16 | b3 lsl 8 | b4
+ffff1c40  ../os/sdcardDevice.fpl:30  hwregs.sd_card_cmd_hi = (cmd lsr 32) as Int
+ffff1c48  ../os/sdcardDevice.fpl:31  hwregs.sd_card_cmd_lo = cmd as Int
+ffff1c60  ../os/sdcardDevice.fpl:35  hwregs.sd_card_ctrl = 0    # Assert CS for SD card
+ffff1c6c  ../os/sdcardDevice.fpl:36  hwregs.sd_card_ctrl = 1    # Deassert CS for SD card
+ffff1c74  ../os/sdcardDevice.fpl:38  sdcard_cmd(0xFFFFFFFFFFFFL)
+ffff1c88  ../os/sdcardDevice.fpl:39  sdcard_cmd(0x400000000095L)
+ffff1c98  ../os/sdcardDevice.fpl:40  val r1 = try read_sd_card_response_1()
+ffff1ca8  ../os/sdcardDevice.fpl:41  if r1 != 1 then return Error.IO_ERROR
+ffff1cb0  ../os/sdcardDevice.fpl:41  if r1 != 1 then return Error.IO_ERROR
+ffff1cbc  ../os/sdcardDevice.fpl:43  sdcard_cmd(0x48000001AA87L)   # Send CMD8 to SD card
+ffff1cd0  ../os/sdcardDevice.fpl:44  val r2 = try read_sd_card_response_5()
+ffff1ce0  ../os/sdcardDevice.fpl:45  if r2!=0x01000001 then return Error.IO_ERROR
+ffff1cec  ../os/sdcardDevice.fpl:45  if r2!=0x01000001 then return Error.IO_ERROR
+ffff1cf8  ../os/sdcardDevice.fpl:49  repeat
+ffff1cf8  ../os/sdcardDevice.fpl:50  sdcard_cmd(0x770000000065L)
+ffff1d0c  ../os/sdcardDevice.fpl:51  val r3 = try read_sd_card_response_1()
+ffff1d1c  ../os/sdcardDevice.fpl:52  if r3 != 1 then return Error.IO_ERROR
+ffff1d24  ../os/sdcardDevice.fpl:52  if r3 != 1 then return Error.IO_ERROR
+ffff1d30  ../os/sdcardDevice.fpl:54  sdcard_cmd(0x694000000077L)
+ffff1d44  ../os/sdcardDevice.fpl:55  val r4 = try read_sd_card_response_1()
+ffff1d54  ../os/sdcardDevice.fpl:56  if r4 = 0 then break
+ffff1d58  ../os/sdcardDevice.fpl:56  if r4 = 0 then break
+ffff1d60  ../os/sdcardDevice.fpl:60  hwregs.sd_card_ctrl = 0    # Assert CS for SD card
+ffff1d6c  ../os/sdcardDevice.fpl:61  for i in 0..100000
+ffff1d7c  ../os/sdcardDevice.fpl:62  val dummy = 1
+ffff1d84  ../os/sdcardDevice.fpl:63  hwregs.sd_card_ctrl = 3    # Reassert with high speed clock
+ffff1d90  ../os/sdcardDevice.fpl:66  return true
+ffff1dd0  ../os/sdcardDevice.fpl:69  if max_size <= 0 then return 0
+ffff1dd4  ../os/sdcardDevice.fpl:69  if max_size <= 0 then return 0
+ffff1de0  ../os/sdcardDevice.fpl:70  sdcard_cmd(0x5100000000FFL | ((sector as Long) lsl 8))
+ffff1e0c  ../os/sdcardDevice.fpl:71  val r1 =  try read_sd_card_response_1()
+ffff1e1c  ../os/sdcardDevice.fpl:72  if r1 != 0 then return Error.IO_ERROR
+ffff1e20  ../os/sdcardDevice.fpl:72  if r1 != 0 then return Error.IO_ERROR
+ffff1e2c  ../os/sdcardDevice.fpl:75  val r2 = try read_sd_card_response_1()
+ffff1e3c  ../os/sdcardDevice.fpl:76  if r2 != 0xFE then return Error.IO_ERROR
+ffff1e44  ../os/sdcardDevice.fpl:76  if r2 != 0xFE then return Error.IO_ERROR
+ffff1e50  ../os/sdcardDevice.fpl:79  for i in 0..511
+ffff1e5c  ../os/sdcardDevice.fpl:80  val byte = try read_sd_card_byte()
+ffff1e6c  ../os/sdcardDevice.fpl:81  if i<=max_size
+ffff1e70  ../os/sdcardDevice.fpl:82  buffer[i] = byte as Char
+ffff1e8c  ../os/sdcardDevice.fpl:83  val crc1 = try read_sd_card_byte()
+ffff1e98  ../os/sdcardDevice.fpl:84  val crc2 = try read_sd_card_byte()
+ffff1ea4  ../os/sdcardDevice.fpl:86  return 0
+ffff1f74  ../os/Fat32FileSystem.fpl:19  val b0 = (buffer[offset] as Int) & 0xFF
+ffff1f80  ../os/Fat32FileSystem.fpl:20  val b1 = (buffer[offset + 1] as Int) & 0xFF
+ffff1f90  ../os/Fat32FileSystem.fpl:21  val b2 = (buffer[offset + 2] as Int) & 0xFF
+ffff1fa0  ../os/Fat32FileSystem.fpl:22  val b3 = (buffer[offset + 3] as Int) & 0xFF
+ffff1fb0  ../os/Fat32FileSystem.fpl:23  return b0 | (b1 lsl 8) | (b2 lsl 16) | (b3 lsl 24)
+ffff1fcc  ../os/Fat32FileSystem.fpl:26  val b0 = (buffer[offset] as Int) & 0xFF
+ffff1fd8  ../os/Fat32FileSystem.fpl:27  val b1 = (buffer[offset + 1] as Int) & 0xFF
+ffff1fe8  ../os/Fat32FileSystem.fpl:28  return b0 | (b1 lsl 8)
+ffff1ff4  ../os/Fat32FileSystem.fpl:31  return (buffer[offset] as Int) & 0xFF
+ffff2020  ../os/Fat32FileSystem.fpl:34  val sector = cluster lsr 7
+ffff2024  ../os/Fat32FileSystem.fpl:35  if fat_cache_sector != sector
+ffff202c  ../os/Fat32FileSystem.fpl:36  device.read_sector(fat_start + sector, fat_cache, 512)
+ffff2044  ../os/Fat32FileSystem.fpl:37  fat_cache_sector = sector
+ffff2048  ../os/Fat32FileSystem.fpl:38  return get_u32(fat_cache, 4*(cluster & 0x7F)) & 0x0FFFFFFF
+ffff20b4  ../os/Fat32FileSystem.fpl:43  val start_lba = data_start + (cluster - 2) * sectors_per_cluster
+ffff20c8  ../os/Fat32FileSystem.fpl:44  var remaining = max_size
+ffff20cc  ../os/Fat32FileSystem.fpl:45  var total_read = 0
+ffff20d0  ../os/Fat32FileSystem.fpl:46  for i in 0..<sectors_per_cluster
+ffff20d8  ../os/Fat32FileSystem.fpl:47  val to_read = if remaining > 512 then 512 else remaining
+ffff20ec  ../os/Fat32FileSystem.fpl:48  val result = try device.read_sector(start_lba + i, buffer + i*512, to_read)
+ffff2108  ../os/Fat32FileSystem.fpl:49  remaining -= to_read
+ffff210c  ../os/Fat32FileSystem.fpl:50  total_read += to_read
+ffff2118  ../os/Fat32FileSystem.fpl:51  return total_read
+ffff216c  ../os/Fat32FileSystem.fpl:54  val init_result = try device.initialize()
+ffff2178  ../os/Fat32FileSystem.fpl:57  device.read_sector(0, sectorBuffer, 512)
+ffff218c  ../os/Fat32FileSystem.fpl:58  val signature = get_u16(sectorBuffer, 510)
+ffff21a0  ../os/Fat32FileSystem.fpl:59  if signature != 0xAA55 then return Error.IO_ERROR
+ffff21ac  ../os/Fat32FileSystem.fpl:59  if signature != 0xAA55 then return Error.IO_ERROR
+ffff21b8  ../os/Fat32FileSystem.fpl:62  val volume_id = get_u32(sectorBuffer, 440)
+ffff21c8  ../os/Fat32FileSystem.fpl:63  val start_lba = get_u32(sectorBuffer, 454)
+ffff21dc  ../os/Fat32FileSystem.fpl:64  val total_sectors = get_u32(sectorBuffer, 458)
+ffff21ec  ../os/Fat32FileSystem.fpl:67  device.read_sector(start_lba, sectorBuffer, 512)
+ffff2200  ../os/Fat32FileSystem.fpl:69  val sig2 = get_u16(sectorBuffer, 510)
+ffff2214  ../os/Fat32FileSystem.fpl:70  if sig2 != 0xAA55 then return Error.IO_ERROR
+ffff2220  ../os/Fat32FileSystem.fpl:70  if sig2 != 0xAA55 then return Error.IO_ERROR
+ffff222c  ../os/Fat32FileSystem.fpl:72  sectors_per_cluster = get_u8(sectorBuffer, 13)
+ffff2240  ../os/Fat32FileSystem.fpl:73  val reserved_sectors = get_u16(sectorBuffer, 14)
+ffff2254  ../os/Fat32FileSystem.fpl:74  val number_of_fats = get_u8(sectorBuffer, 16)
+ffff2268  ../os/Fat32FileSystem.fpl:75  val fat_size_in_sectors = get_u32(sectorBuffer, 36)
+ffff227c  ../os/Fat32FileSystem.fpl:76  root_cluster = get_u32(sectorBuffer, 44)
+ffff2290  ../os/Fat32FileSystem.fpl:78  fat_start = start_lba + reserved_sectors
+ffff2298  ../os/Fat32FileSystem.fpl:79  data_start = fat_start + number_of_fats * fat_size_in_sectors
+ffff22a4  ../os/Fat32FileSystem.fpl:81  fat_cache = new Array<Char>(512)
+ffff22c8  ../os/Fat32FileSystem.fpl:82  clusterBuffer = new Array<Char>(sectors_per_cluster * 512)
+ffff22f0  ../os/Fat32FileSystem.fpl:83  kprintf("Sector buffer allocated at %x\n", sectorBuffer)
+ffff230c  ../os/Fat32FileSystem.fpl:84  kprintf("Cluster buffer allocated at %x\n", clusterBuffer)
+ffff2328  ../os/Fat32FileSystem.fpl:85  fat_cache_sector = -1
+ffff2330  ../os/Fat32FileSystem.fpl:95  return true
+ffff2358  ../os/Fat32FileSystem.fpl:109  if c1=0 as Char or c1=-1 as Char then return
+ffff2364  ../os/Fat32FileSystem.fpl:109  if c1=0 as Char or c1=-1 as Char then return
+ffff2368  ../os/Fat32FileSystem.fpl:110  val index = 13*(seq -1) + offset
+ffff2374  ../os/Fat32FileSystem.fpl:111  if (c2=0 as Char)
+ffff2378  ../os/Fat32FileSystem.fpl:112  fileName[index] = c1
+ffff2390  ../os/Fat32FileSystem.fpl:113  else if c2!=0xff as Char
+ffff2398  ../os/Fat32FileSystem.fpl:114  fileName[index] = '?'
+ffff23b0  ../os/Fat32FileSystem.fpl:115  if c1!=0 as Char and index >= fileNameLength
+ffff23bc  ../os/Fat32FileSystem.fpl:116  fileNameLength = index + 1
+ffff23c8  ../os/Fat32FileSystem.fpl:119  var lcc = if c>='A' and c<='Z' and lc then (c as Int + 0x20) as Char else c
+ffff23e8  ../os/Fat32FileSystem.fpl:120  if c!=' '
+ffff23f0  ../os/Fat32FileSystem.fpl:121  fileName[fileNameLength] = lcc
+ffff2408  ../os/Fat32FileSystem.fpl:122  fileNameLength += 1
+ffff241c  ../os/Fat32FileSystem.fpl:126  dirCluster = if clusterId = 0 then root_cluster else clusterId
+ffff2428  ../os/Fat32FileSystem.fpl:127  dirOffset = -32
+ffff2430  ../os/Fat32FileSystem.fpl:128  hasLongFileName = false
+ffff2438  ../os/Fat32FileSystem.fpl:129  fileNameLength = 0
+ffff2440  ../os/Fat32FileSystem.fpl:130  val read_root_result = try read_sdcard_cluster(dirCluster, clusterBuffer, sectors_per_cluster * 512)
+ffff2458  ../os/Fat32FileSystem.fpl:131  return true
+ffff2490  ../os/Fat32FileSystem.fpl:134  hasLongFileName = false
+ffff2498  ../os/Fat32FileSystem.fpl:135  fileNameLength = 0
+ffff24a0  ../os/Fat32FileSystem.fpl:136  while true
+ffff24a4  ../os/Fat32FileSystem.fpl:137  dirOffset += 32
+ffff24b0  ../os/Fat32FileSystem.fpl:138  if dirOffset >= sectors_per_cluster * 512
+ffff24bc  ../os/Fat32FileSystem.fpl:141  return null
+ffff24c4  ../os/Fat32FileSystem.fpl:142  val entry = unsafe( ((clusterBuffer as Int) + dirOffset) as Pointer<Char>)
+ffff24d0  ../os/Fat32FileSystem.fpl:143  if get_u8(entry, 0) = 0
+ffff24e4  ../os/Fat32FileSystem.fpl:145  return null
+ffff24ec  ../os/Fat32FileSystem.fpl:146  if get_u8(entry, 0) = 0xE5
+ffff2504  ../os/Fat32FileSystem.fpl:148  hasLongFileName = false
+ffff250c  ../os/Fat32FileSystem.fpl:149  continue
+ffff2510  ../os/Fat32FileSystem.fpl:150  if get_u8(entry, 11) = 0x0F
+ffff2528  ../os/Fat32FileSystem.fpl:153  hasLongFileName = true
+ffff2530  ../os/Fat32FileSystem.fpl:154  val seq = get_u8(entry, 0) & 0x1F
+ffff2544  ../os/Fat32FileSystem.fpl:155  addToFileName(entry[1], entry[2], seq, 0)
+ffff255c  ../os/Fat32FileSystem.fpl:156  addToFileName(entry[3], entry[4], seq, 1)
+ffff2574  ../os/Fat32FileSystem.fpl:157  addToFileName(entry[5], entry[6], seq, 2)
+ffff258c  ../os/Fat32FileSystem.fpl:158  addToFileName(entry[7], entry[8], seq, 3)
+ffff25a4  ../os/Fat32FileSystem.fpl:159  addToFileName(entry[9], entry[10], seq, 4)
+ffff25bc  ../os/Fat32FileSystem.fpl:160  addToFileName(entry[14], entry[15], seq, 5)
+ffff25d4  ../os/Fat32FileSystem.fpl:161  addToFileName(entry[16], entry[17], seq, 6)
+ffff25ec  ../os/Fat32FileSystem.fpl:162  addToFileName(entry[18], entry[19], seq, 7)
+ffff2604  ../os/Fat32FileSystem.fpl:163  addToFileName(entry[20], entry[21], seq, 8)
+ffff261c  ../os/Fat32FileSystem.fpl:164  addToFileName(entry[22], entry[23], seq, 9)
+ffff2634  ../os/Fat32FileSystem.fpl:165  addToFileName(entry[24], entry[25], seq, 10)
+ffff264c  ../os/Fat32FileSystem.fpl:166  addToFileName(entry[28], entry[29], seq, 11)
+ffff2664  ../os/Fat32FileSystem.fpl:167  addToFileName(entry[30], entry[31], seq, 12)
+ffff267c  ../os/Fat32FileSystem.fpl:168  continue
+ffff2680  ../os/Fat32FileSystem.fpl:169  if not hasLongFileName
+ffff2688  ../os/Fat32FileSystem.fpl:171  val lc = entry[12] & 0x08 != 0
+ffff2698  ../os/Fat32FileSystem.fpl:172  for i in 0..7
+ffff26a4  ../os/Fat32FileSystem.fpl:173  addShortFileName(entry[i], lc)
+ffff26c0  ../os/Fat32FileSystem.fpl:174  if entry[8] != ' '
+ffff26cc  ../os/Fat32FileSystem.fpl:175  addShortFileName('.', false)
+ffff26dc  ../os/Fat32FileSystem.fpl:176  val lcx = entry[12] & 0x10 != 0
+ffff26ec  ../os/Fat32FileSystem.fpl:177  for i in 8..10
+ffff26f8  ../os/Fat32FileSystem.fpl:178  addShortFileName(entry[i], lcx)
+ffff2714  ../os/Fat32FileSystem.fpl:179  return entry
+ffff2748  ../os/Fat32FileSystem.fpl:184  if fileNameLength != length
+ffff2750  ../os/Fat32FileSystem.fpl:185  return false
+ffff2758  ../os/Fat32FileSystem.fpl:186  for i in 0..fileNameLength-1
+ffff2764  ../os/Fat32FileSystem.fpl:187  if fileName[i] != name[i]
+ffff2784  ../os/Fat32FileSystem.fpl:188  return false
+ffff2794  ../os/Fat32FileSystem.fpl:189  return true
+ffff27c4  ../os/Fat32FileSystem.fpl:194  startWalkDirectory(clusterId)
+ffff27cc  ../os/Fat32FileSystem.fpl:195  while true
+ffff27d0  ../os/Fat32FileSystem.fpl:196  val entry = walkDirectory()
+ffff27dc  ../os/Fat32FileSystem.fpl:197  if entry = null then return null
+ffff27e0  ../os/Fat32FileSystem.fpl:197  if entry = null then return null
+ffff27e8  ../os/Fat32FileSystem.fpl:198  if matchName(file_name, length) then return entry
+ffff27fc  ../os/Fat32FileSystem.fpl:198  if matchName(file_name, length) then return entry
+ffff2860  ../os/Fat32FileSystem.fpl:204  startWalkDirectory(clusterId)
+ffff2868  ../os/Fat32FileSystem.fpl:205  val ret = new List<DirectoryEntry>()
+ffff287c  ../os/Fat32FileSystem.fpl:207  while true
+ffff2880  ../os/Fat32FileSystem.fpl:208  val entry = walkDirectory()
+ffff288c  ../os/Fat32FileSystem.fpl:209  if entry = null
+ffff2890  ../os/Fat32FileSystem.fpl:210  return ret
+ffff289c  ../os/Fat32FileSystem.fpl:211  val attr = get_u8(entry, 11)
+ffff28b0  ../os/Fat32FileSystem.fpl:212  val file_name = makeString(unsafe(fileName as Pointer<Char>), fileNameLength)
+ffff28c0  ../os/Fat32FileSystem.fpl:213  val first_cluster = getClusterIdFromEntry(entry)
+ffff28d0  ../os/Fat32FileSystem.fpl:214  val file_size     = get_u32(entry, 28)
+ffff28e4  ../os/Fat32FileSystem.fpl:215  ret.add(new DirectoryEntry(file_name, attr, first_cluster, file_size))
+ffff2968  ../os/Fat32FileSystem.fpl:219  val entry = scanDirectory(parentClusterId, subDirName, length)
+ffff2974  ../os/Fat32FileSystem.fpl:220  if entry = null then return Error.FILE_NOT_FOUND
+ffff2978  ../os/Fat32FileSystem.fpl:220  if entry = null then return Error.FILE_NOT_FOUND
+ffff2984  ../os/Fat32FileSystem.fpl:221  val attr = get_u8(entry, 11)
+ffff2998  ../os/Fat32FileSystem.fpl:222  if attr & 0x10 = 0 then return Error.NOT_A_DIRECTORY
+ffff29a0  ../os/Fat32FileSystem.fpl:222  if attr & 0x10 = 0 then return Error.NOT_A_DIRECTORY
+ffff29ac  ../os/Fat32FileSystem.fpl:223  val first_cluster = getClusterIdFromEntry(entry)
+ffff29bc  ../os/Fat32FileSystem.fpl:224  return listDirectory(first_cluster)
+ffff29f4  ../os/Fat32FileSystem.fpl:228  return (get_u16(entry, 20) lsl 16) | get_u16(entry, 26)
+ffff2a50  ../os/Fat32FileSystem.fpl:233  val entry = scanDirectory(clusterId, file_name, length)
+ffff2a5c  ../os/Fat32FileSystem.fpl:234  if entry = null
+ffff2a60  ../os/Fat32FileSystem.fpl:235  return Error.FILE_NOT_FOUND
+ffff2a6c  ../os/Fat32FileSystem.fpl:236  val attr = get_u8(entry, 11)
+ffff2a80  ../os/Fat32FileSystem.fpl:237  if attr & 0x10 != 0
+ffff2a88  ../os/Fat32FileSystem.fpl:238  return Error.IS_A_DIRECTORY
+ffff2a94  ../os/Fat32FileSystem.fpl:239  val first_cluster = getClusterIdFromEntry(entry)
+ffff2aa4  ../os/Fat32FileSystem.fpl:240  val file_size     = get_u32(entry, 28)
+ffff2ab8  ../os/Fat32FileSystem.fpl:241  return new Fat32File(this, first_cluster, file_size)
+ffff2b40  ../os/Fat32FileSystem.fpl:250  var remaining = size
+ffff2b44  ../os/Fat32FileSystem.fpl:251  var total_read = 0
+ffff2b48  ../os/Fat32FileSystem.fpl:252  kprintf("Starting read of %d bytes from cluster %d\n", size, current_cluster)
+ffff2b68  ../os/Fat32FileSystem.fpl:253  while true
+ffff2b6c  ../os/Fat32FileSystem.fpl:254  val result = try fs.read_sdcard_cluster(current_cluster, dest + total_read, remaining)
+ffff2b88  ../os/Fat32FileSystem.fpl:255  remaining -= result
+ffff2b8c  ../os/Fat32FileSystem.fpl:256  total_read += result
+ffff2b90  ../os/Fat32FileSystem.fpl:257  if remaining <= 0
+ffff2b94  ../os/Fat32FileSystem.fpl:258  return total_read
+ffff2ba0  ../os/Fat32FileSystem.fpl:260  current_cluster = try fs.read_fat_entry(current_cluster)
+ffff2bb4  ../os/Fat32FileSystem.fpl:261  if current_cluster >= 0x0FFFFFF8
+ffff2bc4  ../os/Fat32FileSystem.fpl:262  return Error.BAD_SECTOR
+ffff2c20  ../os/fileSystem.fpl:5  for entry in list
+ffff2c3c  ../os/fileSystem.fpl:6  free entry
+ffff2c54  ../os/fileSystem.fpl:7  free list
+ffff2c9c  ../os/fileSystem.fpl:11  free(name)
+ffff2cc0  ../os/fileSystem.fpl:14  if dirEntry.attr & 0x10 != 0
+ffff2ccc  ../os/fileSystem.fpl:15  kprintf("Directory ")
+ffff2ce4  ../os/fileSystem.fpl:17  kprintf("%8d  ", dirEntry.file_size)
+ffff2d00  ../os/fileSystem.fpl:18  kprintf("%s\n", dirEntry.name)
+ffff2d48  ../os/fileSystem.fpl:27  val sdcard = new SDCardDevice()
+ffff2d5c  ../os/fileSystem.fpl:28  fat32 = new Fat32FileSystem(sdcard)
+ffff2d78  ../os/fileSystem.fpl:29  val init_result = fat32.initialize()
+ffff2d80  ../os/fileSystem.fpl:30  if  init_result is Error then return init_result
+ffff2d84  ../os/fileSystem.fpl:30  if  init_result is Error then return init_result
+ffff2d88  ../os/fileSystem.fpl:31  return Error.NONE
+ffff2da8  ../os/fileSystem.fpl:36  var i = 0
+ffff2dac  ../os/fileSystem.fpl:37  while i < length and path[i] != '/'
+ffff2db0  ../os/fileSystem.fpl:38  i += 1
+ffff2dc8  ../os/fileSystem.fpl:39  return (path, i)
+ffff2dd4  ../os/fileSystem.fpl:42  var i = length - 1
+ffff2dd8  ../os/fileSystem.fpl:43  while i >= 0 and path[i] != '/'
+ffff2ddc  ../os/fileSystem.fpl:44  i -= 1
+ffff2df4  ../os/fileSystem.fpl:45  return (path + i + 1, length - i - 1)
+ffff2e28  ../os/fileSystem.fpl:52  var currentCluster = parentClusterId
+ffff2e2c  ../os/fileSystem.fpl:53  var remainingLength = length
+ffff2e30  ../os/fileSystem.fpl:54  var currentPath = path
+ffff2e34  ../os/fileSystem.fpl:55  while remainingLength > 0
+ffff2e38  ../os/fileSystem.fpl:56  val (element, elementLength) = getPathElement(currentPath, remainingLength)
+ffff2e50  ../os/fileSystem.fpl:57  if elementLength = remainingLength then return currentCluster
+ffff2e54  ../os/fileSystem.fpl:57  if elementLength = remainingLength then return currentCluster
+ffff2e60  ../os/fileSystem.fpl:58  val entry = fat32.scanDirectory(currentCluster, element, elementLength)
+ffff2e74  ../os/fileSystem.fpl:59  if entry = null then return Error.FILE_NOT_FOUND
+ffff2e78  ../os/fileSystem.fpl:59  if entry = null then return Error.FILE_NOT_FOUND
+ffff2e84  ../os/fileSystem.fpl:60  val attr =fat32.get_u8(entry, 11)
+ffff2e98  ../os/fileSystem.fpl:61  if attr & 0x10 = 0 then return Error.NOT_A_DIRECTORY
+ffff2ea0  ../os/fileSystem.fpl:61  if attr & 0x10 = 0 then return Error.NOT_A_DIRECTORY
+ffff2eac  ../os/fileSystem.fpl:62  currentCluster = fat32.getClusterIdFromEntry(entry)
+ffff2ebc  ../os/fileSystem.fpl:63  currentPath = currentPath + elementLength + 1
+ffff2ec4  ../os/fileSystem.fpl:64  remainingLength -= elementLength + 1
+ffff2ed0  ../os/fileSystem.fpl:65  return currentCluster
+ffff2f24  ../os/fileSystem.fpl:69  if subDirName = "" then
+ffff2f34  ../os/fileSystem.fpl:70  return fat32.listDirectory(parentClusterId)
+ffff2f44  ../os/fileSystem.fpl:72  val nameAsPointer = unsafe(subDirName as Pointer<Char>)
+ffff2f48  ../os/fileSystem.fpl:73  val (finalElement, finalElementLength) = getFinalPathElement(nameAsPointer, subDirName.length)
+ffff2f60  ../os/fileSystem.fpl:75  val pathClusterId = try findPath(parentClusterId, nameAsPointer, subDirName.length)
+ffff2f7c  ../os/fileSystem.fpl:76  return fat32.listSubDirectory(pathClusterId, finalElement, finalElementLength)
+ffff2fdc  ../os/fileSystem.fpl:81  val nameAsPointer = unsafe(fileName as Pointer<Char>)
+ffff2fe0  ../os/fileSystem.fpl:82  val (finalElement, finalElementLength) = getFinalPathElement(nameAsPointer, fileName.length)
+ffff2ff8  ../os/fileSystem.fpl:84  val pathClusterId = try findPath(clusterId, nameAsPointer, fileName.length)
+ffff3014  ../os/fileSystem.fpl:85  return fat32.openFile(pathClusterId, finalElement, finalElementLength)
+ffff305c  ../os/fileSystem.fpl:89  val file = fileSystem.openFile(0, name)
+ffff3074  ../os/fileSystem.fpl:90  if file is Error
+ffff3078  ../os/fileSystem.fpl:91  kprintf("Failed to open file: %s\n", file.description)
+ffff30a0  ../os/fileSystem.fpl:92  abort(0)
+ffff30ac  ../os/fileSystem.fpl:93  kprintf("File %s opened successfully\n", name)
+ffff30c4  ../os/fileSystem.fpl:95  val fileSize = file.file_size
+ffff30c8  ../os/fileSystem.fpl:96  val page = try allocPage(fileSize)
+ffff30d4  ../os/fileSystem.fpl:97  val buffer = pageIDToAddress(page)
+ffff30dc  ../os/fileSystem.fpl:98  kprintf("Allocated page at %x for file buffer\n", buffer)
+ffff30f4  ../os/fileSystem.fpl:99  val bytes_read = try file.read(buffer, file.file_size)
+ffff3108  ../os/fileSystem.fpl:100  kprintf("Read %d bytes from file\n", bytes_read)
+ffff3120  ../os/fileSystem.fpl:101  return buffer
+ffff32e0  ../tracker/modtracker.fpl:33  for i in 0..<128
+ffff32ec  ../tracker/modtracker.fpl:34  val p = data[952 + i] as Int
+ffff32fc  ../tracker/modtracker.fpl:35  if p > num_patterns
+ffff3304  ../tracker/modtracker.fpl:36  num_patterns = p
+ffff3310  ../tracker/modtracker.fpl:37  num_patterns = num_patterns + 1   # highest index + 1
+ffff3358  ../tracker/modtracker.fpl:43  var current_offset = 1084 + num_patterns*1024
+ffff3364  ../tracker/modtracker.fpl:44  val baseAddress = unsafe(data as Int)
+ffff3368  ../tracker/modtracker.fpl:46  for s in 0..<31
+ffff3374  ../tracker/modtracker.fpl:47  val base = 20 + s*30
+ffff337c  ../tracker/modtracker.fpl:53  val len_hi = (data[base+22] as Int) & 0xFF
+ffff3390  ../tracker/modtracker.fpl:54  val len_lo = (data[base+23] as Int) & 0xFF
+ffff33a0  ../tracker/modtracker.fpl:55  val length = ((len_hi lsl 8) | len_lo) * 2
+ffff33ac  ../tracker/modtracker.fpl:56  val start = current_offset
+ffff33b0  ../tracker/modtracker.fpl:57  current_offset += length
+ffff33b4  ../tracker/modtracker.fpl:58  val fine = data[base+24] as Int
+ffff33c0  ../tracker/modtracker.fpl:59  val volume = data[base+25] as Int
+ffff33cc  ../tracker/modtracker.fpl:60  val loop_start_hi = (data[base+26] as Int) & 0xFF
+ffff33dc  ../tracker/modtracker.fpl:61  val loop_start_lo = (data[base+27] as Int) & 0xFF
+ffff33ec  ../tracker/modtracker.fpl:62  val loop_length_hi = (data[base+28] as Int) & 0xFF
+ffff33ec  ../tracker/modtracker.fpl:63  val loop_length_lo = (data[base+29] as Int) & 0xFF
+ffff33ec  ../tracker/modtracker.fpl:64  val loop_start = ((loop_start_hi lsl 8) | loop_start_lo) * 2
+ffff33f8  ../tracker/modtracker.fpl:67  samples[s] = new AudioSample(baseAddress+start, length, volume, fine, loop_start)
+ffff34a0  ../tracker/modtracker.fpl:81  countBpm += 1
+ffff34ac  ../tracker/modtracker.fpl:82  if countBpm <= bpm
+ffff34b4  ../tracker/modtracker.fpl:83  return false
+ffff34bc  ../tracker/modtracker.fpl:84  countBpm = 0
+ffff34c4  ../tracker/modtracker.fpl:86  if songPos = songLength
+ffff34d0  ../tracker/modtracker.fpl:88  return true
+ffff34d8  ../tracker/modtracker.fpl:89  val pattern_index = (data[952 + songPos] as Int) & 0xFF
+ffff34ec  ../tracker/modtracker.fpl:95  val base = 1084 + pattern_index * 1024
+ffff34f4  ../tracker/modtracker.fpl:97  for ch in 0..3
+ffff3500  ../tracker/modtracker.fpl:98  val ii = base + patternPos*16 + ch*4
+ffff3514  ../tracker/modtracker.fpl:99  val b0 = (data[ii+0] as Int) & 0xFF
+ffff3528  ../tracker/modtracker.fpl:100  val b1 = (data[ii+1] as Int) & 0xFF
+ffff3538  ../tracker/modtracker.fpl:101  val b2 = (data[ii+2] as Int) & 0xFF
+ffff3548  ../tracker/modtracker.fpl:102  val b3 = (data[ii+3] as Int) & 0xFF
+ffff3558  ../tracker/modtracker.fpl:103  val sample_num = ((b0 & 0xF0) | ((b2 & 0xF0) lsr 4))
+ffff3568  ../tracker/modtracker.fpl:104  val period = ((b0 & 0x0F) lsl 8) | b1
+ffff3574  ../tracker/modtracker.fpl:105  val effect = (b2 & 0x0F)
+ffff3578  ../tracker/modtracker.fpl:106  val effect_data = b3
+ffff3578  ../tracker/modtracker.fpl:107  var volume = if sample_num!=0 then samples[sample_num-1].volume else channelVolume[ch]
+ffff35b0  ../tracker/modtracker.fpl:109  when effect
+ffff3600  ../tracker/modtracker.fpl:112  if effect_data != 0
+ffff3604  ../tracker/modtracker.fpl:113  kprintf("Arpeggio not implemented\n")
+ffff361c  ../tracker/modtracker.fpl:117  kprintf("Slide up not implemented\n")
+ffff3634  ../tracker/modtracker.fpl:121  kprintf("Slide down not implemented\n")
+ffff364c  ../tracker/modtracker.fpl:125  kprintf("Slide to note not implemented\n")
+ffff3664  ../tracker/modtracker.fpl:129  volume = effect_data
+ffff366c  ../tracker/modtracker.fpl:132  volume += (effect_data lsr 4) - (effect_data&0x0F)
+ffff367c  ../tracker/modtracker.fpl:133  if volume<0
+ffff3680  ../tracker/modtracker.fpl:134  volume = 0
+ffff3684  ../tracker/modtracker.fpl:135  channelVolume[ch] = volume
+ffff3698  ../tracker/modtracker.fpl:136  hwregsAudio[ch].volume = volume
+ffff36b0  ../tracker/modtracker.fpl:137  kprintf("%2d.%2d: Ch=%d vol_slide %d\n", pattern_index, patternPos, ch, volume)
+ffff36d8  ../tracker/modtracker.fpl:141  kprintf("Jump to pattern not implemented\n")
+ffff36f0  ../tracker/modtracker.fpl:145  kprintf("Set song position to %d \n", effect_data)
+ffff3708  ../tracker/modtracker.fpl:146  songPos += 1
+ffff3714  ../tracker/modtracker.fpl:147  patternPos = 0
+ffff371c  ../tracker/modtracker.fpl:148  return false
+ffff3724  ../tracker/modtracker.fpl:152  val ext_effect = (effect_data lsr 4)
+ffff3728  ../tracker/modtracker.fpl:153  val ext_data = effect_data & 0x0F
+ffff372c  ../tracker/modtracker.fpl:154  when ext_effect
+ffff374c  ../tracker/modtracker.fpl:157  kprintf("Set filter not implemented\n")
+ffff3764  ../tracker/modtracker.fpl:161  kprintf("Fine slide up not implemented\n")
+ffff377c  ../tracker/modtracker.fpl:165  kprintf("Fine slide down not implemented\n")
+ffff3794  ../tracker/modtracker.fpl:169  volume += (ext_data lsr 4) - (ext_data&0x0F)
+ffff37a4  ../tracker/modtracker.fpl:170  kprintf("Fine volume slide ch=%d to %d\n", ch, volume)
+ffff37c0  ../tracker/modtracker.fpl:171  channelVolume[ch] = volume
+ffff37d4  ../tracker/modtracker.fpl:172  hwregsAudio[ch].volume = volume
+ffff37f0  ../tracker/modtracker.fpl:175  kprintf("*************** Unknown extended effect E%x data %02x\n", ext_effect, ext_data)
+ffff3810  ../tracker/modtracker.fpl:179  bpm = effect_data & 0x3f
+ffff3818  ../tracker/modtracker.fpl:180  if fixedBpm != 0
+ffff3820  ../tracker/modtracker.fpl:181  bpm = fixedBpm
+ffff3824  ../tracker/modtracker.fpl:183  if bpm <1 then bpm=1
+ffff3830  ../tracker/modtracker.fpl:183  if bpm <1 then bpm=1
+ffff3838  ../tracker/modtracker.fpl:184  if bpm >31 then bpm=31
+ffff3844  ../tracker/modtracker.fpl:184  if bpm >31 then bpm=31
+ffff3850  ../tracker/modtracker.fpl:187  kprintf("%2d.%2d: ******** Unknown effect %x data %02x\n", pattern_index, patternPos, effect, effect_data)
+ffff3874  ../tracker/modtracker.fpl:191  if sample_num>32
+ffff3888  ../tracker/modtracker.fpl:192  kprintf("*************** Invalid sample number %d\n", sample_num)
+ffff38a4  ../tracker/modtracker.fpl:194  val sample = samples[sample_num-1]
+ffff38bc  ../tracker/modtracker.fpl:195  val pitch = PITCH_SCALE_FACTOR / period
+ffff38c8  ../tracker/modtracker.fpl:196  if ch<7
+ffff38d0  ../tracker/modtracker.fpl:197  hwregsAudio[ch].volume = (volume/2) * 0x10001
+ffff38f8  ../tracker/modtracker.fpl:198  hwregsAudio[ch].frequency = pitch/2
+ffff3900  ../tracker/modtracker.fpl:199  hwregsAudio[ch].length = sample.length
+ffff3908  ../tracker/modtracker.fpl:200  hwregsAudio[ch].loop_start = sample.loop_start
+ffff3910  ../tracker/modtracker.fpl:201  hwregsAudio[ch].address = sample.address
+ffff3918  ../tracker/modtracker.fpl:203  channelVolume[ch] = volume
+ffff392c  ../tracker/modtracker.fpl:204  channelPeriod[ch] = period
+ffff3940  ../tracker/modtracker.fpl:205  channelSample[ch] = sample_num
+ffff3954  ../tracker/modtracker.fpl:206  if sample.loop_start < 2
+ffff395c  ../tracker/modtracker.fpl:207  hwregsAudio[ch].loop_start = -1
+ffff396c  ../tracker/modtracker.fpl:209  hwregsAudio[ch].loop_start = sample.loop_start
+ffff397c  ../tracker/modtracker.fpl:211  patternPos += 1
+ffff3988  ../tracker/modtracker.fpl:212  if patternPos=64
+ffff3990  ../tracker/modtracker.fpl:213  patternPos=0
+ffff3998  ../tracker/modtracker.fpl:214  songPos += 1
+ffff39a4  ../tracker/modtracker.fpl:216  return false
+ffff39e4  ../tracker/modtracker.fpl:219  countPatterns()
+ffff39ec  ../tracker/modtracker.fpl:220  extractSamples()
+ffff3a04  random.fpl:5  seed = (seed * 1103515245 + 12345) & 0x7FFFFFFF
+ffff3a30  random.fpl:6  return seed % n
+ffff3a38  main.fpl:14  for i in 0..count
+ffff3a40  main.fpl:15  val dummy = 1
+ffff3a54  main.fpl:21  while hwregs.vga_pos <=0
+ffff3a58  main.fpl:22  delay(1000)
+ffff3a6c  main.fpl:23  while hwregs.vga_pos > 0
+ffff3a70  main.fpl:24  delay(1000)
+ffff3a9c  main.fpl:28  kprintf("Starting to load graphics data\n")
+ffff3ab0  main.fpl:30  val spritePalette = loadFile("export/sprites_palette.bin")
+ffff3ac0  main.fpl:31  if spritePalette is Error then abort 1
+ffff3ac4  main.fpl:31  if spritePalette is Error then abort 1
+ffff3ad0  main.fpl:32  kprintf("Loaded sprite palette\n")
+ffff3ae4  main.fpl:33  val spritePalettePtr = unsafe(spritePalette as Pointer<Int>)
+ffff3ae4  main.fpl:34  for i in 0..255
+ffff3af0  main.fpl:35  VGA_PALETTE[i] = spritePalettePtr[i]
+ffff3b1c  main.fpl:37  kprintf("About to load backdrop palette\n")
+ffff3b30  main.fpl:38  val backdropPalette = loadFile("export/backdrop_ham_palette.bin")
+ffff3b40  main.fpl:39  if backdropPalette is Error then abort 1
+ffff3b44  main.fpl:39  if backdropPalette is Error then abort 1
+ffff3b50  main.fpl:40  val backdropPalettePtr = unsafe(backdropPalette as Pointer<Int>)
+ffff3b54  main.fpl:41  for i in 0..255
+ffff3b60  main.fpl:42  VGA_PALETTE[i+256] = backdropPalettePtr[i]
+ffff3b90  main.fpl:44  val tilesData = loadFile("export/tiles.bin")
+ffff3ba0  main.fpl:45  if tilesData is Error then abort 1
+ffff3ba4  main.fpl:45  if tilesData is Error then abort 1
+ffff3bb0  main.fpl:46  tilesDataPtr = tilesData
+ffff3bb4  main.fpl:47  kprintf("Loaded tiles data at %x\n", tilesDataPtr)
+ffff3bcc  main.fpl:49  val backdropData = loadFile("export/backdrop_ham.bin")
+ffff3bdc  main.fpl:50  if backdropData is Error then abort 1
+ffff3be0  main.fpl:50  if backdropData is Error then abort 1
+ffff3bec  main.fpl:51  backdropDataPtr = backdropData
+ffff3bf0  main.fpl:53  val spriteData = loadFile("export/sprites.bin")
+ffff3c00  main.fpl:54  if spriteData is Error
+ffff3c04  main.fpl:55  kprintf("Failed to load sprite data\n")
+ffff3c18  main.fpl:56  abort 1
+ffff3c24  main.fpl:57  kprintf("Loaded sprite data at %x\n", spriteData)
+ffff3c3c  main.fpl:58  spriteDataPtr = unsafe(spriteData as Int)
+ffff3c40  main.fpl:60  val soundData = loadFile("export/sounds.bin")
+ffff3c50  main.fpl:61  if soundData is Error
+ffff3c54  main.fpl:62  kprintf("Failed to load sound data\n")
+ffff3c68  main.fpl:63  abort 1
+ffff3c74  main.fpl:64  soundDataPtr = unsafe(soundData as Int)
+ffff3c78  main.fpl:71  val tilesPalette = loadFile("export/palette.bin")
+ffff3c88  main.fpl:72  if tilesPalette is Error then abort 1
+ffff3c8c  main.fpl:72  if tilesPalette is Error then abort 1
+ffff3c98  main.fpl:73  val tilesPalettePtr = unsafe(tilesPalette as Pointer<Int>)
+ffff3c9c  main.fpl:74  for i in 0..255
+ffff3ca8  main.fpl:75  VGA_PALETTE[i+512] = tilesPalettePtr[i]
+ffff3cd8  main.fpl:78  val tileMapData = loadFile("export/tilemap.bin")
+ffff3ce4  main.fpl:79  if tileMapData is Error then abort 1
+ffff3ce8  main.fpl:79  if tileMapData is Error then abort 1
+ffff3cf4  main.fpl:80  tileMap = unsafe(tileMapData as Pointer<Short>)
+ffff3cf8  main.fpl:83  VGA_PALETTE[3*256 + 1] = 0xFF0000   # Color 1 = Red
+ffff3d08  main.fpl:84  VGA_PALETTE[3*256 + 2] = 0x00FF00   # Color 2 = Green
+ffff3d1c  main.fpl:85  VGA_PALETTE[3*256 + 3] = 0x0000FF   # Color 3 = Blue
+ffff3d2c  main.fpl:86  VGA_PALETTE[3*256 + 4] = 0xFFFFFF   # Color 4 = White
+ffff3d8c  main.fpl:91  val backdropSprite = scene.newSprite()
+ffff3d98  main.fpl:92  backdropSprite.setBitmap(backdropDataPtr, 640, 1)
+ffff3dac  main.fpl:93  backdropSprite.flags = (32 | 16 | 4 | 1) as Short
+ffff3db4  main.fpl:94  backdropSprite.setSizeAndPos(0, 0, 640, 480)
+ffff3dcc  main.fpl:95  backdropSprite.setZ(1)
+ffff3dd8  main.fpl:96  scene.addObject(backdropSprite)
+ffff3de4  main.fpl:98  val t = if time < 0x4c80 then time else 0x4c80
+ffff3df8  main.fpl:101  val startRow = 1024 - t/64
+ffff3e04  main.fpl:102  val scrollOffset = (t/2) & 31
+ffff3e0c  main.fpl:105  val startRow2 = 1024 - t/32
+ffff3e18  main.fpl:106  val scrollOffset2 = t & 31
+ffff3e1c  main.fpl:108  hwregs.seven_seg = 1
+ffff3e28  main.fpl:110  for row in -1..14
+ffff3e34  main.fpl:111  for col in 0..19
+ffff3e40  main.fpl:112  val tileIndex = tileMap[(startRow + row) * 20 + col] as Int
+ffff3e5c  main.fpl:113  if tileIndex != 0
+ffff3e60  main.fpl:114  val tileX = col * 32
+ffff3e64  main.fpl:115  val tileY = row * 32 + scrollOffset
+ffff3e6c  main.fpl:116  val tileSprite = scene.newSprite()
+ffff3e78  main.fpl:117  tileSprite.setBitmap(tilesDataPtr + tileIndex * 32*32, 32, 2)
+ffff3e98  main.fpl:118  tileSprite.setSizeAndPos(tileX, tileY, 32, 32)
+ffff3eb0  main.fpl:119  tileSprite.setZ(8)
+ffff3ebc  main.fpl:120  tileSprite.reserved2 = 0        # indicate this is not a enemy sprite
+ffff3ec4  main.fpl:121  scene.addObject(tileSprite)
+ffff3ed0  main.fpl:123  val tileIndex2 = tileMap[1024*20 + (startRow2 + row) * 20 + col] as Int
+ffff3ef4  main.fpl:124  if tileIndex2 != 0
+ffff3ef8  main.fpl:125  val tileX = col * 32
+ffff3efc  main.fpl:126  val tileY = row * 32 + scrollOffset2
+ffff3f04  main.fpl:127  val tileSprite = scene.newSprite()
+ffff3f10  main.fpl:128  tileSprite.setBitmap(tilesDataPtr + tileIndex2 * 32*32, 32, 2)
+ffff3f30  main.fpl:129  tileSprite.setSizeAndPos(tileX, tileY, 32, 32)
+ffff3f48  main.fpl:130  tileSprite.setZ(32)
+ffff3f54  main.fpl:131  if tileIndex2 < 40
+ffff3f5c  main.fpl:132  tileSprite.setZ(12)
+ffff3f68  main.fpl:133  tileSprite.reserved2 = 0
+ffff3f70  main.fpl:134  scene.addObject(tileSprite)
+ffff3f7c  main.fpl:136  if tileIndex2>0 and tileIndex2<=50 and t&31=0 and row=-1
+ffff3f98  main.fpl:137  spawnObject(tileIndex2,  col*32)
+ffff3fb4  main.fpl:139  hwregs.seven_seg = 2
+ffff4020  main.fpl:144  val root_entries = fileSystem.listDirectory(0,"export")
+ffff4038  main.fpl:145  if root_entries is Error
+ffff403c  main.fpl:146  kprintf("Failed to list root directory: %s \n", root_entries.description)
+ffff4064  main.fpl:147  abort(0)
+ffff4070  main.fpl:149  kprintf("List Root directory entries:\n")
+ffff4084  main.fpl:150  for entry in root_entries
+ffff40a0  main.fpl:151  print(entry)
+ffff40ac  main.fpl:152  freeDirList(root_entries)
+ffff40b4  main.fpl:154  val modfile = loadFile("modfiles/xenon2.mod")
+ffff40c4  main.fpl:155  if modfile is Error
+ffff40c8  main.fpl:156  kprintf("main: readFile failed: %s\n", modfile.description)
+ffff40f0  main.fpl:157  abort(0)
+ffff40fc  main.fpl:158  val modPlayer = new ModPlayer(modfile)
+ffff4114  main.fpl:159  modPlayer.initialize()
+ffff411c  main.fpl:164  scene = new GfxScene()
+ffff4134  main.fpl:165  scene.init()
+ffff413c  main.fpl:166  keyboard = new Keyboard()
+ffff4154  main.fpl:167  loadGraphicsData()
+ffff4158  main.fpl:168  actorList = new ActorList()
+ffff4170  main.fpl:170  val player = new Player()
+ffff4184  main.fpl:179  var time = 600
+ffff4188  main.fpl:180  time=7000
+ffff4190  main.fpl:182  hwregs.ledr = 0
+ffff419c  main.fpl:183  kprintf("Keyboard: %x\n", keyboard)
+ffff41b8  main.fpl:184  kprintf("Player : %x\n", player)
+ffff41d0  main.fpl:186  while true
+ffff41d4  main.fpl:187  time = time + 1
+ffff41d8  main.fpl:188  drawBackground(time)
+ffff41e0  main.fpl:189  for actor in actorList
+ffff4200  main.fpl:190  actor.update()
+ffff4214  main.fpl:191  player.update()
+ffff421c  main.fpl:192  actorList.removeInactive()
+ffff4224  main.fpl:193  modPlayer.timeStep()        # Update the music player state
+ffff422c  main.fpl:197  hwregs.seven_seg = time
+ffff4234  main.fpl:198  waitVsync()
+ffff4238  main.fpl:199  scene.show()
+ffff4298  play_sound.fpl:3  if soundDataPtr = 0
+ffff42a0  play_sound.fpl:4  kprintf("Sound data not loaded\n")
+ffff42b4  play_sound.fpl:5  abort 1
+ffff42c0  play_sound.fpl:7  hwregsAudio[channel].volume = volume * 0x10001
+ffff42e4  play_sound.fpl:8  hwregsAudio[channel].frequency = 0x10000
+ffff42ec  play_sound.fpl:9  hwregsAudio[channel].length = soundManifest[soundIndex].length
+ffff4308  play_sound.fpl:10  hwregsAudio[channel].loop_start = -1
+ffff4310  play_sound.fpl:11  hwregsAudio[channel].address = soundDataPtr + soundManifest[soundIndex].offset
+ffff43f0  player.fpl:22  xpos = 320
+ffff43f8  player.fpl:23  ypos = 400
+ffff4400  player.fpl:24  velocityX = 0
+ffff4408  player.fpl:25  velocityY = 0
+ffff4410  player.fpl:26  depth = 0
+ffff4418  player.fpl:27  hit = false
+ffff4420  player.fpl:28  fireCooldown = 0
+ffff4428  player.fpl:29  speed = 0
+ffff4430  player.fpl:30  pickupClone = 0
+ffff4438  player.fpl:31  pickupWeapon = false
+ffff4440  player.fpl:32  pickupLaser = false
+ffff4448  player.fpl:33  pickupWingtip = 0
+ffff4450  player.fpl:34  t = 0
+ffff4458  player.fpl:35  shield = 160
+ffff4460  player.fpl:36  smokeCount = 0
+ffff4488  player.fpl:39  val key = keyboard.getKey()
+ffff4494  player.fpl:40  t += 1
+ffff44a0  player.fpl:43  if key='q'
+ffff44a8  player.fpl:44  dumpMemorySystem()
+ffff44ac  player.fpl:47  if shield > 0
+ffff44b4  player.fpl:48  if keyboard.keyDown[KEY_SCANCODE_LEFT] and velocityX > -10
+ffff44e0  player.fpl:49  velocityX = velocityX - 2
+ffff44e8  player.fpl:50  if keyboard.keyDown[KEY_SCANCODE_RIGHT] and velocityX < 10
+ffff4514  player.fpl:51  velocityX = velocityX + 2
+ffff451c  player.fpl:52  if keyboard.keyDown[KEY_SCANCODE_UP] and velocityY > -10
+ffff4548  player.fpl:53  velocityY = velocityY - 2
+ffff4550  player.fpl:54  if keyboard.keyDown[KEY_SCANCODE_DOWN] and velocityY < 10
+ffff457c  player.fpl:55  velocityY = velocityY + 2
+ffff4584  player.fpl:56  if keyboard.keyDown[KEY_SCANCODE_V] and depth < 10
+ffff45b0  player.fpl:57  depth = depth + 2
+ffff45b8  player.fpl:58  val fire = keyboard.keyDown[KEY_SCANCODE_LSHIFT] and fireCooldown = 0 and shield > 0 and depth=0
+ffff4604  player.fpl:61  if velocityX > 0 then  velocityX = velocityX - 1
+ffff460c  player.fpl:61  if velocityX > 0 then  velocityX = velocityX - 1
+ffff4614  player.fpl:62  if velocityX < 0 then  velocityX = velocityX + 1
+ffff461c  player.fpl:62  if velocityX < 0 then  velocityX = velocityX + 1
+ffff4624  player.fpl:63  if velocityY > 0 then  velocityY = velocityY - 1
+ffff462c  player.fpl:63  if velocityY > 0 then  velocityY = velocityY - 1
+ffff4634  player.fpl:64  if velocityY < 0 then  velocityY = velocityY + 1
+ffff463c  player.fpl:64  if velocityY < 0 then  velocityY = velocityY + 1
+ffff4644  player.fpl:65  if depth > 0     then  depth = depth - 1
+ffff464c  player.fpl:65  if depth > 0     then  depth = depth - 1
+ffff4654  player.fpl:66  if fireCooldown > 0 then  fireCooldown = fireCooldown - 1
+ffff465c  player.fpl:66  if fireCooldown > 0 then  fireCooldown = fireCooldown - 1
+ffff4664  player.fpl:69  if fire
+ffff4668  player.fpl:70  val bullet = new Bullet(xpos + 24, ypos-16)
+ffff4694  player.fpl:71  actorList.add(bullet)
+ffff469c  player.fpl:73  if pickupClone>=1
+ffff46a8  player.fpl:74  val cloneBullet = new Bullet(xpos + 48, ypos-40)
+ffff46d0  player.fpl:75  actorList.add(cloneBullet)
+ffff46d8  player.fpl:76  if pickupClone>=2
+ffff46e4  player.fpl:77  val cloneBullet = new Bullet(xpos - 48, ypos-40)
+ffff470c  player.fpl:78  actorList.add(cloneBullet)
+ffff4714  player.fpl:79  if pickupWingtip>=1
+ffff4720  player.fpl:80  val wingtip = new Bullet(xpos - 24, ypos)
+ffff4744  player.fpl:81  actorList.add(wingtip)
+ffff474c  player.fpl:82  if pickupWingtip>=2
+ffff4758  player.fpl:83  val wingtip = new Bullet(xpos + 72, ypos)
+ffff477c  player.fpl:84  actorList.add(wingtip)
+ffff4784  player.fpl:86  fireCooldown = if pickupWeapon then 9 else 18
+ffff479c  player.fpl:87  playSound(4, if pickupLaser then SOUND_FIRE_LASER else SOUND_FIRE_MISSILE, 32)
+ffff47bc  player.fpl:90  xpos += velocityX/(3-speed)
+ffff47dc  player.fpl:91  ypos += velocityY/(3-speed)
+ffff47f8  player.fpl:95  if xpos < 1 then xpos = 1
+ffff4804  player.fpl:95  if xpos < 1 then xpos = 1
+ffff480c  player.fpl:96  if ypos < 0 then ypos = 0
+ffff4814  player.fpl:96  if ypos < 0 then ypos = 0
+ffff481c  player.fpl:97  if xpos > 640 - 64 then xpos = 640 - 64
+ffff4828  player.fpl:97  if xpos > 640 - 64 then xpos = 640 - 64
+ffff4830  player.fpl:98  if ypos > 480 - 64 then ypos = 480 - 64
+ffff483c  player.fpl:98  if ypos > 480 - 64 then ypos = 480 - 64
+ffff4844  player.fpl:101  var bitmapIndex = 3 + velocityX/2
+ffff484c  player.fpl:102  if bitmapIndex < 0 then bitmapIndex = 0
+ffff4850  player.fpl:102  if bitmapIndex < 0 then bitmapIndex = 0
+ffff4854  player.fpl:103  if bitmapIndex > 6 then bitmapIndex = 6
+ffff485c  player.fpl:103  if bitmapIndex > 6 then bitmapIndex = 6
+ffff4860  player.fpl:104  if depth > 0       then bitmapIndex = 14+depth/4
+ffff4868  player.fpl:104  if depth > 0       then bitmapIndex = 14+depth/4
+ffff4870  player.fpl:105  if shield <= 0
+ffff4878  player.fpl:106  bitmapIndex = SPRITE_MEDIUM_EXPLOSION + smokeCount/8
+ffff4884  player.fpl:107  smokeCount += 1
+ffff488c  player.fpl:108  if smokeCount = 80
+ffff4894  player.fpl:109  reset()
+ffff489c  player.fpl:111  val sprite = scene.newSprite()
+ffff48a8  player.fpl:112  sprite.setBitmap(xpos, ypos, spriteManifest[bitmapIndex], spriteDataPtr)
+ffff48d0  player.fpl:113  sprite.setZ(33-depth)
+ffff48e4  player.fpl:115  val collision = scene.checkCollision(sprite, 6)
+ffff48f8  player.fpl:116  if collision != null
+ffff48fc  player.fpl:117  val collisionActor = unsafe(collision.reserved2 as Actor?)
+ffff4900  player.fpl:118  val action = if collisionActor=null then PickupType.DAMAGE else collisionActor.onCollision()
+ffff491c  player.fpl:119  if action != PickupType.DAMAGE
+ffff4920  player.fpl:120  playSound(4, SOUND_PICKUP, 128)
+ffff4930  player.fpl:121  when action
+ffff4960  player.fpl:123  sprite.b1 = 0x1FFFS
+ffff496c  player.fpl:124  shield -= 2
+ffff497c  player.fpl:125  PickupType.SPEED  -> speed += 1
+ffff498c  player.fpl:126  PickupType.CLONE  -> pickupClone += 1
+ffff499c  player.fpl:127  PickupType.WEAPON -> pickupWeapon = true
+ffff49a8  player.fpl:128  PickupType.LASER  -> pickupLaser = true
+ffff49b4  player.fpl:129  PickupType.WINGTIP -> pickupWingtip += 1
+ffff49c4  player.fpl:130  else -> kprintf("Unknown collision action: %d\n", action)
+ffff49dc  player.fpl:132  scene.addObject(sprite)
+ffff49e8  player.fpl:135  if velocityY < 0
+ffff49f0  player.fpl:136  val exhaust = scene.newSprite()
+ffff49fc  player.fpl:137  val index = if velocityY&1=0 then SPRITE_SHIP_ENGINE else SPRITE_SHIP_ENGINE+1
+ffff4a14  player.fpl:138  exhaust.setBitmap(xpos+24, ypos+64, spriteManifest[index], spriteDataPtr)
+ffff4a40  player.fpl:139  exhaust.setZ(33-depth)
+ffff4a54  player.fpl:140  exhaust.b1 = (1000 - velocityY * 70) as Short
+ffff4a68  player.fpl:141  scene.addObject(exhaust)
+ffff4a74  player.fpl:144  val index = if depth > 8 then 15 else (t/8) % 12
+ffff4a94  player.fpl:145  if pickupClone >= 1
+ffff4aa0  player.fpl:146  val clone = scene.newSprite()
+ffff4aac  player.fpl:147  clone.setBitmap(xpos + 40, ypos-30, spriteManifest[SPRITE_CLONE + index], spriteDataPtr)
+ffff4adc  player.fpl:148  clone.setZ(33-depth)
+ffff4af0  player.fpl:149  scene.addObject(clone)
+ffff4afc  player.fpl:151  if pickupClone >= 2
+ffff4b08  player.fpl:152  val clone = scene.newSprite()
+ffff4b14  player.fpl:153  clone.setBitmap(xpos - 20, ypos-30, spriteManifest[SPRITE_CLONE + index], spriteDataPtr)
+ffff4b44  player.fpl:154  clone.setZ(33-depth)
+ffff4b58  player.fpl:155  scene.addObject(clone)
+ffff4b64  player.fpl:157  val wingtipIndex = if depth > 8 then 11 else (t/8) % 8
+ffff4b84  player.fpl:158  if pickupWingtip >= 1
+ffff4b90  player.fpl:159  val wingtip = scene.newSprite()
+ffff4b9c  player.fpl:160  wingtip.setBitmap(xpos - 32, ypos, spriteManifest[SPRITE_WINGTIP + wingtipIndex], spriteDataPtr)
+ffff4bc8  player.fpl:161  wingtip.setZ(33-depth)
+ffff4bdc  player.fpl:162  scene.addObject(wingtip)
+ffff4be8  player.fpl:164  if pickupWingtip >= 2
+ffff4bf4  player.fpl:165  val wingtip = scene.newSprite()
+ffff4c00  player.fpl:166  wingtip.setBitmap(xpos + 64, ypos, spriteManifest[SPRITE_WINGTIP + wingtipIndex], spriteDataPtr)
+ffff4c2c  player.fpl:167  wingtip.setZ(33-depth)
+ffff4c40  player.fpl:168  scene.addObject(wingtip)
+ffff4c4c  player.fpl:170  shieldBar.setShield(shield)
+ffff4c58  player.fpl:171  playerX = xpos
+ffff4c98  spawn.fpl:4  when(tileIndex)
+ffff4d54  spawn.fpl:6  val pickup = new pickup(col, PickupType.SPEED)
+ffff4d74  spawn.fpl:7  actorList.add(pickup)
+ffff4d80  spawn.fpl:10  val pickup = new pickup(col, PickupType.WEAPON)
+ffff4da0  spawn.fpl:11  actorList.add(pickup)
+ffff4dac  spawn.fpl:14  val pickup = new pickup(col, PickupType.CLOAK)
+ffff4dc8  spawn.fpl:17  val pickup = new pickup(col, PickupType.DIVE)
+ffff4de8  spawn.fpl:18  actorList.add(pickup)
+ffff4df4  spawn.fpl:21  val pickup = new pickup(col, PickupType.CLONE)
+ffff4e14  spawn.fpl:22  actorList.add(pickup)
+ffff4e20  spawn.fpl:25  val pickup = new pickup(col, PickupType.WINGTIP)
+ffff4e40  spawn.fpl:26  actorList.add(pickup)
+ffff4e4c  spawn.fpl:29  val pickup = new pickup(col, PickupType.LASER)
+ffff4e6c  spawn.fpl:30  actorList.add(pickup)
+ffff4e78  spawn.fpl:33  kprintf("Static wall hugger - not yet implemented\n")
+ffff4e90  spawn.fpl:36  val asteroid = new Asteroid(col, -32, 0, 0, 0)
+ffff4ebc  spawn.fpl:37  actorList.add(asteroid)
+ffff4ec8  spawn.fpl:40  val asteroid = new Asteroid(col, -64, 0, 0, 1)
+ffff4ef4  spawn.fpl:41  actorList.add(asteroid)
+ffff4f00  spawn.fpl:44  val asteroid = new Asteroid(col-1, -96, 0, 0, 2)
+ffff4f2c  spawn.fpl:45  actorList.add(asteroid)
+ffff4f38  spawn.fpl:48  val asteroid = new Asteroid(col, -32, 0, 1, 0)
+ffff4f64  spawn.fpl:49  actorList.add(asteroid)
+ffff4f70  spawn.fpl:52  val asteroid = new Asteroid(col, -64, 0, 1, 1)
+ffff4f9c  spawn.fpl:53  actorList.add(asteroid)
+ffff4fa8  spawn.fpl:56  val asteroid = new Asteroid(col-1, -96, 0, 1, 2)
+ffff4fd4  spawn.fpl:57  actorList.add(asteroid)
+ffff4fe0  spawn.fpl:60  val asteroid = new Asteroid(col, -32, 0, 2, 0)
+ffff500c  spawn.fpl:61  actorList.add(asteroid)
+ffff5018  spawn.fpl:64  val asteroid = new Asteroid(col, -64, 0, 2, 1)
+ffff5044  spawn.fpl:65  actorList.add(asteroid)
+ffff5050  spawn.fpl:68  val asteroid = new Asteroid(col-1, -96, 0, 2, 2)
+ffff507c  spawn.fpl:69  actorList.add(asteroid)
+ffff5088  spawn.fpl:73  val rusher = new Rusher(col, -32, 0, 4)
+ffff50b0  spawn.fpl:74  actorList.add(rusher)
+ffff50bc  spawn.fpl:77  val pod = new Pod(col, -64)
+ffff50dc  spawn.fpl:78  actorList.add(pod)
+ffff50e8  spawn.fpl:81  kprintf("homer not yet implemented\n")
+ffff5100  spawn.fpl:84  for i in 0..5
+ffff510c  spawn.fpl:85  val drone = new Drone(col, -48 * i, i*12)
+ffff5130  spawn.fpl:86  actorList.add(drone)
+ffff5144  spawn.fpl:89  kprintf("checkpoint\n")
+ffff515c  spawn.fpl:92  val rusher = new Rusher(col, 480, 0, -4)
+ffff5184  spawn.fpl:93  actorList.add(rusher)
+ffff5190  spawn.fpl:96  kprintf("Spawning object %d at col %d\n", tileIndex, col)
+ffff51e0  actors.fpl:8  if not active
+ffff51e8  actors.fpl:9  return
+ffff51ec  actors.fpl:12  return
+ffff51f0  actors.fpl:15  return PickupType.DAMAGE
+ffff5270  actors.fpl:22  if length >= array.length
+ffff5280  actors.fpl:23  var oldArray = array
+ffff5280  actors.fpl:24  array = new Array<Actor>(array.length * 2)
+ffff52a4  actors.fpl:25  for i in 0..<oldArray.length
+ffff52b0  actors.fpl:26  array[i] = oldArray[i]
+ffff52d8  actors.fpl:27  free oldArray
+ffff52e0  actors.fpl:28  array[length] = item
+ffff52f8  actors.fpl:29  length+=1
+ffff5320  actors.fpl:32  return array[index]
+ffff5350  actors.fpl:38  var i = 0
+ffff5354  actors.fpl:39  var j = 0
+ffff5358  actors.fpl:40  while j < length
+ffff535c  actors.fpl:41  array[i] = array[j]
+ffff537c  actors.fpl:42  j += 1
+ffff5380  actors.fpl:43  if array[i].active
+ffff5388  actors.fpl:44  i += 1
+ffff5390  actors.fpl:46  free array[i]
+ffff539c  actors.fpl:47  length = i
+ffff5404  Bullet.fpl:7  x += velocityX
+ffff5414  Bullet.fpl:8  y += velocityY
+ffff5424  Bullet.fpl:9  if x < 0 or x > 640 or y < 0 or y > 480
+ffff5444  Bullet.fpl:10  active = false
+ffff544c  Bullet.fpl:11  return
+ffff5450  Bullet.fpl:13  val sprite = scene.newSprite()
+ffff545c  Bullet.fpl:14  sprite.setBitmap(x, y, spriteManifest[SPRITE_MISSILE], spriteDataPtr)
+ffff5488  Bullet.fpl:15  sprite.reserved2 = 0
+ffff5490  Bullet.fpl:16  sprite.setZ(32)
+ffff549c  Bullet.fpl:18  val collision = scene.checkCollision(sprite, 0)
+ffff54ac  Bullet.fpl:19  if collision != null
+ffff54b0  Bullet.fpl:20  val collidedObject = unsafe(collision.reserved2 as Actor?)
+ffff54b4  Bullet.fpl:21  if collidedObject != null
+ffff54b8  Bullet.fpl:22  collidedObject.onHit()
+ffff54c8  Bullet.fpl:24  playSound(5, SOUND_HIT_BACKGROUND, 128)
+ffff54d8  Bullet.fpl:25  active = false
+ffff54e0  Bullet.fpl:27  scene.addObject(sprite)
+ffff554c  pod.fpl:8  t += 1
+ffff5558  pod.fpl:9  if t&1=0
+ffff5560  pod.fpl:10  if x < playerX
+ffff556c  pod.fpl:11  x += 1
+ffff5578  pod.fpl:13  x -= 1
+ffff5580  pod.fpl:15  y += 1
+ffff558c  pod.fpl:16  if y > 480
+ffff5594  pod.fpl:17  active = false
+ffff559c  pod.fpl:18  return
+ffff55a0  pod.fpl:20  val imageIndex = (t/8) % 24
+ffff55ac  pod.fpl:22  sprite = scene.newSprite()
+ffff55b8  pod.fpl:23  sprite.reserved2 = unsafe(this as Int)   # indicate this is an enemy sprite
+ffff55bc  pod.fpl:24  sprite.setBitmap(x, y, spriteManifest[SPRITE_POD + imageIndex], spriteDataPtr)
+ffff55e8  pod.fpl:25  sprite.setZ(32)
+ffff55f4  pod.fpl:27  scene.addObject(sprite)
+ffff5638  pod.fpl:30  sprite.b1 = 0x1FFFS
+ffff5648  pod.fpl:31  hitPoints -= 1
+ffff5654  pod.fpl:32  if hitPoints <= 0
+ffff5658  pod.fpl:33  val explosion = new Explosion(x, y, 1)
+ffff567c  pod.fpl:34  actorList.add(explosion)
+ffff5684  pod.fpl:35  playSound(6, SOUND_BIG_EXPLOSION, 128)
+ffff5694  pod.fpl:36  active = false
+ffff569c  pod.fpl:39  for i in 0..16
+ffff56a8  pod.fpl:40  actorList.add(new Spore(x+rand(48), y+rand(48)))
+ffff5760  spore.fpl:7  t += 1
+ffff576c  spore.fpl:8  if t&7=0
+ffff5774  spore.fpl:9  if x < playerX
+ffff5780  spore.fpl:10  x += 1
+ffff578c  spore.fpl:12  x -= 1
+ffff5798  spore.fpl:14  x += rand(3) - 1
+ffff57b0  spore.fpl:17  y += 1 + rand(2)
+ffff57c8  spore.fpl:18  if y > 480
+ffff57d0  spore.fpl:19  active = false
+ffff57d8  spore.fpl:20  return
+ffff57dc  spore.fpl:22  val imageIndex = (t/8) % 8
+ffff57e8  spore.fpl:24  val sprite = scene.newSprite()
+ffff57f4  spore.fpl:25  sprite.reserved2 = unsafe(this as Int)   # indicate this is an enemy sprite
+ffff57f8  spore.fpl:26  sprite.setBitmap(x, y, spriteManifest[SPRITE_SPORE + imageIndex], spriteDataPtr)
+ffff5824  spore.fpl:27  sprite.setZ(32)
+ffff5830  spore.fpl:29  scene.addObject(sprite)
+ffff5854  spore.fpl:32  active = false
+ffff5894  drone.fpl:8  val dx = drone_dx[(t/8) % 12]
+ffff58b4  drone.fpl:9  x += dx
+ffff58c0  drone.fpl:10  y += 2
+ffff58cc  drone.fpl:11  t += 1
+ffff58d4  drone.fpl:13  if y > 480
+ffff58dc  drone.fpl:14  active = false
+ffff58e4  drone.fpl:15  return
+ffff58e8  drone.fpl:16  if y>-32
+ffff58f4  drone.fpl:17  val imageIndex = (t/8) % 16
+ffff5900  drone.fpl:18  val sprite = scene.newSprite()
+ffff590c  drone.fpl:19  sprite.setBitmap(x, y, spriteManifest[SPRITE_DRONE + imageIndex], spriteDataPtr)
+ffff5938  drone.fpl:20  sprite.setZ(32)
+ffff5944  drone.fpl:21  sprite.reserved2 = unsafe(this as Int)   # indicate this is an enemy sprite
+ffff5948  drone.fpl:22  scene.addObject(sprite)
+ffff5980  drone.fpl:25  val explosion = new Explosion(x, y, 0)
+ffff59a4  drone.fpl:26  actorList.add(explosion)
+ffff59ac  drone.fpl:27  playSound(6, SOUND_SMALL_EXPLOSION, 128)
+ffff59bc  drone.fpl:29  active = false
+ffff5a30  rusher.fpl:7  x += dx
+ffff5a40  rusher.fpl:8  y += dy
+ffff5a50  rusher.fpl:9  t += 1
+ffff5a5c  rusher.fpl:11  if (y > 480 and dy>0) or (y < -32 and dy<0) or (x > 640 and dx>0) or (x < -32 and dx<0)
+ffff5a94  rusher.fpl:12  active = false
+ffff5a9c  rusher.fpl:13  return
+ffff5aa0  rusher.fpl:15  if y>-32
+ffff5aa8  rusher.fpl:16  val imageIndex = (t/8) % 24
+ffff5ab4  rusher.fpl:17  val sprite = scene.newSprite()
+ffff5ac0  rusher.fpl:18  sprite.setBitmap(x, y, spriteManifest[SPRITE_RUSHER + imageIndex], spriteDataPtr)
+ffff5aec  rusher.fpl:19  sprite.setZ(32)
+ffff5af8  rusher.fpl:20  sprite.reserved2 = unsafe(this as Int)   # indicate this is an enemy sprite
+ffff5afc  rusher.fpl:21  scene.addObject(sprite)
+ffff5b34  rusher.fpl:24  hit_points -= 1
+ffff5b40  rusher.fpl:25  if hit_points <= 0
+ffff5b44  rusher.fpl:26  val explosion = new Explosion(x, y, 1)
+ffff5b68  rusher.fpl:27  actorList.add(explosion)
+ffff5b70  rusher.fpl:28  playSound(6, SOUND_ROAR, 128)
+ffff5b80  rusher.fpl:29  active = false
+ffff5bf0  pickup.fpl:5  y += 1
+ffff5bfc  pickup.fpl:6  t += 1
+ffff5c08  pickup.fpl:8  if y > 480
+ffff5c10  pickup.fpl:9  active = false
+ffff5c18  pickup.fpl:10  return
+ffff5c1c  pickup.fpl:12  if y>-32
+ffff5c28  pickup.fpl:13  val imageIndex = (t/8) % 8
+ffff5c34  pickup.fpl:14  val imageBase : Int
+ffff5c34  pickup.fpl:15  when kind
+ffff5c7c  pickup.fpl:16  PickupType.SPEED  -> imageBase = SPRITE_SPEED_PICKUP
+ffff5c84  pickup.fpl:17  PickupType.SHIELD -> imageBase = SPRITE_SHIELD_PICKUP
+ffff5c8c  pickup.fpl:18  PickupType.CLOAK -> imageBase = SPRITE_CLOAK_PICKUP
+ffff5c94  pickup.fpl:19  PickupType.WEAPON -> imageBase = SPRITE_WEAPON_PICKUP
+ffff5c9c  pickup.fpl:20  PickupType.CLONE  -> imageBase = SPRITE_CLONE_PICKUP
+ffff5ca4  pickup.fpl:21  PickupType.WINGTIP -> imageBase = SPRITE_WINGTIP_PICKUP
+ffff5cac  pickup.fpl:22  PickupType.DIVE  -> imageBase = SPRITE_DIVE_PICKUP
+ffff5cb4  pickup.fpl:23  PickupType.LASER -> imageBase = SPRITE_LASER_PICKUP
+ffff5cbc  pickup.fpl:24  else -> imageBase = 0
+ffff5cc0  pickup.fpl:26  val sprite = scene.newSprite()
+ffff5ccc  pickup.fpl:27  sprite.setBitmap(x, y, spriteManifest[imageBase + imageIndex], spriteDataPtr)
+ffff5cf8  pickup.fpl:28  sprite.reserved2 = unsafe(this as Int)
+ffff5cfc  pickup.fpl:29  sprite.setZ(32)
+ffff5d08  pickup.fpl:30  scene.addObject(sprite)
+ffff5d30  pickup.fpl:33  active = false
+ffff5d38  pickup.fpl:34  return kind
+ffff5dac  asteroid.fpl:9  y += 2
+ffff5db8  asteroid.fpl:10  if t%2=0
+ffff5dc4  asteroid.fpl:11  x += dx
+ffff5dd4  asteroid.fpl:12  t += 1
+ffff5ddc  asteroid.fpl:14  if y > 480
+ffff5de8  asteroid.fpl:15  active = false
+ffff5df0  asteroid.fpl:16  return
+ffff5df4  asteroid.fpl:18  var imageBase = 0
+ffff5df8  asteroid.fpl:19  var imageCount = 0
+ffff5dfc  asteroid.fpl:20  when kind*3+size
+ffff5e54  asteroid.fpl:21  0 -> (imageBase,imageCount) = (SPRITE_SMALL_STANDARD_ASTEROID, 16)
+ffff5e60  asteroid.fpl:22  1 -> (imageBase,imageCount) = (SPRITE_MEDIUM_STANDARD_ASTEROID, 24)
+ffff5e6c  asteroid.fpl:23  2 -> (imageBase,imageCount) = (SPRITE_BIG_STANDARD_ASTEROID, 25)
+ffff5e78  asteroid.fpl:24  3 -> (imageBase,imageCount) = (SPRITE_SMALL_HIGH_DENSITY_ASTEROID, 16)
+ffff5e84  asteroid.fpl:25  4 -> (imageBase,imageCount) = (SPRITE_MEDIUM_HIGH_DENSITY_ASTEROID, 24)
+ffff5e90  asteroid.fpl:26  5 -> (imageBase,imageCount) = (SPRITE_BIG_HIGH_DENSITY_ASTEROID, 25)
+ffff5e9c  asteroid.fpl:27  6 -> (imageBase,imageCount) = (SPRITE_SMALL_INDESTUCTIBLE_ASTEROID, 16)
+ffff5ea8  asteroid.fpl:28  7 -> (imageBase,imageCount) = (SPRITE_MEDIUM_INDESTUCTIBLE_ASTEROID, 24)
+ffff5eb4  asteroid.fpl:29  8 -> (imageBase,imageCount) = (SPRITE_BIG_INDESTUCTIBLE_ASTEROID, 25)
+ffff5ebc  asteroid.fpl:32  val imageIndex = (t/8) % imageCount
+ffff5ec8  asteroid.fpl:34  if y>-spriteManifest[imageBase + imageIndex].height
+ffff5ef0  asteroid.fpl:35  val sprite = scene.newSprite()
+ffff5efc  asteroid.fpl:36  sprite.setBitmap(x, y, spriteManifest[imageBase + imageIndex], spriteDataPtr)
+ffff5f20  asteroid.fpl:37  sprite.reserved2 = unsafe(this as Int)   # indicate this is an enemy sprite
+ffff5f24  asteroid.fpl:38  sprite.setZ(32)
+ffff5f30  asteroid.fpl:39  scene.addObject(sprite)
+ffff5f70  asteroid.fpl:42  if kind=2
+ffff5f7c  asteroid.fpl:43  return
+ffff5f80  asteroid.fpl:45  hit_points -= 1
+ffff5f8c  asteroid.fpl:46  if hit_points=0
+ffff5f90  asteroid.fpl:47  if size=0
+ffff5f98  asteroid.fpl:48  val explosion = new Explosion(x, y, 0)
+ffff5fbc  asteroid.fpl:49  actorList.add(explosion)
+ffff5fc4  asteroid.fpl:50  playSound(6, SOUND_SMALL_EXPLOSION, 128)
+ffff5fd4  asteroid.fpl:51  active = false
+ffff5fe0  asteroid.fpl:54  val asteroid1 = new Asteroid(x-8, y, dx-1, kind, size-1)
+ffff6018  asteroid.fpl:55  val asteroid2 = new Asteroid(x+8, y, dx+1, kind, size-1)
+ffff604c  asteroid.fpl:56  actorList.add(asteroid1)
+ffff6058  asteroid.fpl:57  actorList.add(asteroid2)
+ffff6064  asteroid.fpl:58  active = false
+ffff606c  asteroid.fpl:59  playSound(6, SOUND_ASTEROID_BREAKUP, 128)
+ffff60e0  explosion.fpl:6  t += 1
+ffff60ec  explosion.fpl:7  val imageIndex = t/4
+ffff60f0  explosion.fpl:8  if y>-16
+ffff60fc  explosion.fpl:9  val sprite = scene.newSprite()
+ffff6108  explosion.fpl:10  val imageBase = if size = 0 then SPRITE_SMALL_EXPLOSION else if size =1 then SPRITE_MEDIUM_EXPLOSION else SPRITE_BIG_EXPLOSION
+ffff612c  explosion.fpl:12  sprite.setBitmap(x, y, spriteManifest[imageBase + imageIndex], spriteDataPtr)
+ffff6158  explosion.fpl:13  sprite.setZ(50)
+ffff6164  explosion.fpl:14  sprite.reserved2 = 0
+ffff616c  explosion.fpl:15  scene.addObject(sprite)
+ffff6178  explosion.fpl:16  if t=36
+ffff6184  explosion.fpl:17  active = false
+ffff6214  shieldBar.fpl:16  shield = sh
+ffff6218  shieldBar.fpl:18  for x in 0..159
+ffff6224  shieldBar.fpl:19  bitmap[0*160 + x] = 4 as Char   # clear
+ffff623c  shieldBar.fpl:20  bitmap[15*160 + x] = 4 as Char   # clear
+ffff6258  shieldBar.fpl:21  for y in 0..15
+ffff6264  shieldBar.fpl:22  bitmap[y*160 + 0] = 4 as Char   # clear
+ffff6280  shieldBar.fpl:23  bitmap[y*160 + 159] = 4 as Char   # clear
+ffff629c  shieldBar.fpl:25  for y in 1..14
+ffff62a8  shieldBar.fpl:26  for x in 1..158
+ffff62b4  shieldBar.fpl:27  if x > shield
+ffff62bc  shieldBar.fpl:28  bitmap[y*160 + x] = 0 as Char   # clear
+ffff62e0  shieldBar.fpl:29  else if x%4=0
+ffff62e8  shieldBar.fpl:30  bitmap[y*160 + x] = 0 as Char   # gaps clear
+ffff630c  shieldBar.fpl:31  else if shield > 20
+ffff6314  shieldBar.fpl:32  bitmap[y*160 + x] = 2 as Char   # Green
+ffff6338  shieldBar.fpl:34  bitmap[y*160 + x] = 1 as Char   # Red
+ffff6368  shieldBar.fpl:36  val sprite = scene.newSprite()
+ffff6374  shieldBar.fpl:37  sprite.setBitmap(bitmap, 160, 3)
+ffff6388  shieldBar.fpl:38  sprite.setSizeAndPos(10, 460, 160, 16)
+ffff63a0  shieldBar.fpl:39  sprite.setZ(100)
+ffff63ac  shieldBar.fpl:40  scene.addObject(sprite)

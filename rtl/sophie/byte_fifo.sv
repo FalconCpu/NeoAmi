@@ -16,21 +16,20 @@ module byte_fifo (
   input [7:0]      write_data,    // data to be added to fifo
   input            read_enable,   // read data has been taken - move onto next
   output reg [7:0] read_data,
-  output [11:0]     slots_free,
+  output [9:0]     slots_free,
   output           not_empty,
   output logic     overflow
 );
 
 // FIFO capacity (number of elements)
-parameter FIFO_DEPTH = 4096;
+parameter FIFO_DEPTH = 1024;
 
 // Memory to store FIFO data
 reg [7:0] memory [0:FIFO_DEPTH-1];
 
 // Pointers for write and read operations
-reg [11:0] wptr, prev_wptr;
-reg [11:0] rptr;
-
+reg [9:0] wptr, prev_wptr;
+reg [9:0] rptr;
 
 // Full flag logic
 // Use a one cycle delayed version of the write pointer when signalling not empty
@@ -64,4 +63,5 @@ always @(posedge clk) begin
 
     prev_wptr <= wptr;
 end
+
 endmodule

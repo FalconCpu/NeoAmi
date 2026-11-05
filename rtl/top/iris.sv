@@ -235,6 +235,14 @@ iris_addrgen  iris_addrgen_inst (
 //                TEXTURE SHADER - READMEM
 // ============================================================
 
+logic         readmem_sdram_ready;
+logic         readmem_sdram_req;
+logic [25:0]  readmem_sdram_addr;
+logic [5:0]   readmem_sdram_tag;
+logic [1:0]   readmem_sdram_rvalid;
+logic [31:0]  readmem_sdram_rdata;
+logic [5:0]   readmem_sdram_rtag;
+
 logic         palette_req;
 logic         palette_ready;
 logic [15:0]  palette_mode;
@@ -272,14 +280,6 @@ iris_readmem  iris_readmem_inst (
 // ============================================================
 //                SDRAM access arbitration
 // ============================================================
-
-logic         readmem_sdram_ready;
-logic         readmem_sdram_req;
-logic [25:0]  readmem_sdram_addr;
-logic [5:0]   readmem_sdram_tag;
-logic [1:0]   readmem_sdram_rvalid;
-logic [31:0]  readmem_sdram_rdata;
-logic [5:0]   readmem_sdram_rtag;
 
 logic         objfetch_sdram_req;
 logic         objfetch_sdram_ack;

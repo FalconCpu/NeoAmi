@@ -68,14 +68,14 @@ module sophie (
     output logic        AUD_DACLRCK,
     output logic        AUD_DACDAT,
 
-    // Audio SDRAM read interface
-    output logic        audio_sdram_req,
-    input  logic        audio_sdram_ack,
-    output logic [25:0] audio_sdram_address,
-    output logic [7:0]  audio_sdram_tag,
-    input  logic [1:0]  audio_sdram_rvalid,
-    input  logic [31:0] audio_sdram_rdata,
-    input  logic [7:0]  audio_sdram_rtag,
+    // SDRAM read interface (from arbiter)
+    output logic        sophie_sdram_req,
+    input  logic        sophie_sdram_ack,
+    output logic [25:0] sophie_sdram_addr,
+    output logic [7:0]  sophie_sdram_tag,
+    input  logic [1:0]  sophie_sdram_rvalid,
+    input  logic [31:0] sophie_sdram_rdata,
+    input  logic [7:0]  sophie_sdram_rtag,
 
     output logic [9:0]  mouse_x,
     output logic [9:0]  mouse_y,
@@ -90,7 +90,15 @@ logic [3:0]  aux_hwregs_strb;
 logic [31:0] aux_hwregs_rdata;
 logic [31:0] audio_hwregs_rdata;
 logic [31:0] combined_hwregs_rdata;
-assign audio_sdram_tag = 8'b0;
+
+// SDRAM arbiter internal signals
+logic         audio_sdram_req;
+logic         audio_sdram_ack;
+logic [25:0]  audio_sdram_addr;
+logic [7:0]   audio_sdram_tag;
+logic [1:0]   audio_sdram_rvalid;
+logic [31:0]  audio_sdram_rdata;
+logic [7:0]   audio_sdram_rtag;
 
 assign combined_hwregs_rdata = aux_hwregs_rdata | audio_hwregs_rdata;
 
@@ -149,9 +157,29 @@ audio audio_inst (
     .AUD_DACDAT(AUD_DACDAT),
     .sdram_request(audio_sdram_req),
     .sdram_ack(audio_sdram_ack),
-    .sdram_address(audio_sdram_address),
+    .sdram_address(audio_sdram_addr),
     .sdram_rvalid(audio_sdram_rvalid),
     .sdram_rdata(audio_sdram_rdata)
+  );
+
+// ================================================================
+//                  SDRAM ARBITER
+// ================================================================
+
+sophie_sdram_arb  sophie_sdram_arb_inst (
+    .clock(clock),
+    .reset(reset),
+    .audio_sdram_req(audio_sdram_req),
+    .audio_sdram_ack(audio_sdram_ack),
+    .audio_sdram_addr(audio_sdram_addr),
+    .audio_sdram_tag(audio_sdram_tag),
+    .sophie_sdram_req(sophie_sdram_req),
+    .sophie_sdram_ack(sophie_sdram_ack),
+    .sophie_sdram_addr(sophie_sdram_addr),
+    .sophie_sdram_tag(sophie_sdram_tag),
+    .sophie_sdram_rvalid(sophie_sdram_rvalid),
+    .sophie_sdram_rtag(sophie_sdram_rtag),
+    .sophie_sdram_rdata(sophie_sdram_rdata)
   );
 
 // ================================================================

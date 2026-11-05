@@ -1,0 +1,36 @@
+# Test case for basic instruction cache functionality
+# Copy a program from the ROM into an address in SDRAM
+# then jump to the copied program in SDRAM
+
+SDRAM_PROG_ADDR = 0x1234        # Chose an arbitrary address in SDRAM to copy the program to
+                                # Deliberately chosen to not be aligned with a cache line boundary as an extra test for the cache behavior
+
+ld $1, rom_start_address
+ld $3, rom_end_address
+ld $2, SDRAM_PROG_ADDR
+
+copy_loop:
+    ldw $4, $1[0]
+    stw $4, $2[0]
+    add $1, $1, 4
+    add $2, $2, 4
+    bne $1, $3, copy_loop
+
+ld $2, SDRAM_PROG_ADDR
+jmp $2[0]
+
+
+
+rom_start_address:
+    ld $10, 0
+    ld $11, 1
+    add $12, $10, $11
+    ld $14,$12
+    ld $30,0
+    ret
+    dcw 0xbaadf00d
+    dcw 0xbaadf00d
+    dcw 0xbaadf00d
+    dcw 0xbaadf00d
+rom_end_address:
+

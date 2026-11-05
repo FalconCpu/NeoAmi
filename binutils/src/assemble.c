@@ -5,6 +5,8 @@
 
 extern int line_number;
 extern int num_errors;
+FILE *debug_file;
+extern String current_file;
 
 int org_address = 0xFFFF0000;
 
@@ -384,6 +386,7 @@ void assemble_line(Token** line) {
     MATCH("I$,$,$")   emit(format_R(KIND_IDX, V0, 0, V1, V3, V5)); // idx $d,$a,$b
     MATCH("F$,$,$")   emit(format_R(KIND_FPU, V0, 0, V1, V3, V5)); // Floating point operations
     MATCH("F$,$")     emit(format_R(KIND_FPU, V0, 0, V1, V1, V3));
+    MATCH("L\"#")     fprintf(debug_file, "%x: %s %d\n", 0xFFFF0000+ code_size*4, line[1]->text, V2);
     MATCH("s#")       emit_space(V1);
     else if (line[0]->kind == 'd') emit_constants(line);
     else report_malformed(line);

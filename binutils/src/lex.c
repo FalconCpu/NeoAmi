@@ -7,6 +7,7 @@
 
 extern int line_number;
 static String current_scope = "";
+String current_file = "";
 
 /** 
  * Predefined tokens for keywords and operators
@@ -158,6 +159,8 @@ static Token predefined_tokens[] = {
     {'Y', "sys", 0, 0},
     {'E', "rte", 0, 0},
     {'E', "rti", 1, 0},
+
+    {'L', "line", 0, 0},
 
     {'s', "ds", 0, 0},      // ds is a pseudo-op for defining a space of uninitialized data
     {'d', "dcb", 0, 0},     // dcb is a pseudo-op for defining a byte array initialized with the data
@@ -429,6 +432,7 @@ void open_file(const char* filename) {
     }
 
     fh = fopen(filename, "r");
+    current_file = filename;
     if (!fh)
         fatal("Could not open file: %s", filename);
     line_number = 1;

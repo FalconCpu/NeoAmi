@@ -1,13 +1,17 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <string.h>
 #include "f32.h"
 
 extern int num_errors;
+extern FILE *debug_file;
 
 int main(int argc, char *argv[]) {
     char* output_filename = "asm.hex";
     enum output_format format = FORMAT_HEX;
     int num_input_files = 0;
+
+    debug_file = fopen("asm.debug", "w");
 
     for(int i=1; i<argc; i++) {
         String arg = argv[i];

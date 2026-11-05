@@ -612,7 +612,7 @@ void execute_code() {
     }
 
     pc = 0xFFFF0000; // Start execution at the reset vector
-    while (pc < code_size * 4) {
+    while (1) {
         raising_exception = 0;
         if (pc==0) {
             // Reached address 0 - treat this as a special "halt" instruction to stop execution

@@ -159,6 +159,7 @@ gemma_regs  gemma_regs_inst (
 
 logic [26:0]  ts_recip_in;
 logic [26:0]  ts_recip_out;
+logic         ts_recip_req;
 
 gemma_fast_recip  gemma_fast_recip_inst (
     .clock(clock),
@@ -177,9 +178,6 @@ logic         ts_sdram_ack;
 logic [25:0]  ts_sdram_addr;
 logic [127:0] ts_sdram_wdata;
 logic [15:0]  ts_sdram_strb;
-logic         ts_recip_req;
-
-
 
 gemma_triangle_setup  gemma_triangle_setup_inst (
     .clock(clock),

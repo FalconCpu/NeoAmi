@@ -6,9 +6,15 @@ import glob
 # --- Configuration ---
 sv_files = glob.glob("*/*.sv")
 
-exclude_files = ["gemma\\regfile_ram.sv", "top\\cpu.sv", "top\\sophie.sv", "top\\iris.sv", 
-                 "top\\gemma.sv", "top\\sdram.sv", "top\\sdcard.sv"]
-sv_files = [f for f in sv_files if f not in exclude_files]
+exclude_files = ["gemma/regfile_ram.sv", "top/cpu.sv", "top/sophie.sv", "top/iris.sv", 
+                 "top/gemma.sv", "top/sdram.sv", "top/sdcard.sv"]
+
+# Normalise separators so matching works with either "/" or "\\" paths
+def norm(path):
+    return path.replace("\\", "/")
+
+exclude_set = {norm(f) for f in exclude_files}
+sv_files = [f for f in sv_files if norm(f) not in exclude_set]
 
 #print(f"Found {len(sv_files)} SystemVerilog files:\n" + "\n".join(sv_files))
 command = ["iverilog", "-pfileline=1", "-g2012", "-I", "./cpu", "-I", "./top", "-s", "tb"] + sv_files

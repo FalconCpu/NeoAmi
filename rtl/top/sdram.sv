@@ -46,7 +46,7 @@ module sdram (
     output logic [7:0]   gemma_sdram_rtag,
     output logic [31:0]  gemma_sdram_rdata,
 
-    // Connection to audio (read only)
+    // Connection to sophie (audio subsystem - read only)
     input  logic         audio_sdram_req,
     output logic         audio_sdram_ack,
     input  logic [25:0]  audio_sdram_address,

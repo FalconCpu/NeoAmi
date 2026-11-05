@@ -16,12 +16,11 @@ module cpu_irom (
 
     // PC interface
     input logic         p0_req,            // Request from the PC for the next instruction address
-    input logic [31:0]  p0_pc,             // Current program counter value)
+    input logic [15:0]  p0_pc,             // Current program counter value)
 
     // Instruction output
     output logic        p1_instr_valid,    // Indicates that the instruction output is valid
     output logic [31:0] p1_instr,          // The instruction fetched from the instruction memory
-    output logic [31:0] p1_pc,             // The program counter value associated with the instruction
 
     // Aux bus interface for reading/writing the instruction memory
     input logic         aux_irom_req,        // Request to read/write the instruction memory
@@ -48,8 +47,7 @@ end
 always_ff @(posedge clock) begin
     // Fetch the instruction from the instruction memory
     instr <= irom[p0_pc[15:2]];  
-    p1_instr_valid <= p0_req && p0_pc[31:16] == 16'hFFFF;
-    p1_pc <= p0_pc;
+    p1_instr_valid <= p0_req;
 
     // Handle aux bus read/write requests to the instruction memory
     // verilator lint_off BLKSEQ

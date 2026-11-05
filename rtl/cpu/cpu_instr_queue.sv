@@ -2,124 +2,95 @@
 
 // CPU instruction queue
 //
-// This module implements a simple instruction queue (FIFO) for the CPU. It buffers instructions fetched from the
-// instruction memory (irom) and provides them to the CPU pipeline.
+// This module implements a simple skid buffer for the CPU instruction queue.
 
 module cpu_instr_queue (
     input logic         clock,
     input logic         reset,
+    input logic         flush,
 
     // Input from the instruction memory (irom)
     input logic         p1_instr_valid,    // Indicates that the instruction output is valid
+    output logic        p1_ready,          // Indicates that the instruction FIFO is full and cannot accept more instructions
     input logic [31:0]  p1_instr,          // The instruction fetched from the instruction memory
     input logic [31:0]  p1_pc,             // The program counter value associated with the instruction
-    output logic        p1_fifo_full,      // Indicates that the instruction FIFO is full and cannot accept more instructions
 
     // Output to the CPU pipeline
     input  logic        p2_ready,          // Indicates that the CPU is ready to consume the instruction
     output logic        p2_instr_valid,    // Indicates that the instruction output is valid
     output logic [31:0] p2_instr,          // The instruction to be executed by the CPU
-    output logic [31:0] p2_pc, 
-    input  logic        p4_jump_taken,     // Flush the instruction queue if a jump is taken
-    output logic        instr_fifo_fault  // Indicates that the instruction FIFO has overflowed
+    output logic [31:0] p2_pc
 );
 
-logic        queue0_valid, next_queue0_valid;
-logic [31:0] queue0_instr, next_queue0_instr;
-logic [31:0] queue0_pc, next_queue0_pc;
-logic        queue1_valid, next_queue1_valid;
-logic [31:0] queue1_instr, next_queue1_instr;
-logic [31:0] queue1_pc, next_queue1_pc;
-logic        queue2_valid, next_queue2_valid;
-logic [31:0] queue2_instr, next_queue2_instr;
-logic [31:0] queue2_pc, next_queue2_pc;
-logic        next_fault;
+logic        skid_valid, next_skid_valid;
+logic [31:0] skid_instr, next_skid_instr;
+logic [31:0] skid_pc, next_skid_pc;
 
+logic        next_p2_instr_valid;
+logic [31:0] next_p2_instr;
+logic [31:0] next_p2_pc;
 
-assign p2_instr_valid = queue0_valid;
-assign p2_instr = queue0_instr;
-assign p2_pc = queue0_pc;
+assign p1_ready = !skid_valid;
 
 always_comb begin
-    p1_fifo_full = queue2_valid || (queue1_valid && p1_instr_valid);
-
-    next_fault = 1'b0;
-    // If the CPU is ready to consume an instruction, shift the queue down
-    if (p2_ready) begin
-        next_queue0_valid = queue1_valid;
-        next_queue0_instr = queue1_instr;
-        next_queue0_pc    = queue1_pc;
-        next_queue1_valid = queue2_valid;
-        next_queue1_instr = queue2_instr;
-        next_queue1_pc    = queue2_pc;
-        next_queue2_valid = 1'b0;
-        next_queue2_instr = 32'hx;
-        next_queue2_pc    = 32'hx;
+    if (flush || reset) begin
+        // If a flush is requested, clear both the skid buffer and the output to the CPU
+        next_skid_valid = 0;
+        next_p2_instr_valid = 0;
+        next_p2_instr   = 32'bx;
+        next_p2_pc      = 32'bx;
+        next_skid_instr = 32'bx;
+        next_skid_pc    = 32'bx;
+    end else if (p2_ready && skid_valid) begin
+        // If the CPU is ready for an instruction, and we have one in the skid buffer,
+        // send it to the CPU and clear the skid buffer
+        next_p2_instr_valid = 1;
+        next_p2_instr = skid_instr;
+        next_p2_pc = skid_pc;
+        next_skid_valid = 0;
+        next_skid_instr = 32'bx;
+        next_skid_pc = 32'bx;
+    end else if (p2_ready) begin
+        // If the CPU is ready for an instruction, but the skid buffer is empty,
+        // take the instruction directly from the icache (p1) and send it to the CPU
+        next_p2_instr_valid = p1_instr_valid;
+        next_p2_instr = p1_instr;
+        next_p2_pc = p1_pc;
+        next_skid_valid = 1'b0;
+        next_skid_instr = 32'bx;
+        next_skid_pc = 32'bx;
+    end else if (p1_instr_valid && !skid_valid) begin
+        // If the CPU is not ready, but we have a valid instruction from the icache,
+        // store it in the skid buffer
+        next_skid_valid = 1;
+        next_skid_instr = p1_instr;
+        next_skid_pc = p1_pc;
+        next_p2_instr_valid = p2_instr_valid;
+        next_p2_instr = p2_instr;
+        next_p2_pc = p2_pc;
     end else begin
-        next_queue0_valid = queue0_valid;
-        next_queue0_instr = queue0_instr;
-        next_queue0_pc    = queue0_pc;
-        next_queue1_valid = queue1_valid;
-        next_queue1_instr = queue1_instr;
-        next_queue1_pc    = queue1_pc;
-        next_queue2_valid = queue2_valid;
-        next_queue2_instr = queue2_instr;
-        next_queue2_pc    = queue2_pc;
-    end
-
-    // Add the new instruction from the instruction memory to the queue
-    if (next_queue0_valid == 1'b0) begin
-        next_queue0_valid = p1_instr_valid;
-        next_queue0_instr = p1_instr;
-        next_queue0_pc    = p1_pc;
-    end else if (next_queue1_valid == 1'b0) begin
-        next_queue1_valid = p1_instr_valid;
-        next_queue1_instr = p1_instr;
-        next_queue1_pc    = p1_pc;
-    end else if (next_queue2_valid == 1'b0) begin
-        next_queue2_valid = p1_instr_valid;
-        next_queue2_instr = p1_instr;
-        next_queue2_pc    = p1_pc;
-    end else 
-        next_fault = p1_instr_valid; // If the queue is full and a new instruction is valid, set the fault flag
-
-    // If a jump is taken, flush the instruction queue
-    if (p4_jump_taken || reset) begin
-        next_queue0_valid = 1'b0;
-        next_queue0_instr = 32'hx;
-        next_queue0_pc    = 32'hx;
-        next_queue1_valid = 1'b0;
-        next_queue1_instr = 32'hx;
-        next_queue1_pc    = 32'hx;
-        next_queue2_valid = 1'b0;
-        next_queue2_instr = 32'hx;
-        next_queue2_pc    = 32'hx;
+        // If none of the above conditions are met, maintain the current state
+        next_skid_valid = skid_valid;
+        next_skid_instr = skid_instr;
+        next_skid_pc = skid_pc;
+        next_p2_instr_valid = p2_instr_valid;
+        next_p2_instr = p2_instr;
+        next_p2_pc = p2_pc;
     end
 end
+
+
 
 
 always_ff @(posedge clock) begin
-    queue0_valid <= next_queue0_valid;
-    queue0_instr <= next_queue0_instr;
-    queue0_pc    <= next_queue0_pc;
+    skid_valid <= next_skid_valid;
+    skid_instr <= next_skid_instr;
+    skid_pc <= next_skid_pc;
 
-    queue1_valid <= next_queue1_valid;
-    queue1_instr <= next_queue1_instr;
-    queue1_pc    <= next_queue1_pc;
-
-    queue2_valid <= next_queue2_valid;
-    queue2_instr <= next_queue2_instr;
-    queue2_pc    <= next_queue2_pc;
-    
-    instr_fifo_fault <= next_fault;
-
-    // synthesis translate_off
-    if (next_fault) 
-        $display("ERROR %t: Instruction FIFO overflow", $time);
-    // synthesis translate_on
+    p2_instr_valid <= next_p2_instr_valid;
+    p2_instr <= next_p2_instr;
+    p2_pc <= next_p2_pc;
 end
 
-
-
-
 endmodule
+

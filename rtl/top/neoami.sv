@@ -135,6 +135,11 @@ logic [25:0]  dcache_sdramr_addr;
 logic  [1:0]  dcache_sdramr_rvalid;
 logic [31:0]  dcache_sdramr_rdata;
 
+logic         icache_sdram_req;
+logic         icache_sdram_ack;
+logic [25:0]  icache_sdram_addr;
+logic [1:0]   icache_sdram_rvalid;
+logic [31:0]  icache_sdram_rdata;
 
 cpu  cpu_inst (
     .clock(clock),
@@ -164,17 +169,17 @@ cpu  cpu_inst (
     .dcache_sdramr_addr(dcache_sdramr_addr),
     .dcache_sdramr_rvalid(dcache_sdramr_rvalid),
     .dcache_sdramr_rdata(dcache_sdramr_rdata),
+    .icache_sdram_req(icache_sdram_req),
+    .icache_sdram_ready(icache_sdram_ack),
+    .icache_sdram_addr(icache_sdram_addr),
+    .icache_sdram_rvalid(icache_sdram_rvalid),
+    .icache_sdram_rdata(icache_sdram_rdata),
     .cpu_pc(cpu_pc)
   );
 
 //=======================================================
 //  SDRAM controller
 //=======================================================
-logic         icache_sdram_req=1'b0;
-logic         icache_sdram_ack;
-logic [25:0]  icache_sdram_addr;
-logic [1:0]   icache_sdram_rvalid;
-logic [31:0]  icache_sdram_rdata;
 
 logic         vga_sdram_req;
 logic         vga_sdram_ack;
@@ -195,13 +200,13 @@ logic [1:0]  gemma_sdram_rvalid;
 logic [7:0]  gemma_sdram_rtag;
 logic [31:0] gemma_sdram_rdata;
 
-logic         audio_sdram_req;
-logic         audio_sdram_ack;
-logic [25:0]  audio_sdram_address;
-logic [1:0]   audio_sdram_rvalid;
-logic [31:0]  audio_sdram_rdata;
-logic [7:0]   audio_sdram_tag;
-logic [7:0]   audio_sdram_rtag;
+logic         sophie_sdram_req;
+logic         sophie_sdram_ack;
+logic [25:0]  sophie_sdram_addr;
+logic [1:0]   sophie_sdram_rvalid;
+logic [31:0]  sophie_sdram_rdata;
+logic [7:0]   sophie_sdram_tag;
+logic [7:0]   sophie_sdram_rtag;
 
 
 
@@ -240,13 +245,13 @@ logic [7:0]   audio_sdram_rtag;
     .gemma_sdram_rvalid(gemma_sdram_rvalid),
     .gemma_sdram_rtag(gemma_sdram_rtag),
     .gemma_sdram_rdata(gemma_sdram_rdata),
-    .audio_sdram_req(audio_sdram_req),
-    .audio_sdram_ack(audio_sdram_ack),
-    .audio_sdram_tag(audio_sdram_tag),
-    .audio_sdram_address(audio_sdram_address),
-    .audio_sdram_rvalid(audio_sdram_rvalid),
-    .audio_sdram_rtag(audio_sdram_rtag),
-    .audio_sdram_rdata(audio_sdram_rdata),
+    .audio_sdram_req(sophie_sdram_req),
+    .audio_sdram_ack(sophie_sdram_ack),
+    .audio_sdram_tag(sophie_sdram_tag),
+    .audio_sdram_address(sophie_sdram_addr),
+    .audio_sdram_rvalid(sophie_sdram_rvalid),
+    .audio_sdram_rtag(sophie_sdram_rtag),
+    .audio_sdram_rdata(sophie_sdram_rdata),
     .DRAM_ADDR(DRAM_ADDR),
     .DRAM_BA(DRAM_BA),
     .DRAM_CAS_N(DRAM_CAS_N),
@@ -330,13 +335,13 @@ sophie  sophie_inst (
     .AUD_BCLK(AUD_BCLK),
     .AUD_DACLRCK(AUD_DACLRCK),
     .AUD_DACDAT(AUD_DACDAT),
-    .audio_sdram_req(audio_sdram_req),
-    .audio_sdram_ack(audio_sdram_ack),
-    .audio_sdram_tag(audio_sdram_tag),
-    .audio_sdram_address(audio_sdram_address),
-    .audio_sdram_rvalid(audio_sdram_rvalid),
-    .audio_sdram_rdata(audio_sdram_rdata),
-    .audio_sdram_rtag(audio_sdram_rtag),
+    .sophie_sdram_req(sophie_sdram_req),
+    .sophie_sdram_ack(sophie_sdram_ack),
+    .sophie_sdram_tag(sophie_sdram_tag),
+    .sophie_sdram_addr(sophie_sdram_addr),
+    .sophie_sdram_rvalid(sophie_sdram_rvalid),
+    .sophie_sdram_rdata(sophie_sdram_rdata),
+    .sophie_sdram_rtag(sophie_sdram_rtag),
     .mouse_x(mouse_x),
     .mouse_y(mouse_y),
     .cpu_pc(cpu_pc),

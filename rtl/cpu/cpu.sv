@@ -27,6 +27,13 @@ module cpu (
     input logic [31:0]  cpu_aux_rdata,    // Data read from the data memory
     input logic [4:0]   cpu_aux_rdest,    // Destination register for the instruction in stage 3
 
+    // Icache connection to SDRAM
+    input  logic         icache_sdram_ready,
+    output logic         icache_sdram_req,
+    output logic [25:0]  icache_sdram_addr,
+    input  logic [1:0]   icache_sdram_rvalid,  // 01=first, 10=middle, 11=last
+    input  logic [31:0]  icache_sdram_rdata,    
+
     // Write Interface to SDRAM
     output logic         dcache_sdramw_req,     // Request write burst to SDRAM
     input logic          dcache_sdramw_ack,     // SDRAM is ready to accept write burst
@@ -45,12 +52,10 @@ module cpu (
 );
 
 // Signals driven by the instruction queue module
-logic        p1_fifo_full;
 logic        p2_ready;
 logic        p2_instr_valid;
 logic [31:0] p2_instr;
 logic [31:0] p2_pc;
-logic        instr_fifo_fault;
 
 // Signals driven by the decoder module
 logic [4:0]  p2_rs1;
@@ -118,36 +123,68 @@ logic        memif_fault;
 // ===================================================================
 
 logic [31:0] p0_pc;
-logic        p0_req;
+logic        p0_ready;
 logic        p4_jump_taken;
 logic [31:0] p4_jump_target;
 
 cpu_pc  cpu_pc_inst (
     .clock(clock),
     .reset(reset),
-    .p0_req(p0_req),
     .p0_pc(p0_pc),
-    .p1_fifo_full(p1_fifo_full),
+    .p0_ready(p0_ready),
     .p4_jump_taken(p4_jump_taken),
     .p4_jump_target(p4_jump_target)
+  );
+
+// ===================================================================
+//    CPU Icache
+// ===================================================================
+
+logic        p1_instr_valid;
+logic [31:0] p1_instr;
+logic [31:0] p1_pc;
+logic        p1_ready;
+logic        icache_flush;
+logic        icache_flush_in_progress;
+
+logic         icache_iram_req;
+logic [15:0]  icache_iram_addr;
+logic         icache_iram_rvalid;
+logic [31:0]  icache_iram_rdata;
+
+cpu_icache  cpu_icache_inst (
+    .clock(clock),
+    .reset(reset),
+    .p0_ready(p0_ready),
+    .p0_pc(p0_pc),
+    .p1_instr_valid(p1_instr_valid),
+    .p1_instr(p1_instr),
+    .p1_pc(p1_pc),
+    .p1_ready(p1_ready),
+    .icache_flush(icache_flush),
+    .icache_flush_in_progress(icache_flush_in_progress),
+    .icache_iram_req(icache_iram_req),
+    .icache_iram_addr(icache_iram_addr),
+    .icache_iram_rvalid(icache_iram_rvalid),
+    .icache_iram_rdata(icache_iram_rdata),
+    .icache_sdram_ready(icache_sdram_ready),
+    .icache_sdram_req(icache_sdram_req),
+    .icache_sdram_addr(icache_sdram_addr),
+    .icache_sdram_rvalid(icache_sdram_rvalid),
+    .icache_sdram_rdata(icache_sdram_rdata)
   );
 
 // ===================================================================
 //    CPU Instruction ROM (IROM)
 // ===================================================================
 
-logic        p1_instr_valid;
-logic [31:0] p1_instr;
-logic [31:0] p1_pc;
-
 cpu_irom  cpu_irom_inst (
     .clock(clock),
     .reset(reset),
-    .p0_req(p0_req),
-    .p0_pc(p0_pc),
-    .p1_instr_valid(p1_instr_valid),
-    .p1_instr(p1_instr),
-    .p1_pc(p1_pc),
+    .p0_req(icache_iram_req),
+    .p0_pc(icache_iram_addr),
+    .p1_instr_valid(icache_iram_rvalid),
+    .p1_instr(icache_iram_rdata),
     .aux_irom_req(aux_irom_req),
     .aux_irom_write(aux_irom_write),
     .aux_irom_addr(aux_irom_addr),
@@ -163,17 +200,16 @@ cpu_irom  cpu_irom_inst (
 cpu_instr_queue  cpu_instr_queue_inst (
     .clock(clock),
     .reset(reset),
+    .flush(p4_jump_taken),
     .p1_instr_valid(p1_instr_valid),
     .p1_instr(p1_instr),
     .p1_pc(p1_pc),
-    .p1_fifo_full(p1_fifo_full),
+    .p1_ready(p1_ready),
     .p2_ready(p2_ready),
     .p2_instr_valid(p2_instr_valid),
     .p2_instr(p2_instr),
-    .p2_pc(p2_pc),
-    .p4_jump_taken(p4_jump_taken),
-    .instr_fifo_fault(instr_fifo_fault)
-  );
+    .p2_pc(p2_pc)
+);
 
 // ===================================================================
 //    CPU Decoder
@@ -181,6 +217,10 @@ cpu_instr_queue  cpu_instr_queue_inst (
 
 logic        p3_is_illegal;
 logic [31:0]  p3_instr;
+logic        misaligned_exception;
+logic        dmpu_exception;
+logic        mem_ready;
+
 wire p4_exception = misaligned_exception || dmpu_exception;
 
 logic        stall_fault;
@@ -232,6 +272,8 @@ cpu_decoder  cpu_decoder_inst (
 //    CPU Register File
 // ===================================================================
 
+logic [31:0] p3_alu_result;
+
 cpu_regfile  cpu_regfile_inst (
     .clock(clock),
     .p2_rs1(p2_rs1),
@@ -256,9 +298,7 @@ logic         idx_bounds_exception;
 logic        p4_alu_valid;
 logic        p4_alu_latent;
 logic [4:0]  p4_alu_rd;
-logic [31:0] p3_alu_result;
 logic [31:0] p4_alu_result;
-logic        mem_ready;
 logic        mul_valid;
 logic [4:0]  mul_rd;
 logic [31:0] mul_result;
@@ -330,8 +370,6 @@ cpu_branch  cpu_branch_inst (
 //    CPU Memory Stage
 // ===================================================================
 
-logic        misaligned_exception;
-logic        dmpu_exception;
 logic [31:0] mem_exc_addr;
 
 
@@ -389,6 +427,11 @@ fpu  fpu_inst (
 // ===================================================================
 //    CPU Writeback Stage
 // ===================================================================
+
+logic         sys_valid;
+logic [4:0]   sys_reg_d;
+logic [31:0]  sys_result;
+
 
 cpu_writeback  cpu_writeback_inst (
   .clock(clock),
@@ -462,13 +505,8 @@ logic         supervisor_mode;
 logic         dmpu_clear;
 logic         dmpu_add;
 logic [31:0]  dmpu_data;
-logic         icache_flush;
-logic         icache_flush_in_progress;
-logic         sys_valid;
-logic [4:0]   sys_reg_d;
-logic [31:0]  sys_result;
 
-wire cpu_check_exception = memif_fault || writeback_fault || instr_fifo_fault || stall_fault;
+wire cpu_check_exception = memif_fault || writeback_fault || stall_fault;
 
 cpu_sys  cpu_sys_inst (
     .clock(clock),
