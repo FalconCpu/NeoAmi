@@ -8,7 +8,7 @@ module sophie_address_decoder (
     input logic         clock,
     input logic         reset,
 
-    // CPU bus
+    // CPU bus - allows CPU to read/write to the auxiliary memory and peripherals
     input  logic        cpu_aux_req,        // Request to read/write the data memory
     input  logic        cpu_aux_write,      // Indicates a write operation to the data memory
     input  logic [31:0] cpu_aux_addr,       // Address for the read/write
@@ -18,6 +18,12 @@ module sophie_address_decoder (
     output logic        cpu_aux_rvalid,     // Indicates that the data read from the data memory is valid
     output logic [31:0] cpu_aux_rdata,      // Data read from the data memory
     output logic [4:0]  cpu_aux_rdest,      // Destination register for the instruction in stage 3
+
+    // Copper bus - allow Copper tp write to peripheral memory
+    input  logic        copper_aux_req,
+    output logic        copper_aux_ack,
+    input  logic [19:0] copper_aux_addr,    // Copper can only access MMIO space (Implicit 0xE00 on top of the address)
+    input  logic [31:0] copper_aux_wdata,
 
     // Sophie peripherals
     output logic        aux_hwregs_req,      // Request to read/write the hardware registers
@@ -52,6 +58,40 @@ logic [3:0] strb_dly1, strb_dly2;
 logic       rvalid_dly1, rvalid_dly2;
 
 logic [31:0] rdata;
+
+// CPU has precedence over Copper for accessing the auxiliary memory and peripherals
+logic        aux_req;
+logic [31:0] aux_addr;
+logic        aux_write;
+logic [31:0] aux_wdata;
+logic [3:0]  aux_strb;
+
+always_comb begin
+    copper_aux_ack = 1'b0;
+
+    if (cpu_aux_req) begin
+        aux_req   = 1'b1;
+        aux_addr  = cpu_aux_addr;
+        aux_write = cpu_aux_write;
+        aux_wdata = cpu_aux_wdata;
+        aux_strb  = cpu_aux_strb;
+    end else if (copper_aux_req) begin
+        aux_req   = 1'b1;
+        aux_addr  = {12'hE00, copper_aux_addr};
+        aux_wdata = copper_aux_wdata;
+        aux_write = 1'b1; // Copper can only write whole words
+        aux_strb  = 4'hf; 
+        copper_aux_ack = copper_aux_req && !cpu_aux_req;
+    end else begin
+        aux_req   = 1'b0;
+        aux_addr  = 32'bx;
+        aux_write = 1'bx;
+        aux_wdata = 32'bx;
+        aux_strb  = 4'bx;
+    end
+end
+
+
 
 always_ff @(posedge clock) begin
     // Default values for the outputs
@@ -99,36 +139,33 @@ always_ff @(posedge clock) begin
     endcase 
 
     // Route the requests to the appropriate peripheral
-    if (cpu_aux_req && !reset) begin
-        if (cpu_aux_addr[31:16] == 16'hE000) begin
+    if (aux_req && !reset) begin
+        if (aux_addr[31:16] == 16'hE000) begin
             // Route to the Sophie hardware registers
             aux_hwregs_req <= 1'b1;
-            aux_hwregs_write <= cpu_aux_write;
-            aux_hwregs_addr <= cpu_aux_addr[15:0];
-            aux_hwregs_wdata <= cpu_aux_wdata;
-            aux_hwregs_strb <= cpu_aux_strb;
-        end else if (cpu_aux_addr[31:16] == 16'hE001) begin
+            aux_hwregs_write <= aux_write;
+            aux_hwregs_addr <= aux_addr[15:0];
+            aux_hwregs_wdata <= aux_wdata;
+            aux_hwregs_strb <= aux_strb;
+        end else if (aux_addr[31:16] == 16'hE001) begin
             // Route to the Iris memory
             aux_iris_req <= 1'b1;
-            aux_iris_addr <= cpu_aux_addr[15:0];
-            aux_iris_wdata <= cpu_aux_wdata;
-        end else if (cpu_aux_addr[31:16] == 16'hE002) begin
+            aux_iris_addr <= aux_addr[15:0];
+            aux_iris_wdata <= aux_wdata;
+        end else if (aux_addr[31:16] == 16'hE002) begin
             // Route to GEMMA
             aux_gemma_req <= 1'b1;
-            aux_gemma_write <= cpu_aux_write;
-            aux_gemma_addr <= cpu_aux_addr[15:0];
-            aux_gemma_wdata <= cpu_aux_wdata;
-        end else if (cpu_aux_addr[31:16] == 16'hFFFF) begin
+            aux_gemma_write <= aux_write;
+            aux_gemma_addr <= aux_addr[15:0];
+            aux_gemma_wdata <= aux_wdata;
+        end else if (aux_addr[31:16] == 16'hFFFF) begin
             // Route to the instruction memory
             aux_irom_req <= 1'b1;
-            aux_irom_write <= cpu_aux_write;
-            aux_irom_addr <= cpu_aux_addr[15:0];
-            aux_irom_wdata <= cpu_aux_wdata;
+            aux_irom_write <= aux_write;
+            aux_irom_addr <= aux_addr[15:0];
+            aux_irom_wdata <= aux_wdata;
         end else begin
             // Invalid address range, ignore the request
-            aux_hwregs_req <= 1'b0;
-            aux_iris_req <= 1'b0;
-            aux_irom_req <= 1'b0;
         end
     end
 

@@ -128,9 +128,10 @@ initial begin
     $dumpfile("falcon_tb.vcd");
     // $dumpvars(0, tb);
     $dumpvars(2, tb);
-    $dumpvars(0, tb.neoami_inst.cpu_inst);
+    // $dumpvars(0, tb.neoami_inst.cpu_inst);
     // $dumpvars(0, tb.neoami_inst.iris_inst);
-    // $dumpvars(0, tb.neoami_inst.sophie_inst);
+    $dumpvars(0, tb.neoami_inst.sophie_inst);
+    $dumpvars(0, tb.neoami_inst.sdram_inst);
     // Initialize inputs
 
     #2500000;

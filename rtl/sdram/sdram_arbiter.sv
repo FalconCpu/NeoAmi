@@ -49,14 +49,14 @@ module sdram_arbiter(
     output logic [7:0]   gemma_sdram_rtag,
     output logic [31:0]  gemma_sdram_rdata,
 
-    // Connection to audio (read only)
-    input  logic         audio_sdram_req,
-    output logic         audio_sdram_ack,
-    input  logic [25:0]  audio_sdram_address,
-    input  logic [7:0]   audio_sdram_tag,
-    output logic [1:0]   audio_sdram_rvalid,
-    output logic [31:0]  audio_sdram_rdata,
-    output logic [7:0]   audio_sdram_rtag,
+    // Connection to sophie (read only)
+    input  logic         sophie_sdram_req,
+    output logic         sophie_sdram_ack,
+    input  logic [25:0]  sophie_sdram_address,
+    input  logic [7:0]   sophie_sdram_tag,
+    output logic [1:0]   sophie_sdram_rvalid,
+    output logic [31:0]  sophie_sdram_rdata,
+    output logic [7:0]   sophie_sdram_rtag,
 
 
     // Connection to the SDRAM controller
@@ -104,7 +104,7 @@ always_comb begin
     icache_sdram_ack = 1'b0;
     gemma_sdram_ack = 1'b0;
     vga_sdram_ack = 1'b0;
-    audio_sdram_ack = 1'b0;
+    sophie_sdram_ack = 1'b0;
     next_vga_yield = vga_yield;
 
     // If the SDRAM is ready then shift the new request through, otherwise hold it in the queue
@@ -157,16 +157,16 @@ always_comb begin
         new_sdram_wmask = 16'bx;
         new_sdram_tag = {3'b010, vga_sdram_tag[7:0]};
         // Allow a max of 7 consecutive VGA requests before giving other clients a chance
-        next_vga_yield = dcache_sdramr_req || dcache_sdramw_req || audio_sdram_req || gemma_sdram_req || icache_sdram_req;
+        next_vga_yield = dcache_sdramr_req || dcache_sdramw_req || sophie_sdram_req || gemma_sdram_req || icache_sdram_req;
 
-    end else if (audio_sdram_req) begin
-        audio_sdram_ack = 1'b1;
+    end else if (sophie_sdram_req) begin
+        sophie_sdram_ack = 1'b1;
         new_sdram_req = 1'b1;
         new_sdram_write = 1'b0;
-        new_sdram_addr = audio_sdram_address;
+        new_sdram_addr = sophie_sdram_address;
         new_sdram_wdata = 128'bx;
         new_sdram_wmask = 16'bx;
-        new_sdram_tag = {3'b100, audio_sdram_tag[7:0]};
+        new_sdram_tag = {3'b100, sophie_sdram_tag[7:0]};
 
     end else if (dcache_sdramw_req) begin
         // Accept request from dcache
@@ -240,7 +240,7 @@ always_comb begin
 
 
     // if another master is granted access to the SDRAM, reset the VGA request count
-    if (dcache_sdramw_ack || dcache_sdramr_ack || audio_sdram_ack || gemma_sdram_ack || icache_sdram_ack) 
+    if (dcache_sdramw_ack || dcache_sdramr_ack || sophie_sdram_ack || gemma_sdram_ack || icache_sdram_ack) 
         next_vga_yield = 1'b1;
 
     // Reset
@@ -263,9 +263,9 @@ always_comb begin
     gemma_sdram_rvalid = 2'b0;
     gemma_sdram_rdata = 32'bx;
     gemma_sdram_rtag = 8'bx;
-    audio_sdram_rvalid = 2'b0;
-    audio_sdram_rdata = 32'bx;
-    audio_sdram_rtag = 8'bx;
+    sophie_sdram_rvalid = 2'b0;
+    sophie_sdram_rdata = 32'bx;
+    sophie_sdram_rtag = 8'bx;
     
 
     if (sdram_rtag[10:8] == 3'b000) begin
@@ -287,9 +287,9 @@ always_comb begin
         gemma_sdram_rdata = sdram_rdata;
         gemma_sdram_rtag = sdram_rtag[7:0];
     end else if (sdram_rtag[10:8] == 3'b100) begin
-        audio_sdram_rvalid = sdram_rvalid;
-        audio_sdram_rdata = sdram_rdata;
-        audio_sdram_rtag = sdram_rtag[7:0];
+        sophie_sdram_rvalid = sdram_rvalid;
+        sophie_sdram_rdata = sdram_rdata;
+        sophie_sdram_rtag = sdram_rtag[7:0];
     end
 end
 

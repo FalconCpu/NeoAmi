@@ -14,7 +14,15 @@ module sophie_sdram_arb (
     input logic         audio_sdram_req,     // Request signal from the audio module
     output logic        audio_sdram_ack,     // Acknowledge signal to the audio module
     input logic [25:0]  audio_sdram_addr,    // Address for the audio request
-    input logic [7:0]   audio_sdram_tag,     // Tag for the audio request (used for response routing)
+    output logic [31:0] audio_sdram_rdata,   // Data read for the audio request
+    output logic [1:0]  audio_sdram_rvalid,  // Valid signal for the audio read data
+
+    // Request signals from copper module
+    input logic         copper_sdram_req,     // Request signal from the copper module
+    output logic        copper_sdram_ack,     // Acknowledge signal to the copper module
+    input logic [25:0]  copper_sdram_addr,    // Address for the copper request
+    output logic [31:0] copper_sdram_rdata,   // Data read for the copper request
+    output logic [1:0]  copper_sdram_rvalid,  // Valid signal for the copper read data
 
     // Output signals to the SDRAM controller
     output logic         sophie_sdram_req,    // Request signal to the SDRAM controller
@@ -26,7 +34,9 @@ module sophie_sdram_arb (
     input  logic [31:0]  sophie_sdram_rdata   // Data read from the SDRAM
 );
 
+// Priority: Audio > Copper
 assign audio_sdram_ack = audio_sdram_req && !sophie_sdram_req; // Acknowledge the request when the arbiter is not busy
+assign copper_sdram_ack = copper_sdram_req && !audio_sdram_ack && !sophie_sdram_req; // Acknowledge the request when the arbiter is not busy
 
 always_ff @(posedge clock) begin
 
@@ -40,13 +50,40 @@ always_ff @(posedge clock) begin
     end
 
     // =============================================================
-    // Audio request.   Read only
+    // Process new requests from audio and copper modules
     // =============================================================
     if (audio_sdram_ack) begin
         sophie_sdram_req <= 1'b1;
         sophie_sdram_addr <= audio_sdram_addr;
-        sophie_sdram_tag <= audio_sdram_tag;
+        sophie_sdram_tag <= 8'h0;
+    end else if (copper_sdram_ack) begin
+        sophie_sdram_req <= 1'b1;
+        sophie_sdram_addr <= copper_sdram_addr;
+        sophie_sdram_tag <= 8'h1;
     end
+
+    // =============================================================
+    // Pass received data from SDRAM to the audio module
+    // =============================================================
+    if (sophie_sdram_rvalid != 2'b00 && sophie_sdram_rtag == 8'h0) begin
+        audio_sdram_rdata <= sophie_sdram_rdata;
+        audio_sdram_rvalid <= sophie_sdram_rvalid;
+    end else begin
+        audio_sdram_rvalid <= 2'b00;
+        audio_sdram_rdata <= 32'bx;
+    end
+
+    // =============================================================
+    // Pass received data from SDRAM to the copper module
+    // =============================================================
+    if (sophie_sdram_rvalid != 2'b00 && sophie_sdram_rtag == 8'h1) begin
+        copper_sdram_rdata <= sophie_sdram_rdata;
+        copper_sdram_rvalid <= sophie_sdram_rvalid;
+    end else begin
+        copper_sdram_rvalid <= 2'b00;
+        copper_sdram_rdata <= 32'bx;
+    end
+
 
     // =============================================================
     // Reset

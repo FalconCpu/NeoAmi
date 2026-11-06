@@ -208,8 +208,6 @@ logic [31:0]  sophie_sdram_rdata;
 logic [7:0]   sophie_sdram_tag;
 logic [7:0]   sophie_sdram_rtag;
 
-
-
   sdram  sdram_inst (
     .clock(clock),
     .reset(reset),
@@ -245,13 +243,13 @@ logic [7:0]   sophie_sdram_rtag;
     .gemma_sdram_rvalid(gemma_sdram_rvalid),
     .gemma_sdram_rtag(gemma_sdram_rtag),
     .gemma_sdram_rdata(gemma_sdram_rdata),
-    .audio_sdram_req(sophie_sdram_req),
-    .audio_sdram_ack(sophie_sdram_ack),
-    .audio_sdram_tag(sophie_sdram_tag),
-    .audio_sdram_address(sophie_sdram_addr),
-    .audio_sdram_rvalid(sophie_sdram_rvalid),
-    .audio_sdram_rtag(sophie_sdram_rtag),
-    .audio_sdram_rdata(sophie_sdram_rdata),
+    .sophie_sdram_req(sophie_sdram_req),
+    .sophie_sdram_ack(sophie_sdram_ack),
+    .sophie_sdram_tag(sophie_sdram_tag),
+    .sophie_sdram_address(sophie_sdram_addr),
+    .sophie_sdram_rvalid(sophie_sdram_rvalid),
+    .sophie_sdram_rtag(sophie_sdram_rtag),
+    .sophie_sdram_rdata(sophie_sdram_rdata),
     .DRAM_ADDR(DRAM_ADDR),
     .DRAM_BA(DRAM_BA),
     .DRAM_CAS_N(DRAM_CAS_N),
@@ -272,6 +270,8 @@ logic            aux_iris_req;
 logic [15:0]     aux_iris_addr;
 logic [31:0]     aux_iris_wdata;
 logic [9:0]      ypos;
+logic [10:0]     xpos;
+logic            start_of_frame;
 
 logic            aux_gemma_req;
 logic            aux_gemma_write;
@@ -345,7 +345,9 @@ sophie  sophie_inst (
     .mouse_x(mouse_x),
     .mouse_y(mouse_y),
     .cpu_pc(cpu_pc),
-    .vga_obj_list(vga_obj_list)
+    .vga_obj_list(vga_obj_list),
+    .xpos(xpos),
+    .start_of_frame(start_of_frame)
   );
 
 // =======================================================
@@ -364,6 +366,8 @@ sophie  sophie_inst (
     .VGA_SYNC_N(VGA_SYNC_N),
     .VGA_VS(VGA_VS),
     .ypos(ypos),
+    .xpos(xpos),
+    .start_of_frame(start_of_frame),
     .vga_obj_list(vga_obj_list),
     .aux_iris_req(aux_iris_req),
     .aux_iris_addr(aux_iris_addr),

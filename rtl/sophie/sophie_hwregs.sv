@@ -26,6 +26,7 @@
 // E0000044  SD_CARD_CMD_HI   W  Upper 16 bits of the SD card command
 // E0000048  SD_CARD_CMD_LO R/W  Lower 32 bits of the SD card command - reads as -1 once the command has been accepted
 // E000004C  SD_CARD_RX       R  Data received from the SD card over SPI - reads as -1 if no data is available
+// E0000050  COPPERLIST_ADDR  R/W  Base address of the copper list for the VGA rasterizer
 // E0000400  AUDIO          R/W  16 audio channels - 16 registers per channel
 // E00007FC  AUDIO          R/W  Last register of the audio block
 
@@ -71,6 +72,7 @@ module sophie_hwregs (
     output logic [9:0]  mouse_x,
     output logic [9:0]  mouse_y,
     output logic [25:0] vga_obj_list,
+    output logic [25:0] copperlist_addr,
     input  logic [31:0] cpu_pc             // Current CPU PC (for capture on seven seg)
 );
 
@@ -78,7 +80,7 @@ logic [23:0] seven_seg;
 logic [7:0]  fifo_tx_data;
 logic        fifo_tx_complete;
 logic        fifo_tx_not_empty;
-logic [11:0] fifo_tx_slots_free;
+logic [9:0] fifo_tx_slots_free;
 logic [7:0]  fifo_rx_data;
 logic        fifo_rx_not_empty;
 logic [7:0]  uart_rx_data;
@@ -177,6 +179,9 @@ always_ff @(posedge clock) begin
                 if (aux_hwregs_strb[1]) sdcard_cmd[15:8] <= aux_hwregs_wdata[15:8];
                 if (aux_hwregs_strb[0]) sdcard_cmd[7:0] <= aux_hwregs_wdata[7:0];
             end
+            16'h0050: begin
+                copperlist_addr <= aux_hwregs_wdata[25:0];
+            end
             default: begin end
         endcase
 
@@ -187,7 +192,7 @@ always_ff @(posedge clock) begin
             16'h0004: aux_hwregs_rdata <= {22'b0, LEDR};
             16'h0008: aux_hwregs_rdata <= {22'b0, SW};
             16'h000C: aux_hwregs_rdata <= {28'b0, KEY};
-            16'h0010: aux_hwregs_rdata <= {20'b0, fifo_tx_slots_free};
+            16'h0010: aux_hwregs_rdata <= {22'b0, fifo_tx_slots_free};
             16'h0014: begin
                 aux_hwregs_rdata <= fifo_rx_not_empty ? {24'b0, fifo_rx_data} : 32'hffffffff;
             end
@@ -212,6 +217,7 @@ always_ff @(posedge clock) begin
                         aux_hwregs_rdata <= sdcard_rx_data;
                         sdcard_rx_data <= 32'hFFFFFFFF;
                       end
+            16'h0050: aux_hwregs_rdata <= {6'b0, copperlist_addr};
             default:  aux_hwregs_rdata <= 32'b0;
         endcase
     end
@@ -226,6 +232,7 @@ always_ff @(posedge clock) begin
         timer <= 0;
         latched_fifo_overflow <= 3'b0;
         sdcard_enable <= 1'b0;
+        copperlist_addr <= 26'b0;
     end
 end
 

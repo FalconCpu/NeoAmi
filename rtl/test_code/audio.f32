@@ -1,4 +1,6 @@
 # dummy test to check the audio module
+HWREGS = 0xE0000000
+HWREGS_COPPER = 0x50
 
 SOPHIE_AUDIO = 0xE0000400
 AUDIO_START_ADDR   = 0x0
@@ -7,6 +9,25 @@ AUDIO_FREQUENCY    = 0x8
 AUDIO_LENGTH       = 0xC
 AUDIO_LOOP_POS     = 0x10
 AUDIO_AUDIO_OUT    = 0x14
+
+
+
+# Set copperlist
+ld $1, HWREGS
+ld $2, 0x2460
+stw $2, $1[HWREGS_COPPER]
+
+ld $3, 0x00FD4000   # COPPER: Wait (-44,0)
+stw $3, $2[0]
+ld $3, 0x10000004   # Write to address 0x0004
+stw $3, $2[4]
+ld $3, 0xCAFEBABE   # Data to write 
+stw $3, $2[8]
+ld $3, 0x007FF7FF   # COPPER: Wait forever
+stw $3, $2[12]
+stw 0,  $2[16]
+
+
 
 # Create a waveform in memory
 ld $1, 0x5000

@@ -29,6 +29,8 @@ module iris (
     input logic [15:0]     aux_iris_addr,
     input logic [31:0]     aux_iris_wdata,
     output logic [9:0]     ypos,
+    output logic [10:0]    xpos,
+    output logic           start_of_frame,
     input  logic [25:0]    vga_obj_list,
 
     // SDRAM interface for VGA
@@ -53,8 +55,6 @@ module iris (
 
 logic           start_of_pixel;
 logic           start_of_line;
-logic           start_of_frame;
-logic [10:0]    xpos;
 logic           vga_clk;
 logic           hsync;
 logic           vsync;
@@ -310,15 +310,6 @@ iris_ram_access  iris_ram_access_inst (
     .objfetch_sdram_rvalid(objfetch_sdram_rvalid),
     .objfetch_sdram_rdata(objfetch_sdram_rdata),
     .objfetch_sdram_rtag(objfetch_sdram_rtag),
-
-    // copper: currently unused
-    .copper_sdram_ready(),
-    .copper_sdram_req(1'b0),
-    .copper_sdram_addr(26'b0),
-    .copper_sdram_tag(6'b0),
-    .copper_sdram_rvalid(),
-    .copper_sdram_rdata(),
-    .copper_sdram_rtag(),
 
     .vga_sdram_ack(vga_sdram_ready),
     .vga_sdram_req(vga_sdram_req),

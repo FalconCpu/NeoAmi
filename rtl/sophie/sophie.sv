@@ -28,7 +28,9 @@ module sophie (
     output logic        aux_iris_req,        // Request to read/write the Iris memory
     output logic [15:0] aux_iris_addr,       // Address for the read/write operation
     output logic [31:0] aux_iris_wdata,      // Data to be written to the Iris memory
-    input  logic [9:0]  ypos,                // Current Y position of the rasterizer (for debug)
+    input  logic [9:0]  ypos,                // Current Y position of the rasterizer
+    input  logic [10:0] xpos,                // Current X position of the rasterizer
+    input  logic        start_of_frame,
     output logic [25:0] vga_obj_list,
 
     // Gemma bus (read/write)
@@ -95,10 +97,21 @@ logic [31:0] combined_hwregs_rdata;
 logic         audio_sdram_req;
 logic         audio_sdram_ack;
 logic [25:0]  audio_sdram_addr;
-logic [7:0]   audio_sdram_tag;
 logic [1:0]   audio_sdram_rvalid;
 logic [31:0]  audio_sdram_rdata;
-logic [7:0]   audio_sdram_rtag;
+
+// Copper SDRAM interface
+logic         copper_sdram_req;
+logic         copper_sdram_ack;
+logic [25:0]  copper_sdram_addr;
+logic [1:0]   copper_sdram_rvalid;
+logic [31:0]  copper_sdram_rdata;
+
+// Copper auxiliary interface signals
+logic         copper_aux_req;
+logic         copper_aux_ack;
+logic [19:0]  copper_aux_addr;
+logic [31:0]  copper_aux_wdata;
 
 assign combined_hwregs_rdata = aux_hwregs_rdata | audio_hwregs_rdata;
 
@@ -118,6 +131,10 @@ sophie_address_decoder  sophie_address_decoder_inst (
     .cpu_aux_rvalid(cpu_aux_rvalid),
     .cpu_aux_rdata(cpu_aux_rdata),
     .cpu_aux_rdest(cpu_aux_rdest),
+    .copper_aux_req(copper_aux_req),
+    .copper_aux_ack(copper_aux_ack),
+    .copper_aux_addr(copper_aux_addr),
+    .copper_aux_wdata(copper_aux_wdata),
     .aux_hwregs_req(aux_hwregs_req),
     .aux_hwregs_write(aux_hwregs_write),
     .aux_hwregs_addr(aux_hwregs_addr),
@@ -172,19 +189,27 @@ sophie_sdram_arb  sophie_sdram_arb_inst (
     .audio_sdram_req(audio_sdram_req),
     .audio_sdram_ack(audio_sdram_ack),
     .audio_sdram_addr(audio_sdram_addr),
-    .audio_sdram_tag(audio_sdram_tag),
     .sophie_sdram_req(sophie_sdram_req),
     .sophie_sdram_ack(sophie_sdram_ack),
     .sophie_sdram_addr(sophie_sdram_addr),
     .sophie_sdram_tag(sophie_sdram_tag),
     .sophie_sdram_rvalid(sophie_sdram_rvalid),
     .sophie_sdram_rtag(sophie_sdram_rtag),
-    .sophie_sdram_rdata(sophie_sdram_rdata)
+    .sophie_sdram_rdata(sophie_sdram_rdata),
+    .audio_sdram_rdata(audio_sdram_rdata),
+    .audio_sdram_rvalid(audio_sdram_rvalid),
+    .copper_sdram_req(copper_sdram_req),
+    .copper_sdram_ack(copper_sdram_ack),
+    .copper_sdram_addr(copper_sdram_addr),
+    .copper_sdram_rvalid(copper_sdram_rvalid),
+    .copper_sdram_rdata(copper_sdram_rdata)
   );
 
 // ================================================================
 //                  HWREGS interface
 // ================================================================
+
+logic [25:0] copperlist_addr;
 
 sophie_hwregs  sophie_hwregs_inst (
     .clock(clock),
@@ -220,9 +245,31 @@ sophie_hwregs  sophie_hwregs_inst (
     .mouse_x(mouse_x),
     .mouse_y(mouse_y),
     .cpu_pc(cpu_pc),
+    .copperlist_addr(copperlist_addr),
     .vga_obj_list(vga_obj_list)
   );
 
-wire unused = &{audio_sdram_rtag};
+// ================================================================
+//                  COPPER
+// ================================================================
+
+copper  copper_inst (
+    .clock(clock),
+    .reset(reset),
+    .copper_aux_req(copper_aux_req),
+    .copper_aux_ack(copper_aux_ack),
+    .copper_aux_addr(copper_aux_addr),
+    .copper_aux_wdata(copper_aux_wdata),
+    .ypos(ypos),
+    .xpos(xpos),
+    .start_of_frame(start_of_frame),
+    .copperlist_addr(copperlist_addr),
+    .copper_sdram_req(copper_sdram_req),
+    .copper_sdram_ack(copper_sdram_ack),
+    .copper_sdram_addr(copper_sdram_addr),
+    .copper_sdram_rvalid(copper_sdram_rvalid),
+    .copper_sdram_rdata(copper_sdram_rdata)
+  );
+
 
 endmodule
